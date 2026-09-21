@@ -190,3 +190,35 @@ test("quick amount, hold and resume keep correct amount", async ({ page }) => {
     ),
   ).toBeTruthy();
 });
+
+test("locked till can sign out without a PIN when no sales or carts are pending", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(
+    page.getByText("Posnic Cloud account", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Your own server", { exact: true }),
+  ).toBeVisible();
+  await page.getByTestId("start-training").click();
+  await page.getByRole("tab", { name: "More", exact: true }).click();
+  await page.getByText("Set unlock PIN", { exact: true }).click();
+  await page.getByRole("textbox", { name: "PIN", exact: true }).fill("4829");
+  await page
+    .getByRole("textbox", { name: "Confirm PIN", exact: true })
+    .fill("4829");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await page.getByRole("tab", { name: "More", exact: true }).click();
+  await page.getByRole("button", { name: "Lock now", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Sign out / switch user", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Sign in", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Unlock", exact: true }),
+  ).toHaveCount(0);
+});

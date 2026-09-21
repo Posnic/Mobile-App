@@ -125,7 +125,12 @@ export class SessionVault {
     const value = await this.store.get("posnic.pin");
     return value ? JSON.parse(value) : null;
   }
-  private async derive(pin: string, salt: string) {
+  private async derive(
+    pin: string,
+    salt: string,
+    generation = this.generation,
+  ) {
+    const started = Date.now();
     let secret = await this.store.get("posnic.install-secret");
     if (!secret) {
       secret = bytesToHex(this.random(32));
@@ -138,6 +143,10 @@ export class SessionVault {
       dkLen: 32,
       maxmem: 64 * 1024 * 1024,
       asyncTick: 8,
+      onProgress: () => {
+        if (generation !== this.generation) throw new Error("pinLocked");
+        if (Date.now() - started > 20000) throw new Error("pinTimeout");
+      },
     });
   }
   private async seal(
@@ -159,6 +168,7 @@ export class SessionVault {
   }
   enroll(pin: string) {
     return this.serial(async () => {
+      const generation = this.generation;
       if (!validPin(pin)) throw new Error("pinWeak");
       if ((await this.hasPin()) && !this.active) throw new Error("pinLocked");
       const account = (await this.account()) ?? {
@@ -169,6 +179,10 @@ export class SessionVault {
       };
       const salt = bytesToHex(this.random(16));
       const key = await this.derive(pin, salt);
+      if (generation !== this.generation) {
+        key.fill(0);
+        throw new Error("pinLocked");
+      }
       await this.seal({ salt, nonce: "", data: "", failures: 0 }, key, account);
       this.key?.fill(0);
       this.key = key;
@@ -206,7 +220,7 @@ export class SessionVault {
         "posnic.pin",
         JSON.stringify({ ...record, failures: record.failures + 1 }),
       );
-      const key = await this.derive(pin, record.salt);
+      const key = await this.derive(pin, record.salt, generation);
       let account: RememberedAccount;
       try {
         account = JSON.parse(
