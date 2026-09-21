@@ -17,11 +17,7 @@
     },
     "android": {
       "package": "com.posnic.mobile",
-      "permissions": [
-        "CAMERA",
-        "ACCESS_NETWORK_STATE",
-        "ACCESS_WIFI_STATE"
-      ],
+      "permissions": ["CAMERA", "ACCESS_NETWORK_STATE", "ACCESS_WIFI_STATE"],
       "versionCode": 7,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
