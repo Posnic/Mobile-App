@@ -12,3 +12,4 @@ test-results/
 *.jks
 *.p12
 
+artifacts/

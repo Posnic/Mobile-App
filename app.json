@@ -2,6 +2,7 @@
   "expo": {
     "name": "Posnic POS",
     "slug": "posnic-mobile",
+    "scheme": "com.posnic.mobile",
     "version": "0.2.0",
     "orientation": "default",
     "userInterfaceStyle": "automatic",
