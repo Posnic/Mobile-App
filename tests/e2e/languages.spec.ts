@@ -11,7 +11,10 @@ for (const language of languages) {
     await page.setViewportSize({ width: 320, height: 740 });
     await page.goto("/");
     await page.getByRole("button", { name: "Language", exact: true }).click();
-    await page.getByRole("radio").filter({ hasText: language.name }).click();
+    const choice = page.getByRole("radio").filter({ hasText: language.name });
+    await choice.click();
+    // The checked state is shown after the settings transaction completes.
+    await expect(choice).toBeChecked();
     await page.reload();
     await expect(
       page.getByRole("button", { name: t("signIn"), exact: true }),
