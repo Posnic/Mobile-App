@@ -2079,7 +2079,6 @@ function Till() {
                       color={selected ? palette.accent : palette.muted}
                     />
                     <Text
-                      numberOfLines={2}
                       style={[
                         styles.navLabel,
                         selected && { color: palette.accent },

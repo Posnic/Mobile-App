@@ -27,7 +27,7 @@ export function translationCoverage(locale: Locale) {
       };
 }
 export function detectLocale(tag: string): Locale {
-  const key = tag.split("-")[0]?.toLowerCase();
+  const key = tag.trim().split(/[-_]/)[0]?.toLowerCase();
   return key && Object.prototype.hasOwnProperty.call(imported, key)
     ? (key as Locale)
     : "en";

@@ -2,7 +2,9 @@ import type { Line } from "./types";
 
 /** Money crosses domain boundaries as safe integer minor units, never floats. */
 export function parseMoney(raw: string): number {
-  const text = normalizeDigits(raw.trim());
+  // Decimal keyboards can emit a comma or Arabic decimal mark. Grouped and
+  // mixed-separator values still fail the strict minor-unit parser below.
+  const text = normalizeDigits(raw.trim()).replace(/[,\u066b]/g, ".");
   if (!/^\d{1,9}(\.\d{0,2})?$/.test(text)) throw new Error("invalidAmount");
   const [whole = "0", decimal = ""] = text.split(".");
   const n = Number(whole) * 100 + Number(decimal.padEnd(2, "0"));

@@ -1,5 +1,7 @@
 {
   "ta": {
+    "cloudAccount": "Posnic கிளவுட் கணக்கு",
+    "refresh": "புதுப்பி",
     "more": "மேலும்",
     "items": "பொருட்கள்",
     "all": "எல்லா பொருட்களும்",
@@ -39,10 +41,11 @@
     "branch": "புதிய கிளை",
     "dismiss": "மறை",
     "paid": "செலுத்தப்பட்டது",
-    "unavailable": "கிடைக்கவில்லை",
-    "refresh": "புதுப்பி"
+    "unavailable": "கிடைக்கவில்லை"
   },
   "hi": {
+    "cloudAccount": "Posnic क्लाउड खाता",
+    "refresh": "रीफ़्रेश करें",
     "more": "अधिक",
     "items": "वस्तुएं",
     "all": "सभी वस्तुएं",
@@ -82,10 +85,11 @@
     "branch": "शाखा",
     "dismiss": "खारिज करें",
     "paid": "भुगतान हुआ",
-    "unavailable": "उपलब्ध नहीं",
-    "refresh": "रीफ़्रेश करें"
+    "unavailable": "उपलब्ध नहीं"
   },
   "ml": {
+    "cloudAccount": "Posnic ക്ലൗഡ് അക്കൗണ്ട്",
+    "refresh": "പുതുക്കുക",
     "more": "കൂടുതൽ",
     "items": "ഇനങ്ങൾ",
     "all": "എല്ലാ ഇനങ്ങളും",
@@ -125,10 +129,11 @@
     "branch": "ബ്രാഞ്ച്",
     "dismiss": "ഒഴിവാക്കുക",
     "paid": "അടച്ചു",
-    "unavailable": "ലഭ്യമല്ല",
-    "refresh": "പുതുക്കുക"
+    "unavailable": "ലഭ്യമല്ല"
   },
   "kn": {
+    "cloudAccount": "Posnic ಕ್ಲೌಡ್ ಖಾತೆ",
+    "refresh": "ನವೀಕರಿಸಿ",
     "more": "ಇನ್ನಷ್ಟು",
     "items": "ವಸ್ತುಗಳು",
     "all": "ಎಲ್ಲಾ ವಸ್ತುಗಳು",
@@ -168,10 +173,11 @@
     "branch": "ಶಾಖೆ",
     "dismiss": "ವಜಾಗೊಳಿಸಿ",
     "paid": "ಪಾವತಿಸಲಾಗಿದೆ",
-    "unavailable": "ಲಭ್ಯವಿಲ್ಲ",
-    "refresh": "ನವೀಕರಿಸಿ"
+    "unavailable": "ಲಭ್ಯವಿಲ್ಲ"
   },
   "te": {
+    "cloudAccount": "Posnic క్లౌడ్ ఖాతా",
+    "refresh": "రిఫ్రెష్ చేయి",
     "more": "మరిన్ని",
     "items": "వస్తువులు",
     "all": "అన్ని వస్తువులు",
@@ -211,10 +217,11 @@
     "branch": "శాఖ",
     "dismiss": "విస్మరించు",
     "paid": "చెల్లించబడింది",
-    "unavailable": "అందుబాటులో లేదు",
-    "refresh": "రిఫ్రెష్ చేయి"
+    "unavailable": "అందుబాటులో లేదు"
   },
   "si": {
+    "cloudAccount": "Posnic ක්ලවුඩ් ගිණුම",
+    "refresh": "යාවත්කාලීන කරන්න",
     "more": "තව",
     "items": "අයිතම",
     "all": "සියලු අයිතම",
@@ -254,10 +261,11 @@
     "branch": "ශාඛාව",
     "dismiss": "ඉවත් කරන්න",
     "paid": "ගෙවා ඇත",
-    "unavailable": "ලබා ගත නොහැක",
-    "refresh": "යාවත්කාලීන කරන්න"
+    "unavailable": "ලබා ගත නොහැක"
   },
   "ne": {
+    "cloudAccount": "Posnic क्लाउड खाता",
+    "refresh": "रिफ्रेस गर्नुहोस्",
     "more": "थप",
     "items": "वस्तुहरू",
     "all": "सबै वस्तुहरू",
@@ -297,10 +305,11 @@
     "branch": "शाखा",
     "dismiss": "हटाउनुहोस्",
     "paid": "तिरिएको",
-    "unavailable": "उपलब्ध छैन",
-    "refresh": "रिफ्रेस गर्नुहोस्"
+    "unavailable": "उपलब्ध छैन"
   },
   "ar": {
+    "cloudAccount": "حساب Posnic السحابي",
+    "refresh": "تحديث",
     "more": "المزيد",
     "items": "الأصناف",
     "all": "كل الأصناف",
@@ -340,10 +349,11 @@
     "branch": "فرع",
     "dismiss": "تجاهل",
     "paid": "مدفوعة",
-    "unavailable": "غير متاح",
-    "refresh": "تحديث"
+    "unavailable": "غير متاح"
   },
   "fr": {
+    "cloudAccount": "Compte cloud Posnic",
+    "refresh": "Actualiser",
     "more": "Plus",
     "items": "Articles",
     "all": "tous les articles",
@@ -383,10 +393,11 @@
     "branch": "Succursale",
     "dismiss": "Ignorer",
     "paid": "PAYÉ",
-    "unavailable": "Indisponible",
-    "refresh": "Actualiser"
+    "unavailable": "Indisponible"
   },
   "es": {
+    "cloudAccount": "Cuenta en la nube de Posnic",
+    "refresh": "Actualizar",
     "more": "Más",
     "items": "Artículos",
     "all": "todos los artículos",
@@ -426,10 +437,11 @@
     "branch": "Sucursal",
     "dismiss": "Descartar",
     "paid": "PAGADO",
-    "unavailable": "No disponible",
-    "refresh": "Actualizar"
+    "unavailable": "No disponible"
   },
   "pt": {
+    "cloudAccount": "Conta na nuvem Posnic",
+    "refresh": "Atualizar",
     "more": "Mais",
     "items": "Itens",
     "all": "todos os itens",
@@ -469,10 +481,11 @@
     "branch": "Filial",
     "dismiss": "Dispensar",
     "paid": "PAGO",
-    "unavailable": "Indisponível",
-    "refresh": "Atualizar"
+    "unavailable": "Indisponível"
   },
   "id": {
+    "cloudAccount": "Akun Cloud Posnic",
+    "refresh": "Muat ulang",
     "more": "Selengkapnya",
     "items": "Barang",
     "all": "semua barang",
@@ -512,10 +525,11 @@
     "branch": "Cabang",
     "dismiss": "Abaikan",
     "paid": "LUNAS",
-    "unavailable": "Tidak tersedia",
-    "refresh": "Muat ulang"
+    "unavailable": "Tidak tersedia"
   },
   "th": {
+    "cloudAccount": "บัญชีคลาวด์ Posnic",
+    "refresh": "รีเฟรช",
     "more": "เพิ่มเติม",
     "items": "สินค้า",
     "all": "สินค้าทั้งหมด",
@@ -555,10 +569,11 @@
     "branch": "สาขา",
     "dismiss": "ซ่อน",
     "paid": "ชำระแล้ว",
-    "unavailable": "ไม่พร้อมใช้งาน",
-    "refresh": "รีเฟรช"
+    "unavailable": "ไม่พร้อมใช้งาน"
   },
   "de": {
+    "cloudAccount": "Posnic-Cloud-Konto",
+    "refresh": "Aktualisieren",
     "more": "Mehr",
     "items": "Artikel",
     "all": "alle Artikel",
@@ -598,10 +613,11 @@
     "branch": "Filiale",
     "dismiss": "Verwerfen",
     "paid": "BEZAHLT",
-    "unavailable": "Nicht verfügbar",
-    "refresh": "Aktualisieren"
+    "unavailable": "Nicht verfügbar"
   },
   "sw": {
+    "cloudAccount": "Akaunti ya wingu ya Posnic",
+    "refresh": "Onyesha upya",
     "more": "Zaidi",
     "items": "Bidhaa",
     "all": "bidhaa zote",
@@ -641,10 +657,11 @@
     "branch": "Tawi",
     "dismiss": "Ondoa",
     "paid": "IMELIPWA",
-    "unavailable": "Haipatikani",
-    "refresh": "Onyesha upya"
+    "unavailable": "Haipatikani"
   },
   "nl": {
+    "cloudAccount": "Posnic-cloudaccount",
+    "refresh": "Vernieuwen",
     "more": "Meer",
     "items": "Artikelen",
     "all": "alle artikelen",
@@ -684,10 +701,11 @@
     "branch": "Filiaal",
     "dismiss": "Negeren",
     "paid": "BETAALD",
-    "unavailable": "Niet beschikbaar",
-    "refresh": "Vernieuwen"
+    "unavailable": "Niet beschikbaar"
   },
   "it": {
+    "cloudAccount": "Account cloud Posnic",
+    "refresh": "Aggiorna",
     "more": "Altro",
     "items": "Articoli",
     "all": "tutti gli articoli",
@@ -727,7 +745,6 @@
     "branch": "Filiale",
     "dismiss": "Ignora",
     "paid": "PAGATO",
-    "unavailable": "Non disponibile",
-    "refresh": "Aggiorna"
+    "unavailable": "Non disponibile"
   }
 }
