@@ -39,6 +39,27 @@ for (const language of languages) {
     await expect(
       page.getByRole("heading", { name: t("saved"), exact: true }),
     ).toBeVisible();
+    for (const tab of await page.getByRole("tab").all()) {
+      expect(
+        await tab.evaluate((element) => {
+          const bounds = element.getBoundingClientRect();
+          const walker = document.createTreeWalker(
+            element,
+            NodeFilter.SHOW_TEXT,
+          );
+          let text;
+          while ((text = walker.nextNode())) {
+            const range = document.createRange();
+            range.selectNodeContents(text);
+            for (const rect of range.getClientRects()) {
+              if (rect.left < bounds.left - 1 || rect.right > bounds.right + 1)
+                return false;
+            }
+          }
+          return true;
+        }),
+      ).toBeTruthy();
+    }
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,
