@@ -15,7 +15,7 @@ SQLCipher SQLite and SecureStore. The matching POS desktop test build includes t
 | Payments | Cash, branch UPI account selection and amount QR, explicit staff confirmation | Branch account administration in POS, verified UPI attempts, terminal providers/readers, uncertain-payment recovery |
 | Printing | Escaped localized HTML receipts, OS print service, separate test document, till-job client | Real printer drivers, delivery tracking, durable offline queue, audited reprints and multilingual hardware QA |
 | Minimal management | Local customer attached to sale; training-only item creation with PLU uniqueness | Version-checked live item/price writes, server customer deduplication and existing customer search |
-| Languages | All 18 choices; English/Tamil complete current keys; other 16 partial beta packs; Arabic direction | Beta completion and native-speaker review; thermal-printer font coverage |
+| Languages | All 18 POS languages have all 198 mobile messages; bundled offline packs, persisted choice and Arabic direction | Native-speaker review of beta translations; physical-device and thermal-printer font coverage |
 | Training | Isolated sample shop; no live upload; explicit practice-data clearing to return to onboarding | Additional fixtures for complex retail/hospitality cases |
 
 The matching POS backend implements the mobile API. Enable the branch under

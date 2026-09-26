@@ -35,6 +35,9 @@ const codes = [
 ];
 const result = {},
   coverage = {};
+const mobile = JSON.parse(
+  fs.readFileSync(path.join(root, "src/i18n/mobile.json"), "utf8"),
+);
 for (const code of codes) {
   const pack = JSON.parse(
     fs.readFileSync(path.join(source, code + ".json"), "utf8"),
@@ -50,7 +53,9 @@ for (const code of codes) {
       result[code][k] = pack[sourceKey];
   }
   coverage[code] = {
-    translated: Object.keys(result[code]).length,
+    translated: Object.keys(en).filter(
+      (key) => mobile[code]?.[key]?.trim() || result[code][key]?.trim(),
+    ).length,
     total: Object.keys(en).length,
   };
 }

@@ -8,6 +8,11 @@ import { receiptHtml } from "../src/services/receipt";
 test("money parsing preserves paise and rejects exponent, NaN, signs and excess precision", () => {
   assert.equal(parseMoney("123.45"), 12345);
   assert.equal(parseMoney("٠١.٥٠"), 150);
+  assert.equal(parseMoney("١٢٫٥٠"), 1250);
+  assert.equal(parseMoney("12,50"), 1250);
+  assert.equal(parseMoney("१२.५०"), 1250);
+  for (const grouped of ["1,234", "1.234,50", "1,234.50", "١٬٢٣٤", "1,2,3"])
+    assert.throws(() => parseMoney(grouped));
   for (const value of ["1e3", "NaN", "-1", "1.234", "Infinity", ""])
     assert.throws(() => parseMoney(value));
 });

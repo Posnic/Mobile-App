@@ -38,8 +38,9 @@ Do not uninstall or clear storage on a device with unsynced sales.
 - Branch UPI account selection and amount-bound QR generation. Manual confirmation
   stays explicitly staff-confirmed; it never implies bank verification.
 - Phone print-service receipts and a capability-gated till print-job client.
-- All 18 language choices, Arabic direction, Tamil mobile translations, beta packs
-  with visible coverage and English fallback.
+- All 18 POS languages with complete mobile message coverage, Arabic direction,
+  localized receipts and offline language packs. Translations remain beta pending
+  native-speaker review; shop-entered product names are preserved.
 - Isolated training shop for evaluation without a server.
 - Account-first browser sign-in and free-trial signup, explicit device approval,
   authenticated local-till discovery, Community LAN/QR/code fallback and PIN unlock.
@@ -53,8 +54,9 @@ the matching web-api, Gateway and website release. See the release notes for dep
 
 See [implementation status](docs/IMPLEMENTATION_STATUS.md) and the required
 [server contract](docs/MOBILE_API.md). Direct Bluetooth/USB printer drivers, provider-confirmed UPI/card payments and
-native hardware QA remain release requirements. English and Tamil have all current
-keys; the other 16 packs have partial mobile keys and need completion and language review.
+native hardware QA remain release requirements. All language packs have every current
+mobile key; native-speaker review and physical-device font checks remain outstanding.
+See [language support](docs/LANGUAGES.md).
 
 ## Checks
 

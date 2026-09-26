@@ -2079,7 +2079,6 @@ function Till() {
                       color={selected ? palette.accent : palette.muted}
                     />
                     <Text
-                      numberOfLines={2}
                       style={[
                         styles.navLabel,
                         selected && { color: palette.accent },
@@ -2416,6 +2415,7 @@ function makeStyles(p: {
     },
     navItem: {
       flex: 1,
+      minWidth: 0,
       minHeight: 58,
       justifyContent: "center",
       alignItems: "center",
@@ -2423,7 +2423,12 @@ function makeStyles(p: {
       borderRadius: 12,
       padding: 4,
     },
-    navLabel: { fontSize: 11, color: p.muted, textAlign: "center" },
+    navLabel: {
+      width: "100%",
+      fontSize: 11,
+      color: p.muted,
+      textAlign: "center",
+    },
     loading: { padding: 30, alignItems: "center", gap: 20 },
     busy: { position: "absolute", top: 16, right: 16 },
     qr: {
