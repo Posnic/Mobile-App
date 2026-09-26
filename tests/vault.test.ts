@@ -76,3 +76,16 @@ test("five failures persist across restarts; recovery preserves server account",
   assert.equal(await vault.hasPin(), false);
   assert.equal(await vault.token(), account.token);
 });
+
+test("cancelling an in-flight unlock cannot restore a session later", async () => {
+  const { vault } = setup();
+  await vault.remember(account);
+  await vault.enroll("4829");
+  vault.lock();
+  const opening = vault.unlock("4829");
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  vault.lock();
+  await assert.rejects(() => opening, /pinLocked/);
+  assert.equal(await vault.token(), null);
+  assert.deepEqual(await vault.unlock("4829"), account);
+});

@@ -110,6 +110,37 @@ export class Repository {
       this.catalogueCache = null;
     });
   }
+  async signOut() {
+    return this.serial(async () => {
+      const sales = await this.store.list<Sale>("sale:");
+      const cart = await this.store.get<Cart>("cart");
+      if (
+        (await this.store.list<Outbox>("outbox:")).length ||
+        sales.some(
+          (s) =>
+            !s.training && (s.sync !== "synced" || s.tillPrint === "pending"),
+        )
+      )
+        throw new Error("signOutPending");
+      if (cart?.lines.length || (await this.store.list<Cart>("held:")).length)
+        throw new Error("signOutCart");
+      const shop = await this.store.get<Shop>("shop");
+      const changes: Change[] = ["shop", "cart", "receipt-sequence"].map(
+        (key) => ({ key, value: null }),
+      );
+      // Keep acknowledged receipts locally without exposing another cashier's history.
+      for (const sale of sales)
+        changes.push({
+          key: `archive:${shop?.id}:${shop?.staffId}:${sale.id}`,
+          value: sale,
+        });
+      for (const prefix of ["item:", "sale:", "held:", "customer:"])
+        for (const row of await this.store.list<{ id: string }>(prefix))
+          changes.push({ key: prefix + row.id, value: null });
+      await this.store.batch(changes);
+      this.catalogueCache = null;
+    });
+  }
   private async authorized(action: keyof Shop["permissions"]): Promise<Shop> {
     const shop = await this.store.get<Shop>("shop");
     if (!shop || !shop.permissions[action]) throw new Error("permissionDenied");

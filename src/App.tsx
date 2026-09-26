@@ -149,6 +149,9 @@ function Till() {
   const [syncing, setSyncing] = useState(false);
   const syncLock = useRef(false);
   const [connectionError, setConnectionError] = useState("");
+  const [unlocking, setUnlocking] = useState(false);
+  const [confirmSignOut, setConfirmSignOut] = useState(false);
+  const unlockAttempt = useRef(0);
   const [accountId, setAccountId] = useState<string | undefined>(),
     [checked, setChecked] = useState(false),
     [reference, setReference] = useState(""),
@@ -325,6 +328,10 @@ function Till() {
   }
 
   const lock = () => {
+    accountRequest.current?.abort();
+    discovery.current?.abort();
+    unlockAttempt.current++;
+    setUnlocking(false);
     vault.lock();
     setLocked(true);
     setPin("");
@@ -332,6 +339,69 @@ function Till() {
     setRecovering(false);
     setError("");
   };
+  async function unlockSession() {
+    const attempt = ++unlockAttempt.current;
+    setUnlocking(true);
+    setError("");
+    const timeout = setTimeout(() => {
+      if (attempt !== unlockAttempt.current) return;
+      unlockAttempt.current++;
+      vault.lock();
+      setUnlocking(false);
+      setError("pinTimeout");
+    }, 21000);
+    try {
+      await vault.unlock(pin);
+      if (attempt !== unlockAttempt.current) return;
+      setPin("");
+      setLocked(false);
+      // A warm resume already owns an open database and worker. Do not rebuild
+      // those or wait for a network sync to unlock the checkout.
+      if (!repo) setBootAttempt((n) => n + 1);
+    } catch (e) {
+      if (attempt === unlockAttempt.current)
+        setError(e instanceof Error ? e.message : "pinWrong");
+    } finally {
+      clearTimeout(timeout);
+      if (attempt === unlockAttempt.current) setUnlocking(false);
+    }
+  }
+  async function signOut() {
+    if (syncLock.current) {
+      setError("signOutSyncing");
+      return;
+    }
+    syncLock.current = true;
+    unlockAttempt.current++;
+    if (locked) vault.lock();
+    setUnlocking(false);
+    setBusy(true);
+    try {
+      const repository = repo ?? new Repository(await openStorage(), uuid);
+      await repository.signOut();
+      await vault.clear();
+      setWorker(null);
+      setRepo(null);
+      setState(null);
+      setPassword("");
+      setUsername("");
+      setServer("");
+      setPin("");
+      setPinEnabled(false);
+      setLocked(false);
+      setRecovering(false);
+      setConfirmSignOut(false);
+      setLocalSetup(false);
+      setBootAttempt((n) => n + 1);
+      go("sell");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "unknownError");
+      setConfirmSignOut(false);
+    } finally {
+      syncLock.current = false;
+      setBusy(false);
+    }
+  }
   useEffect(() => {
     if (!pinEnabled) return;
     if (AppState.currentState === "background") lock();
@@ -419,12 +489,12 @@ function Till() {
       testID={testID}
       accessibilityRole="button"
       accessibilityLabel={label}
-      disabled={busy || disabled}
+      disabled={(busy && !locked) || disabled}
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
         primary && styles.primary,
-        (busy || disabled) && styles.disabled,
+        ((busy && !locked) || disabled) && styles.disabled,
         pressed && styles.pressed,
       ]}
     >
@@ -605,10 +675,31 @@ function Till() {
   );
 
   function content() {
+    if (confirmSignOut)
+      return (
+        <>
+          {heading(t("switchUser"))}
+          {help(t("signOutHelp"))}
+          {error && help(t(error))}
+          {button(t("signOut"), () => void signOut(), true, busy)}
+          {button(t("cancel"), () => setConfirmSignOut(false), false, busy)}
+        </>
+      );
     if (locked)
       return (
         <>
           {heading(t(recovering ? "passwordRecovery" : "unlock"))}
+          <View
+            style={{
+              alignSelf: "flex-start",
+              backgroundColor: palette.soft,
+              borderRadius: 16,
+              padding: 14,
+              marginBottom: 12,
+            }}
+          >
+            {icon("lock", 24)}
+          </View>
           {help(username || t("pinHelp"))}
           {error && (
             <Text accessibilityRole="alert" style={styles.body}>
@@ -623,6 +714,7 @@ function Till() {
                 t("signIn"),
                 () =>
                   void run(async () => {
+                    const attempt = ++unlockAttempt.current;
                     const storage = await openStorage();
                     const saved = await new Repository(storage, uuid).load();
                     if (
@@ -634,6 +726,7 @@ function Till() {
                     const data = await new PosnicApi(
                       saved.shop.baseUrl,
                     ).connect(username, password, undefined, false);
+                    if (attempt !== unlockAttempt.current) return;
                     if (
                       data.shop.id !== saved.shop.id ||
                       data.shop.branchId !== saved.shop.branchId ||
@@ -653,9 +746,10 @@ function Till() {
                     go("pin");
                   }),
                 true,
-                !username || !password,
+                busy || !username || !password,
               )}
               {button(t("back"), () => {
+                unlockAttempt.current++;
                 setRecovering(false);
                 setError("");
               })}
@@ -671,22 +765,26 @@ function Till() {
               )}
               {button(
                 t("unlock"),
-                () =>
-                  void run(async () => {
-                    await vault.unlock(pin);
-                    setPin("");
-                    setLocked(false);
-                    setBootAttempt((n) => n + 1);
-                  }),
+                () => void unlockSession(),
                 true,
-                pin.length < 4,
+                pin.length < 4 || unlocking,
+              )}
+              {unlocking && (
+                <>
+                  {help(t("unlocking"))}
+                  {button(t("cancel"), lock)}
+                </>
               )}
               {button(t("passwordRecovery"), () => {
+                unlockAttempt.current++;
+                vault.lock();
+                setUnlocking(false);
                 setRecovering(true);
                 setError("");
               })}
             </>
           )}
+          {button(t("switchUser"), () => setConfirmSignOut(true))}
         </>
       );
 
@@ -723,6 +821,12 @@ function Till() {
           </View>
           {!localSetup ? (
             <View style={styles.setupCard}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+              >
+                {icon("cloud", 18)}
+                <Text style={styles.fieldLabel}>{t("cloudAccount")}</Text>
+              </View>
               {help(t("accountConnectHelp"))}
               {(["login", "signup"] as const).map((intent) => (
                 <React.Fragment key={intent}>
@@ -775,7 +879,23 @@ function Till() {
                   </Pressable>
                 </>
               )}
-              {button(t("connectLocalShop"), () => setLocalSetup(true))}
+              <View
+                style={{
+                  borderTopWidth: 1,
+                  borderTopColor: palette.line,
+                  paddingTop: 18,
+                  marginTop: 12,
+                }}
+              >
+                <View
+                  style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+                >
+                  {icon("server", 18)}
+                  <Text style={styles.fieldLabel}>{t("selfHosted")}</Text>
+                </View>
+                {help(t("selfHostedHelp"))}
+                {button(t("connectLocalShop"), () => setLocalSetup(true))}
+              </View>
             </View>
           ) : (
             <View style={styles.setupCard}>
@@ -1491,6 +1611,7 @@ function Till() {
         return (
           <>
             {heading(t("receipts"))}
+            {button(t("refresh"), () => void syncNow(true), false, syncing)}
             {!state.sales.length && help(t("noReceipts"))}
             {state.sales.map((sale) => (
               <Pressable
@@ -1764,6 +1885,7 @@ function Till() {
             {heading(t("more"))}
             {menu("lock", t("setPin"), "pin")}
             {pinEnabled && button(t("lockNow"), lock)}
+            {button(t("switchUser"), () => setConfirmSignOut(true))}
             {shop.permissions.itemWrite &&
               menu("package", t("newItem"), "item")}
             {menu(

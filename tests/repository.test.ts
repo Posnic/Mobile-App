@@ -343,3 +343,31 @@ test("cart lines retain the issuing catalogue when prices refresh", async () => 
   assert.equal(sale.cart.lines[0]?.snapshotVersion, shop.snapshotVersion);
   assert.equal(sale.cart.lines[0]?.price, trainingItems[0]!.price);
 });
+
+test("sign-out refuses unpaid work and archives acknowledged receipts without exposing them to the next user", async () => {
+  const { repo, storage } = setup();
+  await repo.pair(
+    {
+      ...trainingShop,
+      mode: "live",
+      baseUrl: "https://shop.example/api",
+      capabilities: { ...trainingShop.capabilities, saleSync: true },
+    },
+    trainingItems,
+  );
+  await repo.addItem(trainingItems[0]!);
+  await assert.rejects(() => repo.signOut(), /signOutCart/);
+  const sale = await repo.checkout((await repo.load()).cart.id, {
+    method: "cash",
+    received: 5000,
+    change: 0,
+  });
+  await assert.rejects(() => repo.signOut(), /signOutPending/);
+  assert.equal((await repo.load()).outbox.length, 1);
+  await repo.acknowledge(sale.id, "server-id");
+  await repo.signOut();
+  const state = await repo.load();
+  assert.equal(state.shop, null);
+  assert.equal(state.sales.length, 0);
+  assert.equal((await storage.list("archive:")).length, 1);
+});
