@@ -19,6 +19,8 @@ export const trainingShop: Shop = {
     itemWrite: true,
     priceOverride: true,
     manualUpi: true,
+    voidLine: true,
+    receiptPrint: true,
   },
   upiAccounts: [],
   capabilities: {
@@ -40,6 +42,7 @@ export const trainingItems: Item[] = [
   name: String(name),
   price: Number(price) * 100,
   code: String(code),
+  barcode: `POSNIC-DEMO-${code}`,
   category: String(category),
   visual: String(visual),
   taxBps: 0,

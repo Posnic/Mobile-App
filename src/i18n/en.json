@@ -196,5 +196,18 @@
   "unlock": "Unlock",
   "lockNow": "Lock now",
   "passwordRecovery": "Use account password",
-  "pinTrainingRecovery": "Training has no server account for password recovery. Use your training PIN."
+  "pinTrainingRecovery": "Training has no server account for password recovery. Use your training PIN.",
+  "previous": "Previous",
+  "next": "Next",
+  "devices": "Devices",
+  "deviceSetupHelp": "Choose how to scan or print. This list does not confirm that hardware is connected.",
+  "externalScanner": "External barcode scanner",
+  "externalScannerHelp": "Pair a keyboard-mode scanner in phone settings. Set its suffix to Enter. Scan products here; leave this page to stop.",
+  "scannerReady": "Ready to scan",
+  "scannerPaused": "Scanning paused",
+  "resumeScanner": "Resume scanning",
+  "invalidScan": "Scan a product barcode. Payment, sign-in and card data are not accepted here.",
+  "printWaiting": "Waiting for the Till",
+  "printWorking": "Till is processing the print job",
+  "printReportedDone": "Till reported completion. Check the paper output."
 }

@@ -33,6 +33,25 @@ export class SyncWorker {
     )
       return;
     const client = this.api(state.shop.baseUrl!, state.shop);
+    if (client.catalogue) {
+      try {
+        const snapshot = await client.catalogue();
+        await this.repository.refreshCatalogue(snapshot.shop, snapshot.items);
+      } catch (error) {
+        if (error instanceof ApiError && [401, 403].includes(error.status)) {
+          await this.repository.suspendPermissions(state.shop);
+          throw error;
+        }
+        if (
+          !(error instanceof ApiError) ||
+          (error.status !== 0 && error.status < 500)
+        )
+          throw error;
+        // A transport failure must not revoke an unexpired offline grant.
+        this.lastError =
+          error instanceof Error ? error.message : "networkError";
+      }
+    }
     for (const entry of state.outbox) {
       if (
         entry.state === "review" ||
@@ -76,12 +95,6 @@ export class SyncWorker {
         this.lastError =
           error instanceof Error ? error.message : "networkError";
         break;
-      }
-    }
-    if (state.shop.baseUrl) {
-      if (client.catalogue) {
-        const snapshot = await client.catalogue();
-        await this.repository.refreshCatalogue(snapshot.shop, snapshot.items);
       }
     }
   }

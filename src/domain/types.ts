@@ -84,6 +84,8 @@ export interface Shop {
     itemWrite: boolean;
     priceOverride: boolean;
     manualUpi: boolean;
+    voidLine?: boolean;
+    receiptPrint?: boolean;
   };
   upiAccounts: UpiAccount[];
   defaultUpiAccountId?: string;
@@ -91,6 +93,7 @@ export interface Shop {
     saleSync: boolean;
     devicePairing: boolean;
     tillPrint: boolean;
+    printStatus?: boolean;
     terminal: boolean;
   };
 }

@@ -8,6 +8,8 @@ import React, {
 import {
   ActivityIndicator,
   AppState,
+  BackHandler,
+  RefreshControl,
   FlatList,
   Image,
   Linking,
@@ -51,6 +53,10 @@ import { wifiAddress } from "./platform/wifi";
 import * as Network from "expo-network";
 import { printSale, printTest } from "./platform/printing";
 import { vault } from "./platform/vault";
+import { GestureScroll } from "./components/GestureScroll";
+import { adjacentRecord } from "./domain/gestures";
+import { deviceOptions, receiptJobMessage } from "./domain/devices";
+import { ScanQueue } from "./domain/scanQueue";
 import { Brand } from "./components/Brand";
 import { authorizeAccount } from "./services/accountAuthorization";
 
@@ -72,6 +78,7 @@ type Screen =
   | "item"
   | "code"
   | "scanner"
+  | "externalScanner"
   | "leaveTraining"
   | "pin";
 type IconName = React.ComponentProps<typeof Feather>["name"];
@@ -86,6 +93,19 @@ export default function App() {
 }
 
 function Till() {
+  const scannerInput = useRef<TextInput>(null);
+  const scannerValue = useRef("");
+  const scanWriting = useRef(0);
+  const [scanValue, setScanValue] = useState("");
+  const [scanResult, setScanResult] = useState("");
+  const [scannerFocused, setScannerFocused] = useState(false);
+  const [receiptJob, setReceiptJob] = useState<{
+    saleId: string;
+    state: keyof typeof receiptJobMessage;
+  } | null>(null);
+  const scrollRef = useRef<ScrollView>(null);
+  const [receiptDetails, setReceiptDetails] = useState(false);
+  const receiptOrder = useRef<string[]>([]);
   const [localSetup, setLocalSetup] = useState(false);
   const [authorizationCode, setAuthorizationCode] = useState("");
   const accountRequest = useRef<AbortController | null>(null);
@@ -112,6 +132,24 @@ function Till() {
   const [state, setState] = useState<SessionData | null>(null),
     [repo, setRepo] = useState<Repository | null>(null),
     [worker, setWorker] = useState<SyncWorker | null>(null);
+  const scans = useMemo(
+    () => (repo ? new ScanQueue((value) => repo.scanProduct(value)) : null),
+    [repo],
+  );
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (value) => {
+      if (value !== "active") {
+        scans?.cancel();
+        scannerInput.current?.blur();
+        scannerValue.current = "";
+        setScanValue("");
+      }
+    });
+    return () => {
+      subscription.remove();
+      scans?.cancel();
+    };
+  }, [scans]);
   const [screen, setScreen] = useState<Screen>("sell"),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
@@ -174,8 +212,12 @@ function Till() {
   }, [repo]);
   useEffect(() => setItemPage(0), [query, category]);
   const go = (next: Screen) => {
+    if (scanWriting.current) return;
     setError("");
     setNotice("");
+    scannerValue.current = "";
+    setScanValue("");
+    setScanResult("");
     if (next === "scanner") scannerHandled.current = false;
     if (next === "cash") setCash("");
     if (next === "upi") {
@@ -183,6 +225,7 @@ function Till() {
       setChecked(false);
       setReference("");
     }
+    if (next === screen) scrollRef.current?.scrollTo({ y: 0, animated: true });
     setScreen(next);
   };
 
@@ -263,6 +306,67 @@ function Till() {
     },
     [worker, repo, locked],
   );
+  const refreshList = useCallback(async () => {
+    if (actionLock.current || locked) return;
+    try {
+      await syncNow(true);
+    } catch {
+      setError("storageUnavailable");
+    }
+  }, [syncNow, locked]);
+  const refreshable =
+    !!shop && !locked && ["sell", "held", "receipts"].includes(screen);
+  const backTarget: Screen =
+    screen === "externalScanner"
+      ? "devices"
+      : screen === "done" && receiptDetails
+        ? "receipts"
+        : ["cash", "upi", "customer"].includes(screen)
+          ? "cart"
+          : [
+                "language",
+                "printer",
+                "devices",
+                "connection",
+                "item",
+                "leaveTraining",
+                "pin",
+              ].includes(screen) && shop
+            ? "more"
+            : "sell";
+  const navigateBack = () => {
+    if (busy || actionLock.current) return true;
+    if (locked || screen === "sell") return false;
+    go(backTarget);
+    return true;
+  };
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      navigateBack,
+    );
+    return () => subscription.remove();
+  });
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, [screen, selectedSale?.id]);
+  const browseReceipt = (direction: "next" | "previous") => {
+    if (busy || locked || !receiptDetails || screen !== "done" || !lastSale)
+      return;
+    const id = adjacentRecord(
+      receiptOrder.current.filter((id) =>
+        state?.sales.some((s) => s.id === id),
+      ),
+      lastSale.id,
+      direction,
+    );
+    const sale = state?.sales.find((s) => s.id === id);
+    if (sale) {
+      setLastSale(sale);
+      setNotice("");
+      setError("");
+    }
+  };
   useEffect(() => {
     if (!worker || !repo || locked) return;
     void syncNow();
@@ -328,6 +432,9 @@ function Till() {
   }
 
   const lock = () => {
+    scans?.cancel();
+    scannerValue.current = "";
+    setScanValue("");
     accountRequest.current?.abort();
     discovery.current?.abort();
     unlockAttempt.current++;
@@ -462,6 +569,7 @@ function Till() {
         throw new Error("upiUnavailable");
       const sale = await repo.checkout(state.cart.id, payment);
       setLastSale(sale);
+      setReceiptDetails(false);
       setScreen("done");
       setAmount("");
       setNote("");
@@ -503,13 +611,22 @@ function Till() {
       </Text>
     </Pressable>
   );
-  const iconButton = (glyph: IconName, label: string, onPress: () => void) => (
+  const iconButton = (
+    glyph: IconName,
+    label: string,
+    onPress: () => void,
+    disabled = false,
+  ) => (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
       onPress={onPress}
-      disabled={busy}
-      style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}
+      disabled={busy || disabled}
+      style={({ pressed }) => [
+        styles.iconButton,
+        disabled && styles.disabled,
+        pressed && styles.pressed,
+      ]}
     >
       {icon(glyph)}
     </Pressable>
@@ -582,6 +699,8 @@ function Till() {
     <Pressable
       key={target}
       accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityHint={detail}
       onPress={() => go(target)}
       style={styles.menu}
     >
@@ -659,6 +778,7 @@ function Till() {
               "minus",
               t("remove") + " " + line.name,
               () => void run(() => repo!.quantity(line.id, -1)),
+              state!.shop?.permissions.voidLine !== true,
             )}
             <Text style={styles.value}>{line.quantity}</Text>
             {iconButton(
@@ -1090,17 +1210,10 @@ function Till() {
                     scannerHandled.current = false;
                   }
                 } else {
-                  const matches = state.items.filter(
-                    (i) => i.barcode === data && i.active,
-                  );
-                  if (matches.length === 1) {
-                    void addItem(matches[0]!);
-                    go("sell");
-                  } else {
-                    go("sell");
-                    setQuery(data);
-                    setError(matches.length ? "multipleMatches" : "noMatch");
-                  }
+                  go("sell");
+                  void run(async () => {
+                    await repo!.scanProduct(data);
+                  });
                 }
               }}
             />
@@ -1177,37 +1290,45 @@ function Till() {
                   {iconButton("grid", t("code"), () => go("code"))}
                   {iconButton("maximize", t("scan"), () => go("scanner"))}
                 </View>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.categories}
-                >
-                  {["", ...new Set(state.items.map((i) => i.category))].map(
-                    (cat) => (
-                      <Pressable
-                        key={cat}
-                        onPress={() => setCategory(cat)}
-                        accessibilityRole="button"
-                        aria-selected={category === cat}
-                        accessibilityState={{ selected: category === cat }}
-                        style={[
-                          styles.chip,
-                          category === cat && styles.chipActive,
-                        ]}
-                      >
-                        <Text
+                <View style={styles.searchRow}>
+                  <ScrollView
+                    style={{ flex: 1 }}
+                    scrollsToTop={false}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.categories}
+                  >
+                    {["", ...new Set(state.items.map((i) => i.category))].map(
+                      (cat) => (
+                        <Pressable
+                          key={cat}
+                          onPress={() => setCategory(cat)}
+                          accessibilityRole="button"
+                          aria-selected={category === cat}
+                          accessibilityState={{ selected: category === cat }}
                           style={[
-                            styles.small,
-                            category === cat && { color: palette.accent },
+                            styles.chip,
+                            category === cat && styles.chipActive,
                           ]}
                         >
-                          {cat || t("all")}
-                        </Text>
-                      </Pressable>
-                    ),
-                  )}
-                </ScrollView>
+                          <Text
+                            style={[
+                              styles.small,
+                              category === cat && { color: palette.accent },
+                            ]}
+                          >
+                            {cat || t("all")}
+                          </Text>
+                        </Pressable>
+                      ),
+                    )}
+                  </ScrollView>
+                  {iconButton("refresh-cw", t("refresh"), () => {
+                    if (!busy) void refreshList();
+                  })}
+                </View>
                 <FlatList
+                  scrollsToTop={false}
                   scrollEnabled={false}
                   key={columns}
                   numColumns={columns}
@@ -1529,6 +1650,7 @@ function Till() {
       case "done":
         return (
           <>
+            {receiptDetails && back("receipts")}
             {lastSale ? (
               <>
                 <View style={styles.success}>{icon("check", 36)}</View>
@@ -1543,7 +1665,65 @@ function Till() {
                         : "savedLocally",
                   ),
                 )}
-                {help(lastSale.receipt)}
+                <Text selectable style={styles.body} testID="receipt-number">
+                  {lastSale.receipt}
+                </Text>
+                {receiptJob?.saleId === lastSale.id && (
+                  <Text style={styles.small}>
+                    {t(receiptJobMessage[receiptJob.state])}
+                  </Text>
+                )}
+                {lastSale.tillPrint &&
+                  shop.capabilities.printStatus &&
+                  button(
+                    t("refresh"),
+                    () =>
+                      void run(async () => {
+                        const status = await new PosnicApi(
+                          shop.baseUrl!,
+                        ).printReceiptStatus(lastSale.id);
+                        setReceiptJob({ saleId: lastSale.id, state: status });
+                      }),
+                    false,
+                    shop.permissions.receiptPrint !== true,
+                    "refresh-print-status",
+                  )}
+                {receiptDetails && (
+                  <View style={styles.row}>
+                    <View style={{ flex: 1 }}>
+                      {button(
+                        t("previous"),
+                        () => browseReceipt("previous"),
+                        false,
+                        busy ||
+                          !adjacentRecord(
+                            receiptOrder.current,
+                            lastSale.id,
+                            "previous",
+                          ),
+                        "previous-receipt",
+                      )}
+                    </View>
+                    <Text style={styles.small}>
+                      {receiptOrder.current.indexOf(lastSale.id) + 1} /{" "}
+                      {receiptOrder.current.length}
+                    </Text>
+                    <View style={{ flex: 1 }}>
+                      {button(
+                        t("next"),
+                        () => browseReceipt("next"),
+                        false,
+                        busy ||
+                          !adjacentRecord(
+                            receiptOrder.current,
+                            lastSale.id,
+                            "next",
+                          ),
+                        "next-receipt",
+                      )}
+                    </View>
+                  </View>
+                )}
                 {button(
                   t("newSale"),
                   () => {
@@ -1567,6 +1747,8 @@ function Till() {
                         setNotice("printed");
                       }
                     }),
+                  false,
+                  shop.permissions.receiptPrint !== true,
                 )}
               </>
             ) : (
@@ -1578,6 +1760,12 @@ function Till() {
         return (
           <>
             {heading(t("held"))}
+            {button(
+              t("refresh"),
+              () => void refreshList(),
+              false,
+              syncing || busy,
+            )}
             {!state.held.length && help(t("noHeld"))}
             {state.held.map((cart) => (
               <Pressable
@@ -1611,7 +1799,12 @@ function Till() {
         return (
           <>
             {heading(t("receipts"))}
-            {button(t("refresh"), () => void syncNow(true), false, syncing)}
+            {button(
+              t("refresh"),
+              () => void refreshList(),
+              false,
+              syncing || busy,
+            )}
             {!state.sales.length && help(t("noReceipts"))}
             {state.sales.map((sale) => (
               <Pressable
@@ -1625,6 +1818,8 @@ function Till() {
                   },
                 ]}
                 onPress={() => {
+                  receiptOrder.current = state.sales.map((s) => s.id);
+                  setReceiptDetails(true);
                   setLastSale(sale);
                   go("done");
                 }}
@@ -1791,6 +1986,7 @@ function Till() {
               <Text style={[styles.body, { flex: 1 }]}>{t("autoPrint")}</Text>
               <Switch
                 value={state.settings.autoPrint}
+                disabled={shop.permissions.receiptPrint !== true}
                 onValueChange={(value) =>
                   void run(() =>
                     repo.settings({ ...state.settings, autoPrint: value }),
@@ -1804,6 +2000,8 @@ function Till() {
                 void run(async () => {
                   await printTest(shop, state.settings, t);
                 }),
+              false,
+              shop.permissions.receiptPrint !== true,
             )}
           </>
         );
@@ -1849,9 +2047,120 @@ function Till() {
         return (
           <>
             {back("more")}
+            {heading(t("devices"))}
+            {help(t("deviceSetupHelp"))}
+            {deviceOptions(shop).map((device) => (
+              <View key={device.id}>
+                {button(
+                  t(device.label),
+                  () => {
+                    if (device.id === "camera") go("scanner");
+                    else if (device.id === "hid") go("externalScanner");
+                    else
+                      void run(async () => {
+                        await repo.settings({
+                          ...state.settings,
+                          printer:
+                            device.id === "till-print" ? "till" : "system",
+                        });
+                        go("printer");
+                      });
+                  },
+                  false,
+                  !device.enabled,
+                  `device-${device.id}`,
+                )}
+              </View>
+            ))}
+            {help(t("printSystemHelp"))}
             {heading(t("paymentDevices"))}
-            {message(t("deviceUnavailable"))}
-            {help(t("supportedOnly"))}
+            {help(t("unavailable"))}
+          </>
+        );
+      case "externalScanner":
+        return (
+          <>
+            {back("devices")}
+            {heading(t("externalScanner"))}
+            {help(t("externalScannerHelp"))}
+            {help(t(scannerFocused ? "scannerReady" : "scannerPaused"))}
+            <TextInput
+              ref={scannerInput}
+              testID="scanner-input"
+              accessibilityLabel={t("externalScanner")}
+              style={styles.input}
+              value={scanValue}
+              autoFocus
+              autoCorrect={false}
+              autoCapitalize="none"
+              showSoftInputOnFocus={false}
+              blurOnSubmit={false}
+              submitBehavior="submit"
+              maxLength={513}
+              onFocus={() => setScannerFocused(true)}
+              onBlur={() => {
+                setScannerFocused(false);
+                scannerValue.current = "";
+                setScanValue("");
+              }}
+              onChangeText={(value) => {
+                scannerValue.current = value;
+                setScanValue(value);
+              }}
+              onSubmitEditing={() => {
+                if (
+                  !scans ||
+                  (actionLock.current && !scanWriting.current) ||
+                  locked ||
+                  !scannerValue.current ||
+                  AppState.currentState === "background"
+                )
+                  return;
+                const value = scannerValue.current;
+                scannerValue.current = "";
+                setScanValue("");
+                setScanResult("");
+                setBusy(true);
+                scanWriting.current++;
+                actionLock.current = true;
+                setError("");
+                void scans
+                  .submit(value)
+                  .then(async (name) => {
+                    setScanResult(name);
+                    await refresh();
+                  })
+                  .catch((error) =>
+                    setError(
+                      error instanceof Error ? error.message : "unknownError",
+                    ),
+                  )
+                  .finally(() => {
+                    scanWriting.current--;
+                    if (!scanWriting.current) {
+                      actionLock.current = false;
+                      setBusy(false);
+                    }
+                  });
+              }}
+            />
+            {button(t("resumeScanner"), () => scannerInput.current?.focus())}
+            {!!scanResult && (
+              <Text
+                accessibilityLiveRegion="polite"
+                style={styles.body}
+                testID="scan-result"
+              >
+                {scanResult}
+              </Text>
+            )}
+            {row(t("total"), money(sum.total))}
+            {button(
+              t("cart"),
+              () => go("cart"),
+              true,
+              !state.cart.lines.length,
+            )}
           </>
         );
       case "leaveTraining":
@@ -1895,7 +2204,7 @@ function Till() {
               languages.find((l) => l.code === locale)?.name,
             )}
             {menu("printer", t("printer"), "printer")}
-            {menu("credit-card", t("paymentDevices"), "devices")}
+            {menu("cpu", t("devices"), "devices")}
             {menu("refresh-cw", t("connection"), "connection")}
             {help(shop.mode === "training" ? t("trainingHelp") : shop.name)}
             {shop.mode === "training" &&
@@ -1985,12 +2294,32 @@ function Till() {
               <Text style={styles.body}>{t(notice)}</Text>
             </View>
           )}
-          <ScrollView
-            keyboardShouldPersistTaps="handled"
+          <GestureScroll
+            testID="screen-scroll"
+            scrollRef={scrollRef}
+            width={dimensions.width}
+            rtl={rtl}
+            canGoBack={screen !== "sell" && !locked}
+            details={screen === "done" && receiptDetails && !locked}
+            blocked={busy || locked}
+            onNavigate={(action) =>
+              action === "back" ? void navigateBack() : browseReceipt(action)
+            }
+            refreshControl={
+              refreshable ? (
+                <RefreshControl
+                  refreshing={syncing}
+                  enabled={!busy}
+                  onRefresh={() => void refreshList()}
+                  tintColor={palette.accent}
+                  colors={[palette.accent]}
+                />
+              ) : undefined
+            }
             contentContainerStyle={styles.content}
           >
             {content()}
-          </ScrollView>
+          </GestureScroll>
           {shop &&
             state &&
             !locked &&
@@ -2052,7 +2381,11 @@ function Till() {
               {navs.map((nav) => {
                 const selected =
                   screen === nav.target ||
+                  (nav.target === "receipts" &&
+                    screen === "done" &&
+                    receiptDetails) ||
                   (nav.target === "sell" &&
+                    !(screen === "done" && receiptDetails) &&
                     [
                       "cart",
                       "cash",

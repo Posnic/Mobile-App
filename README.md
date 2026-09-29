@@ -42,6 +42,9 @@ Do not uninstall or clear storage on a device with unsynced sales.
   localized receipts and offline language packs. Translations remain beta pending
   native-speaker review; shop-entered product names are preserved.
 - Isolated training shop for evaluation without a server.
+- Pull-to-refresh on data lists, receipt swipe navigation, platform back handling,
+  keyboard dismissal and accessible button alternatives. See the
+  [gesture inventory and device checks](docs/MOBILE_GESTURES.md).
 - Account-first browser sign-in and free-trial signup, explicit device approval,
   authenticated local-till discovery, Community LAN/QR/code fallback and PIN unlock.
 
@@ -73,6 +76,7 @@ receipt escaping, persisted checkout, offline cash, hidden codes, hold/resume an
 language changes. Native storage, printer and terminal tests must run on devices.
 
 See the [research and roadmap](docs/MOBILE_POS_ROADMAP.md) for the approved direction.
+See [Devices](docs/DEVICES.md) for external scanning, printer setup and Till receipt status.
 See [connection and PIN unlock](docs/CONNECTION_AND_PIN.md) for Wi-Fi discovery,
 remembered credentials, supported addresses and local PIN behavior.
 

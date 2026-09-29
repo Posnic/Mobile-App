@@ -4,11 +4,13 @@ import { credentials } from "./credentials";
 import type { Sale, Shop, Settings } from "../domain/types";
 import { receiptHtml, escapeHtml } from "../services/receipt";
 import * as Crypto from "expo-crypto";
+import { requirePermission } from "../domain/permissions";
 export async function printTest(
   shop: Shop,
   settings: Settings,
   t: (key: string) => string,
 ): Promise<void> {
+  requirePermission(shop, "receiptPrint");
   if (settings.printer === "system") {
     await Print.printAsync({
       html: `<!doctype html><html lang="${settings.locale}" dir="${settings.locale === "ar" ? "rtl" : "ltr"}"><meta charset="utf-8"><body><h1>${escapeHtml(shop.name)}</h1><h2>${escapeHtml(t("testReceipt"))}</h2><p>0123456789</p><p>✓ • ───────────────</p></body></html>`,
@@ -29,6 +31,13 @@ export async function printSale(
   settings: Settings,
   t: (key: string) => string,
 ): Promise<void> {
+  requirePermission(shop, "receiptPrint");
+  if (
+    sale.shopId !== shop.id ||
+    sale.branchId !== shop.branchId ||
+    sale.staffId !== shop.staffId
+  )
+    throw new Error("permissionDenied");
   if (settings.printer === "system") {
     await Print.printAsync({
       html: receiptHtml(sale, shop.name, t, settings.locale),

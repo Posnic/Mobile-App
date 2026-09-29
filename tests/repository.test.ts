@@ -371,3 +371,168 @@ test("sign-out refuses unpaid work and archives acknowledged receipts without ex
   assert.equal(state.sales.length, 0);
   assert.equal((await storage.list("archive:")).length, 1);
 });
+
+test("revoked cart actions cannot be completed and denied mutations preserve the cart", async () => {
+  const { repo, storage } = setup();
+  await repo.startTraining();
+  await repo.addQuick(100, "Extra");
+  const before = await repo.load();
+  await storage.batch([
+    {
+      key: "shop",
+      value: {
+        ...before.shop,
+        permissions: {
+          ...before.shop!.permissions,
+          quickSale: false,
+          voidLine: false,
+        },
+      },
+    },
+  ]);
+  await assert.rejects(
+    () => repo.quantity(before.cart.lines[0]!.id, -1),
+    /permissionDenied/,
+  );
+  await assert.rejects(
+    () =>
+      repo.checkout(before.cart.id, {
+        method: "cash",
+        received: 100,
+        change: 0,
+      }),
+    /permissionDenied/,
+  );
+  assert.deepEqual((await repo.load()).cart, before.cart);
+  await storage.batch([
+    {
+      key: "shop",
+      value: {
+        ...before.shop,
+        permissions: { ...before.shop!.permissions, sell: false },
+      },
+    },
+  ]);
+  await assert.rejects(() => repo.hold(), /permissionDenied/);
+  await assert.rejects(() => repo.resume("anything"), /permissionDenied/);
+});
+
+test("customer permission is rechecked at checkout and printing defaults to denied", async () => {
+  const { repo, storage } = setup();
+  await repo.startTraining();
+  await repo.addItem(trainingItems[0]!);
+  await repo.customer("Customer", "123");
+  const state = await repo.load();
+  await storage.batch([
+    {
+      key: "shop",
+      value: {
+        ...state.shop,
+        permissions: {
+          ...state.shop!.permissions,
+          customerWrite: false,
+          receiptPrint: undefined,
+        },
+      },
+    },
+  ]);
+  await assert.rejects(
+    () =>
+      repo.checkout(state.cart.id, {
+        method: "cash",
+        received: 5000,
+        change: 0,
+      }),
+    /permissionDenied/,
+  );
+  await assert.rejects(
+    () => repo.queueTillPrint("receipt"),
+    /permissionDenied/,
+  );
+  assert.equal((await repo.load()).sales.length, 0);
+});
+
+test("online authorization refusal suspends new actions without discarding paid offline sales", async () => {
+  const { repo } = setup();
+  await repo.pair(
+    {
+      ...trainingShop,
+      mode: "live",
+      baseUrl: "https://shop.example/api",
+      capabilities: { ...trainingShop.capabilities, saleSync: true },
+    },
+    trainingItems,
+  );
+  await repo.addItem(trainingItems[0]!);
+  const state = await repo.load();
+  await repo.checkout(state.cart.id, {
+    method: "cash",
+    received: 5000,
+    change: 0,
+  });
+  let uploads = 0;
+  const worker = new SyncWorker(repo, () => ({
+    catalogue: async () => {
+      throw new ApiError("permissionDenied", 403);
+    },
+    upload: async () => {
+      uploads++;
+      throw new Error("must not upload");
+    },
+  }));
+  await assert.rejects(() => worker.run(), /permissionDenied/);
+  assert.equal(uploads, 0);
+  assert.equal((await repo.load()).outbox.length, 1);
+  assert.equal((await repo.load()).sales.length, 1);
+  await assert.rejects(
+    () => repo.addItem(trainingItems[0]!),
+    /permissionDenied/,
+  );
+});
+
+test("transport failures preserve an unexpired offline grant", async () => {
+  const { repo } = setup();
+  await repo.pair(
+    {
+      ...trainingShop,
+      mode: "live",
+      baseUrl: "https://shop.example/api",
+      capabilities: { ...trainingShop.capabilities, saleSync: true },
+    },
+    trainingItems,
+  );
+  await new SyncWorker(repo, () => ({
+    catalogue: async () => {
+      throw new ApiError("networkError", 0);
+    },
+    upload: async () => {
+      throw new Error("no pending sales");
+    },
+  })).run();
+  await repo.addItem(trainingItems[0]!);
+  assert.equal((await repo.load()).cart.lines.length, 1);
+});
+
+test("scanner writes use the offline catalogue and the same current selling ACL", async () => {
+  const { repo, storage } = setup();
+  await repo.startTraining();
+  await repo.scanProduct("POSNIC-DEMO-11");
+  await repo.scanProduct("POSNIC-DEMO-11");
+  const state = await repo.load();
+  assert.equal(state.cart.lines[0]!.quantity, 2);
+  await assert.rejects(() => repo.scanProduct("unknown-barcode"), /noMatch/);
+  await storage.batch([
+    {
+      key: "shop",
+      value: {
+        ...state.shop,
+        permissions: { ...state.shop!.permissions, sell: false },
+      },
+    },
+  ]);
+  await assert.rejects(
+    () => repo.scanProduct("POSNIC-DEMO-11"),
+    /permissionDenied/,
+  );
+  assert.deepEqual((await repo.load()).cart, state.cart);
+});

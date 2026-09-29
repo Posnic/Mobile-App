@@ -13,6 +13,7 @@ import type {
 } from "../domain/types";
 import { quickCode, totals } from "../domain/money";
 import { trainingItems, trainingShop } from "./training";
+import { resolveProductScan } from "../domain/scanning";
 
 export class Repository {
   private tail: Promise<unknown> = Promise.resolve();
@@ -143,13 +144,38 @@ export class Repository {
   }
   private async authorized(action: keyof Shop["permissions"]): Promise<Shop> {
     const shop = await this.store.get<Shop>("shop");
-    if (!shop || !shop.permissions[action]) throw new Error("permissionDenied");
+    if (!shop || shop.permissions[action] !== true)
+      throw new Error("permissionDenied");
     if (
       Date.parse(shop.offlineUntil) <= this.now() ||
       !Number.isFinite(Date.parse(shop.offlineUntil))
     )
       throw new Error("grantExpired");
     return shop;
+  }
+  async suspendPermissions(expected: Shop) {
+    return this.serial(async () => {
+      const shop = await this.store.get<Shop>("shop");
+      if (
+        !shop ||
+        shop.id !== expected.id ||
+        shop.branchId !== expected.branchId ||
+        shop.staffId !== expected.staffId ||
+        shop.baseUrl !== expected.baseUrl
+      )
+        return;
+      await this.store.batch([
+        {
+          key: "shop",
+          value: {
+            ...shop,
+            permissions: Object.fromEntries(
+              Object.keys(shop.permissions).map((key) => [key, false]),
+            ),
+          },
+        },
+      ]);
+    });
   }
   async refreshCatalogue(shop: Shop, items: Item[]) {
     return this.serial(async () => {
@@ -206,6 +232,12 @@ export class Repository {
       await this.store.batch([{ key: "cart", value: cart }]);
     });
   }
+  async scanProduct(input: string): Promise<string> {
+    const { items } = await this.load();
+    const item = resolveProductScan(items, input);
+    await this.addItem(item);
+    return item.name;
+  }
   async addQuick(price: number, name: string) {
     return this.serial(async () => {
       const shop = await this.authorized("quickSale");
@@ -230,6 +262,8 @@ export class Repository {
   async quantity(lineId: string, delta: number) {
     return this.serial(async () => {
       await this.authorized("sell");
+      if (!Number.isSafeInteger(delta)) throw new Error("invalidAmount");
+      if (delta < 0) await this.authorized("voidLine");
       const cart = await this.store.get<Cart>("cart");
       if (!cart) return;
       const line = cart.lines.find((i) => i.id === lineId);
@@ -242,6 +276,7 @@ export class Repository {
   }
   async hold() {
     return this.serial(async () => {
+      await this.authorized("sell");
       const cart = await this.store.get<Cart>("cart");
       if (!cart?.lines.length) throw new Error("emptyCart");
       await this.store.batch([
@@ -252,6 +287,7 @@ export class Repository {
   }
   async resume(id: string) {
     return this.serial(async () => {
+      await this.authorized("sell");
       const current = await this.store.get<Cart>("cart");
       if (current?.lines.length) throw new Error("cartNotEmpty");
       const held = await this.store.get<Cart>("held:" + id);
@@ -314,6 +350,9 @@ export class Repository {
       const cart = await this.store.get<Cart>("cart");
       if (!cart?.lines.length || cart.id !== cartId)
         throw new Error("emptyCart");
+      if (cart.lines.some((line) => !line.itemId))
+        await this.authorized("quickSale");
+      if (cart.customer) await this.authorized("customerWrite");
       if (
         cart.lines.some(
           (line) =>
@@ -372,6 +411,7 @@ export class Repository {
       const printSettings = await this.store.get<Settings>("settings");
       if (
         !sale.training &&
+        shop.permissions.receiptPrint === true &&
         printSettings?.autoPrint &&
         printSettings.printer === "till"
       )
@@ -416,6 +456,7 @@ export class Repository {
   }
   async queueTillPrint(id: string, queued = false) {
     return this.serial(async () => {
+      if (!queued) await this.authorized("receiptPrint");
       const sale = await this.store.get<Sale>("sale:" + id);
       if (!sale || sale.training) throw new Error("deviceUnavailable");
       if (sale.tillPrint === "queued" && !queued) return;

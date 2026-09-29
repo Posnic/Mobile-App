@@ -149,6 +149,29 @@ export class PosnicApi {
       await credentials.get(),
     );
   }
+  async printReceiptStatus(saleId: string) {
+    const result = z
+      .object({
+        saleId: z.string(),
+        state: z.enum([
+          "queued",
+          "printing",
+          "needs_attention",
+          "done",
+          "failed",
+          "not_found",
+        ]),
+      })
+      .parse(
+        await this.request(
+          `/mobile/v1/print-jobs/${encodeURIComponent(saleId)}`,
+          undefined,
+          await credentials.get(),
+        ),
+      );
+    if (result.saleId !== saleId) throw new ApiError("invalidServer", 409);
+    return result.state;
+  }
 }
 const minor = z.number().int().min(0).max(99999999999);
 const item = z.object({
@@ -203,6 +226,8 @@ export const bootstrap = z.object({
       itemWrite: z.boolean(),
       priceOverride: z.boolean(),
       manualUpi: z.boolean(),
+      voidLine: z.boolean().default(false),
+      receiptPrint: z.boolean().default(false),
     }),
     upiAccounts: z.array(
       z.object({
@@ -218,6 +243,7 @@ export const bootstrap = z.object({
       saleSync: z.boolean(),
       devicePairing: z.boolean(),
       tillPrint: z.boolean(),
+      printStatus: z.boolean().default(false),
       terminal: z.boolean(),
     }),
   }),
