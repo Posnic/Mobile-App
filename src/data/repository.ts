@@ -569,19 +569,29 @@ export class Repository {
     return this.serial(async () => {
       const shop = await this.store.get<Shop>("shop");
       if (!shop) return;
+      const archived = (await this.store.list<Sale>("archive:")).filter(
+        (sale) => sale.shopId === shop.id && sale.branchId === shop.branchId,
+      );
       const ids = receiptsToPrune(
-        await this.store.list<Sale>("sale:"),
+        [...(await this.store.list<Sale>("sale:")), ...archived],
         await this.store.list<Outbox>("outbox:"),
         await this.store.list<DirectPrintJob>("print:"),
         shop.historyPolicy,
         this.now(),
       );
-      await this.store.batch(
-        ids.flatMap((id) => [
+      const removed = new Set(ids);
+      await this.store.batch([
+        ...ids.flatMap((id) => [
           { key: "sale:" + id, value: null },
           { key: "print:" + id, value: null },
         ]),
-      );
+        ...archived
+          .filter((sale) => removed.has(sale.id))
+          .map((sale) => ({
+            key: `archive:${sale.shopId}:${sale.staffId}:${sale.id}`,
+            value: null,
+          })),
+      ]);
     });
   }
   async acknowledge(id: string, serverId: string) {

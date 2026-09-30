@@ -150,3 +150,25 @@ test("receipt count limit does not limit item catalogue or pending receipts", as
     "r10001",
   ]);
 });
+test("sign-out archives follow branch retention without exposing or pruning another branch", async () => {
+  const { repo, store, sale } = await setup();
+  const old = {
+    ...sale,
+    id: "archived",
+    sync: "synced",
+    createdAt: "2000-01-01T00:00:00Z",
+  };
+  const key = `archive:${sale.shopId}:${sale.staffId}:archived`;
+  const foreignKey = `archive:${sale.shopId}:${sale.staffId}:foreign`;
+  await store.batch([
+    { key, value: old },
+    {
+      key: foreignKey,
+      value: { ...old, id: "foreign", branchId: "other-branch" },
+    },
+  ]);
+  await repo.pruneReceipts();
+  assert.equal(await store.get(key), null);
+  assert.ok(await store.get(foreignKey));
+  assert.equal((await repo.load()).sales.length, 1);
+});
