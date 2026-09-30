@@ -177,7 +177,7 @@ export class PosnicApi {
   }
   private async readCatalogue(token: string | null) {
     const raw = await this.request(
-      "/mobile/v1/bootstrap?catalogue=paged",
+      "/mobile/v1/bootstrap?catalogue=paged&quantity=fixed3",
       undefined,
       token,
     );
@@ -279,6 +279,8 @@ const item = z.object({
   taxInclusive: z.boolean(),
   active: z.boolean(),
   requiresConfiguration: z.boolean().optional(),
+  quantityScale: z.literal(1000).optional(),
+  unit: z.string().max(30).optional(),
 });
 export const bootstrap = z.object({
   shop: z.object({
@@ -369,6 +371,7 @@ const receiptPage = z.object({
             z.object({
               name: z.string(),
               quantity: z.number().positive(),
+              unit: z.string().max(30).optional(),
               price: minor,
             }),
           )

@@ -32,6 +32,8 @@ export interface Item {
   taxInclusive: boolean;
   active: boolean;
   requiresConfiguration?: boolean;
+  quantityScale?: 1000;
+  unit?: string;
 }
 export interface Line {
   id: string;
@@ -40,6 +42,8 @@ export interface Line {
   itemId?: string;
   name: string;
   quantity: number;
+  quantityScale?: 1000;
+  unit?: string;
   price: number;
   taxBps: number;
   taxInclusive: boolean;

@@ -294,19 +294,29 @@ export class Repository {
       this.catalogueCache = null;
     });
   }
-  async addItem(item: Item) {
+  async addItem(item: Item, requestedQuantity?: number) {
     return this.serial(async () => {
       const shop = await this.authorized("sell");
       const current = await this.store.get<Item>("item:" + item.id);
       if (
         !current ||
         !current.active ||
-        ["name", "price", "taxBps", "taxInclusive", "barcode"].some(
-          (key) => current[key as keyof Item] !== item[key as keyof Item],
-        )
+        [
+          "name",
+          "price",
+          "taxBps",
+          "taxInclusive",
+          "barcode",
+          "quantityScale",
+          "unit",
+        ].some((key) => current[key as keyof Item] !== item[key as keyof Item])
       )
         throw new Error("catalogueChanged");
       if (current.requiresConfiguration) throw new Error("itemUnavailable");
+      if (current.quantityScale === 1000 && requestedQuantity === undefined)
+        throw Error("invalidQuantity");
+      const quantity = requestedQuantity ?? 1;
+      totals([{ ...item, quantity }]);
       const cart = (await this.store.get<Cart>("cart")) ?? this.newCart();
       const existing = cart.lines.find(
         (line) =>
@@ -315,8 +325,8 @@ export class Repository {
           line.snapshotVersion === shop.snapshotVersion,
       );
       if (existing) {
-        if (existing.quantity >= 999) throw new Error("invalidAmount");
-        existing.quantity++;
+        existing.quantity =
+          Math.round((existing.quantity + quantity) * 1000) / 1000;
       } else
         cart.lines.push({
           snapshotVersion: shop.snapshotVersion,
@@ -324,18 +334,25 @@ export class Repository {
           id: this.uuid(),
           itemId: item.id,
           name: item.name,
-          quantity: 1,
+          quantity,
+          ...(item.quantityScale
+            ? { quantityScale: item.quantityScale, unit: item.unit }
+            : {}),
           price: item.price,
           taxBps: item.taxBps,
           taxInclusive: item.taxInclusive,
         });
+      totals(cart.lines);
       await this.store.batch([{ key: "cart", value: cart }]);
     });
   }
-  async scanProduct(input: string): Promise<string> {
+  async scanItem(input: string): Promise<Item> {
     const barcode = input.replace(/[\r\n]+$/, "");
     const { items } = await this.catalogue({ barcode, limit: 2 });
-    const item = resolveProductScan(items, input);
+    return resolveProductScan(items, input);
+  }
+  async scanProduct(input: string): Promise<string> {
+    const item = await this.scanItem(input);
     await this.addItem(item);
     return item.name;
   }
@@ -369,8 +386,20 @@ export class Repository {
       if (!cart) return;
       const line = cart.lines.find((i) => i.id === lineId);
       if (!line) return;
-      line.quantity += delta;
+      line.quantity = Math.round((line.quantity + delta) * 1000) / 1000;
       cart.lines = cart.lines.filter((i) => i.quantity > 0);
+      totals(cart.lines);
+      await this.store.batch([{ key: "cart", value: cart }]);
+    });
+  }
+  async setQuantity(lineId: string, quantity: number) {
+    return this.serial(async () => {
+      await this.authorized("sell");
+      const cart = await this.store.get<Cart>("cart");
+      const line = cart?.lines.find((row) => row.id === lineId);
+      if (!line || !cart) throw Error("notFound");
+      if (quantity < line.quantity) await this.authorized("voidLine");
+      line.quantity = quantity;
       totals(cart.lines);
       await this.store.batch([{ key: "cart", value: cart }]);
     });

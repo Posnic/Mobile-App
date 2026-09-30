@@ -39,6 +39,7 @@ import {
   formatMoney,
   normalizeDigits,
   parseMoney,
+  parseQuantity,
   quickCode,
   totals,
 } from "./domain/money";
@@ -84,6 +85,7 @@ type Screen =
   | "sell"
   | "quick"
   | "cart"
+  | "quantity"
   | "payment"
   | "cash"
   | "upi"
@@ -182,7 +184,10 @@ function Till() {
     [repo, setRepo] = useState<Repository | null>(null),
     [worker, setWorker] = useState<SyncWorker | null>(null);
   const scans = useMemo(
-    () => (repo ? new ScanQueue((value) => repo.scanProduct(value)) : null),
+    () =>
+      repo
+        ? new ScanQueue(async (value) => (await acceptProductScan(value)).name)
+        : null,
     [repo],
   );
   useEffect(() => {
@@ -203,6 +208,9 @@ function Till() {
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [notice, setNotice] = useState("");
+  const [quantityItem, setQuantityItem] = useState<Item | null>(null);
+  const [quantityLine, setQuantityLine] = useState<string | null>(null);
+  const [quantityValue, setQuantityValue] = useState("");
   const [itemPage, setItemPage] = useState(0);
   const [catalogueView, setCatalogueView] = useState<CatalogueResult | null>(
     null,
@@ -530,7 +538,7 @@ function Till() {
         ? "receipts"
         : ["cash", "upi"].includes(screen)
           ? "payment"
-          : ["payment", "customer"].includes(screen)
+          : ["payment", "customer", "quantity"].includes(screen)
             ? "cart"
             : [
                   "language",
@@ -757,7 +765,29 @@ function Till() {
       setBusy(false);
     }
   }
+  function enterQuantity(item: Item, lineId: string | null = null, value = "") {
+    scans?.cancel();
+    scannerInput.current?.blur();
+    setQuantityItem(item);
+    setQuantityLine(lineId);
+    setQuantityValue(value);
+    setError("");
+    setScreen("quantity");
+  }
+  async function acceptProductScan(value: string) {
+    const item = await repo!.scanItem(value);
+    if (item.quantityScale === 1000 && !item.requiresConfiguration) {
+      enterQuantity(item);
+      return { name: item.name, prompt: true };
+    }
+    await repo!.addItem(item);
+    return { name: item.name, prompt: false };
+  }
   async function addItem(item: Item) {
+    if (item.quantityScale === 1000 && !item.requiresConfiguration) {
+      enterQuantity(item);
+      return;
+    }
     if (actionLock.current && !addingItems.current) return;
     itemQueue.current.push(item);
     if (addingItems.current) return;
@@ -1042,7 +1072,27 @@ function Till() {
               () => void run(() => repo!.quantity(line.id, -1)),
               state!.shop?.permissions.voidLine !== true,
             )}
-            <Text style={styles.value}>{line.quantity}</Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t("quantity") + " " + line.name}
+              onPress={() => {
+                setQuantityItem(null);
+                setQuantityLine(line.id);
+                setQuantityValue(String(line.quantity));
+                setScreen("quantity");
+              }}
+              style={{
+                minWidth: 44,
+                minHeight: 44,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={styles.value}>
+                {line.quantity}
+                {line.unit ? " " + line.unit : ""}
+              </Text>
+            </Pressable>
             {iconButton(
               "plus",
               t("addOne") + " " + line.name,
@@ -1540,7 +1590,7 @@ function Till() {
                 } else {
                   go("sell");
                   void run(async () => {
-                    await repo!.scanProduct(data);
+                    await acceptProductScan(data);
                   });
                 }
               }}
@@ -1601,7 +1651,9 @@ function Till() {
                             limit: 2,
                           });
                           if (exact.total === 1) {
-                            await repo.addItem(exact.items[0]!);
+                            if (exact.items[0]!.quantityScale === 1000)
+                              enterQuantity(exact.items[0]!);
+                            else await repo.addItem(exact.items[0]!);
                             setQuery("");
                           } else if (exact.total > 1)
                             throw Error("multipleMatches");
@@ -1793,13 +1845,53 @@ function Till() {
                   t("add"),
                   () =>
                     void run(async () => {
-                      await repo.addItem(matches[0]!);
+                      if (matches[0]!.quantityScale === 1000)
+                        enterQuantity(matches[0]!);
+                      else {
+                        await repo.addItem(matches[0]!);
+                        go("sell");
+                      }
                       setCode("");
-                      go("sell");
                     }),
                   true,
                   matches.length !== 1,
                 )}
+          </>
+        );
+      }
+      case "quantity": {
+        const line = state.cart.lines.find((row) => row.id === quantityLine);
+        const target = quantityItem ?? line;
+        if (!target)
+          return (
+            <>
+              {back("cart")}
+              {help(t("notFound"))}
+            </>
+          );
+        const scale = target.quantityScale ?? 1;
+        return (
+          <>
+            {back(quantityLine ? "cart" : "sell")}
+            {heading(t("quantity"))}
+            {help(target.name + (target.unit ? " · " + target.unit : ""))}
+            {field(t("quantity"), quantityValue, setQuantityValue, {
+              numeric: true,
+            })}
+            {scale === 1000 && help(t("quantityHelp"))}
+            {button(
+              t("save"),
+              () =>
+                void run(async () => {
+                  const value = parseQuantity(quantityValue, scale);
+                  if (quantityLine) await repo.setQuantity(quantityLine, value);
+                  else if (quantityItem)
+                    await repo.addItem(quantityItem, value);
+                  go("cart");
+                }),
+              true,
+              busy || !quantityValue,
+            )}
           </>
         );
       }
@@ -2386,7 +2478,10 @@ function Till() {
                 {serverReceipt.lines.map((line, index) => (
                   <View key={index}>
                     {row(
-                      line.name + " × " + line.quantity,
+                      line.name +
+                        " × " +
+                        line.quantity +
+                        (line.unit ? " " + line.unit : ""),
                       formatMoney(
                         line.price * line.quantity,
                         serverReceipt.currency,

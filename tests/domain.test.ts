@@ -1,6 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseMoney, quickCode, totals } from "../src/domain/money";
+import {
+  parseMoney,
+  parseQuantity,
+  quickCode,
+  totals,
+} from "../src/domain/money";
 import { upiUri } from "../src/domain/payments";
 import { parseShopQr, serverAddress } from "../src/services/api";
 import { receiptHtml } from "../src/services/receipt";
@@ -81,4 +86,32 @@ test("server locator upgrades public HTTP, rejects URL credentials, keeps explic
     "https://public.example/api",
   );
   assert.throws(() => serverAddress("https://user:pass@example.com"));
+});
+
+test("weighed quantities use thousandths and exact minor-unit half-up totals", () => {
+  assert.equal(parseQuantity("٠٫١٢٥", 1000), 0.125);
+  assert.equal(parseQuantity("0,125", 1000), 0.125);
+  for (const value of ["0", "-1", "1000", "1e-3", "0.0001"])
+    assert.throws(() => parseQuantity(value, 1000));
+  assert.throws(() => parseQuantity("1.5", 1));
+  const line = {
+    id: "weight",
+    name: "Rice",
+    quantity: 0.125,
+    quantityScale: 1000 as const,
+    price: 1235,
+    taxBps: 500,
+    taxInclusive: false,
+  };
+  assert.deepEqual(totals([line]), { total: 162, tax: 8 });
+  assert.deepEqual(totals([{ ...line, taxInclusive: true }]), {
+    total: 154,
+    tax: 7,
+  });
+  assert.deepEqual(totals([{ ...line, price: 3500, taxBps: 0 }]), {
+    total: 438,
+    tax: 0,
+  });
+  assert.throws(() => totals([{ ...line, quantity: 0.0001 }]));
+  assert.throws(() => totals([{ ...line, quantityScale: undefined }]));
 });

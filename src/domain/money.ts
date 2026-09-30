@@ -29,28 +29,47 @@ export function quickCode(raw: string): string {
   if (code && !/^\d{1,6}$/.test(code)) throw new Error("invalidCode");
   return code;
 }
+export function parseQuantity(raw: string, scale = 1): number {
+  const text = normalizeDigits(raw.trim()).replace(/[,\u066b]/g, ".");
+  if (!(scale === 1000 ? /^\d{1,3}(\.\d{0,3})?$/ : /^\d{1,3}$/).test(text))
+    throw Error("invalidQuantity");
+  const quantity = Number(text);
+  if (quantity <= 0 || quantity > 999) throw Error("invalidQuantity");
+  return quantity;
+}
+export function lineAmounts(line: Line): { total: number; tax: number } {
+  const scale = line.quantityScale === 1000 ? 1000 : 1;
+  const units = Math.round(line.quantity * scale);
+  if (
+    !Number.isSafeInteger(line.price) ||
+    line.price < 0 ||
+    !Number.isSafeInteger(units) ||
+    units <= 0 ||
+    units / scale !== line.quantity ||
+    line.quantity > 999 ||
+    !Number.isInteger(line.taxBps) ||
+    line.taxBps < 0 ||
+    line.taxBps > 10000
+  )
+    throw Error("invalidAmount");
+  const raw = BigInt(line.price) * BigInt(units);
+  const round = (n: bigint, d: bigint) => Number((n * 2n + d) / (d * 2n));
+  const base = round(raw, BigInt(scale));
+  const tax = round(
+    raw * BigInt(line.taxBps),
+    BigInt(scale) * BigInt(line.taxInclusive ? 10000 + line.taxBps : 10000),
+  );
+  const total = base + (line.taxInclusive ? 0 : tax);
+  if (!Number.isSafeInteger(total)) throw Error("invalidAmount");
+  return { total, tax };
+}
 export function totals(lines: Line[]): { total: number; tax: number } {
   let total = 0,
     tax = 0;
   for (const line of lines) {
-    if (
-      !Number.isSafeInteger(line.price) ||
-      line.price < 0 ||
-      !Number.isInteger(line.quantity) ||
-      line.quantity < 1 ||
-      line.quantity > 999 ||
-      !Number.isInteger(line.taxBps) ||
-      line.taxBps < 0 ||
-      line.taxBps > 10000
-    )
-      throw new Error("invalidAmount");
-    const base = line.price * line.quantity;
-    if (!Number.isSafeInteger(base)) throw new Error("invalidAmount");
-    const numerator = BigInt(base) * BigInt(line.taxBps);
-    const denominator = BigInt(line.taxInclusive ? 10000 + line.taxBps : 10000);
-    const part = Number((numerator * 2n + denominator) / (denominator * 2n));
-    total += base + (line.taxInclusive ? 0 : part);
-    tax += part;
+    const amount = lineAmounts(line);
+    total += amount.total;
+    tax += amount.tax;
   }
   if (!Number.isSafeInteger(total)) throw new Error("invalidAmount");
   return { total, tax };

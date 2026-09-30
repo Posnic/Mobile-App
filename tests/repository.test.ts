@@ -619,3 +619,44 @@ test("catalogue freshness is durable and failed refresh cannot advance it", asyn
   await newer.signOut();
   assert.equal((await newer.load()).catalogueUpdatedAt, undefined);
 });
+
+test("weighed item requires an explicit quantity and reductions keep the void ACL", async () => {
+  const { repo } = setup();
+  const weighted = {
+    ...trainingItems[0]!,
+    quantityScale: 1000 as const,
+    unit: "kg",
+    price: 3500,
+    taxBps: 0,
+  };
+  await repo.pair(
+    {
+      ...trainingShop,
+      permissions: { ...trainingShop.permissions, voidLine: false },
+    },
+    [weighted],
+  );
+  await assert.rejects(repo.addItem(weighted), /invalidQuantity/);
+  await assert.rejects(repo.addItem(weighted, -1), /invalidAmount/);
+  await repo.addItem(weighted, 0.125);
+  let state = await repo.load();
+  assert.equal(state.cart.lines[0]?.quantity, 0.125);
+  assert.equal(state.cart.lines[0]?.unit, "kg");
+  await assert.rejects(
+    repo.setQuantity(state.cart.lines[0]!.id, 0.1),
+    /permissionDenied/,
+  );
+  await repo.addItem(weighted, 0.125);
+  state = await repo.load();
+  assert.equal(state.cart.lines[0]?.quantity, 0.25);
+  const sale = await repo.checkout(state.cart.id, {
+    method: "cash",
+    received: 875,
+    change: 0,
+  });
+  assert.equal(sale.total, 875);
+  assert.match(
+    receiptHtml(sale, "Shop", (s) => s),
+    /0.25 kg/,
+  );
+});

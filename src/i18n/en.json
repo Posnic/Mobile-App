@@ -235,5 +235,7 @@
   "cloudReceived": "Received in cloud",
   "cloudWaiting": "Waiting for cloud receipt",
   "cloudReceiptHelp": "Confirmed by the cloud gateway for this receipt. Stock and other shop data synchronize separately.",
-  "catalogueChanged": "This item changed. Refresh the catalogue and select it again."
+  "catalogueChanged": "This item changed. Refresh the catalogue and select it again.",
+  "invalidQuantity": "Enter a valid quantity for this unit, up to 999.",
+  "quantityHelp": "Enter the weight in the unit shown, with up to 3 decimal places."
 }

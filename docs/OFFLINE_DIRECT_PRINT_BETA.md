@@ -1,6 +1,6 @@
 # Independent offline counter beta
 
-30 September 2026. Android `0.3.0-beta.7`, matching Windows `1.8.5-beta.5`.
+1 October 2026. Android `0.3.0-beta.8`, matching Windows `1.8.5-beta.6`.
 
 ## Included
 
@@ -91,3 +91,12 @@ Paged-server downloads return persisted page references. Activation reads at mos
 Images stream through two transfers and the UI retains image data only for its visible page. Full catalogue/image counts remain separate from the visible product count. Search and page changes discard obsolete asynchronous results. No network is required to browse or scan the indexed catalogue.
 
 Test with more than 10,000 products: find and scan a product near the end of the catalogue, search a localized name, change categories/pages, restart offline, and refresh after deleting a product. Automated checks cover migration from the prior local schema, exact lookup beyond the first page, Unicode search, failed activation, duplicate pages, and the 10,017-item catalogue without reading every product into the session.
+
+
+## Beta 8 weighed-item entry
+
+Items configured on the Till as weight-machine based with a selling unit can now be sold by entered quantity. Selecting or scanning one opens quantity entry; enter up to three decimals in the displayed unit. Pending HID scans are explicitly paused while entering weight. The app does not guess a weight from a normal product barcode or claim automatic weighing-machine support. Piece-count items remain integral.
+
+Tap a basket quantity to edit it. Reducing it still requires the existing void-line permission. Receipts and server history show the unit. Money/tax remain integer minor units with defined half-up line rounding. The server validates the quantity precision against the issuing grant, retains the configured unit and reuses the existing immutable sale/stock identity on retry. Older phone versions keep weighed items unavailable.
+
+Pilot: configure a kg item on the Till; refresh; select it and try 0.125 kg, a localized decimal separator and excess precision. Scan the same item with a camera/HID scanner. Save a cash sale offline, reopen, reconnect and retry; confirm one sale, one stock movement and the printed quantity/unit. Test a cashier without void permission. Variants, modifiers, controlled discounts and provider electronic payments remain separate contracts.
