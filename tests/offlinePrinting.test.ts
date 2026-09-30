@@ -172,3 +172,11 @@ test("sign-out archives follow branch retention without exposing or pruning anot
   assert.ok(await store.get(foreignKey));
   assert.equal((await repo.load()).sales.length, 1);
 });
+test("submitted Bluetooth output does not trap the cashier after sale acknowledgment", async () => {
+  const { repo, sale } = await setup();
+  await repo.prepareDirectPrint(sale.id);
+  await repo.completeDirectPrint(sale.id, "submitted");
+  await repo.acknowledge(sale.id, "server-receipt");
+  await repo.signOut();
+  assert.equal((await repo.load()).shop, null);
+});

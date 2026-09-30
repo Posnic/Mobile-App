@@ -1,5 +1,9 @@
 import type { DirectPrintJob, Outbox, Sale } from "./types";
 
+// A completed transport write is not paper proof, but it is not a pending job.
+export const printNeedsAttention = (job: DirectPrintJob) =>
+  job.state !== "confirmed" && job.state !== "submitted";
+
 export function receiptsToPrune(
   sales: Sale[],
   outbox: Outbox[],
@@ -16,7 +20,7 @@ export function receiptsToPrune(
     return [];
   const protectedIds = new Set([
     ...outbox.map((row) => row.saleId),
-    ...jobs.filter((job) => job.state !== "confirmed").map((job) => job.saleId),
+    ...jobs.filter(printNeedsAttention).map((job) => job.saleId),
   ]);
   const eligible = sales
     .filter(

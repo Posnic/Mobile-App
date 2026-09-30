@@ -64,6 +64,7 @@ import { GestureScroll } from "./components/GestureScroll";
 import { adjacentRecord } from "./domain/gestures";
 import { deviceOptions, receiptJobMessage } from "./domain/devices";
 import { ScanQueue } from "./domain/scanQueue";
+import { printNeedsAttention } from "./domain/retention";
 import { Brand } from "./components/Brand";
 import { authorizeAccount } from "./services/accountAuthorization";
 
@@ -2150,7 +2151,7 @@ function Till() {
             {row(t("receipts"), String(state.sales.length))}
             {row(
               t("directPrinter"),
-              String(directJobs.filter((j) => j.state !== "confirmed").length) +
+              String(directJobs.filter(printNeedsAttention).length) +
                 " · " +
                 t("review"),
             )}

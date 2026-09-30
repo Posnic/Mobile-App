@@ -15,7 +15,7 @@ import { quickCode, totals } from "../domain/money";
 import { trainingItems, trainingShop } from "./training";
 import { resolveProductScan } from "../domain/scanning";
 import type { DirectPrintJob } from "../domain/types";
-import { receiptsToPrune } from "../domain/retention";
+import { receiptsToPrune, printNeedsAttention } from "../domain/retention";
 
 export class Repository {
   private tail: Promise<unknown> = Promise.resolve();
@@ -117,7 +117,7 @@ export class Repository {
     return this.serial(async () => {
       if (
         (await this.store.list<DirectPrintJob>("print:")).some(
-          (j) => j.state !== "confirmed",
+          printNeedsAttention,
         )
       )
         throw new Error("printCheckPaper");
