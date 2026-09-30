@@ -208,7 +208,9 @@
     "favourites": "பிடித்தவை",
     "addFavourite": "பிடித்தவற்றில் சேர்",
     "removeFavourite": "பிடித்தவற்றிலிருந்து நீக்கு",
-    "favouritesHelp": "பொருளின் நட்சத்திரத்தைத் தட்டி இங்கே சேமிக்கவும். தேடலும் வகைகளும் பிடித்தவற்றையும் வடிகட்டும்."
+    "favouritesHelp": "பொருளின் நட்சத்திரத்தைத் தட்டி இங்கே சேமிக்கவும். தேடலும் வகைகளும் பிடித்தவற்றையும் வடிகட்டும்.",
+    "pinSetupWorking": "PIN பாதுகாக்கப்படுகிறது…",
+    "pinSetupTimeout": "PIN அமைக்க அதிக நேரம் ஆனது. கணக்கு இன்னும் உள்நுழைந்துள்ளது. மீண்டும் சேமிக்கவும்."
   },
   "hi": {
     "name": "नाम",
@@ -417,7 +419,9 @@
     "favourites": "पसंदीदा",
     "addFavourite": "पसंदीदा में जोड़ें",
     "removeFavourite": "पसंदीदा से हटाएँ",
-    "favouritesHelp": "वस्तु को यहाँ रखने के लिए तारे पर टैप करें। खोज और श्रेणियाँ पसंदीदा को भी फ़िल्टर करती हैं।"
+    "favouritesHelp": "वस्तु को यहाँ रखने के लिए तारे पर टैप करें। खोज और श्रेणियाँ पसंदीदा को भी फ़िल्टर करती हैं।",
+    "pinSetupWorking": "PIN सुरक्षित किया जा रहा है…",
+    "pinSetupTimeout": "PIN सेट करने में अधिक समय लगा। खाता अभी लॉग इन है। फिर से PIN सहेजें।"
   },
   "ml": {
     "name": "പേര്",
@@ -626,7 +630,9 @@
     "favourites": "പ്രിയപ്പെട്ടവ",
     "addFavourite": "പ്രിയപ്പെട്ടവയിൽ ചേർക്കുക",
     "removeFavourite": "പ്രിയപ്പെട്ടവയിൽ നിന്ന് നീക്കുക",
-    "favouritesHelp": "ഇവിടെ സൂക്ഷിക്കാൻ ഇനത്തിലെ നക്ഷത്രം തൊടുക. തിരയലും വിഭാഗങ്ങളും പ്രിയപ്പെട്ടവയും ഫിൽട്ടർ ചെയ്യും."
+    "favouritesHelp": "ഇവിടെ സൂക്ഷിക്കാൻ ഇനത്തിലെ നക്ഷത്രം തൊടുക. തിരയലും വിഭാഗങ്ങളും പ്രിയപ്പെട്ടവയും ഫിൽട്ടർ ചെയ്യും.",
+    "pinSetupWorking": "PIN സുരക്ഷിതമാക്കുന്നു…",
+    "pinSetupTimeout": "PIN സജ്ജീകരിക്കാൻ സമയം കൂടുതലായി. അക്കൗണ്ട് ലോഗിൻ ചെയ്തിട്ടുണ്ട്. വീണ്ടും സംരക്ഷിക്കുക."
   },
   "kn": {
     "name": "ಹೆಸರು",
@@ -835,7 +841,9 @@
     "favourites": "ಮೆಚ್ಚಿನವು",
     "addFavourite": "ಮೆಚ್ಚಿನವುಗಳಿಗೆ ಸೇರಿಸಿ",
     "removeFavourite": "ಮೆಚ್ಚಿನವುಗಳಿಂದ ತೆಗೆದುಹಾಕಿ",
-    "favouritesHelp": "ವಸ್ತುವನ್ನು ಇಲ್ಲಿ ಉಳಿಸಲು ನಕ್ಷತ್ರವನ್ನು ಒತ್ತಿ. ಹುಡುಕಾಟ ಮತ್ತು ವಿಭಾಗಗಳು ಮೆಚ್ಚಿನವುಗಳನ್ನೂ ಫಿಲ್ಟರ್ ಮಾಡುತ್ತವೆ."
+    "favouritesHelp": "ವಸ್ತುವನ್ನು ಇಲ್ಲಿ ಉಳಿಸಲು ನಕ್ಷತ್ರವನ್ನು ಒತ್ತಿ. ಹುಡುಕಾಟ ಮತ್ತು ವಿಭಾಗಗಳು ಮೆಚ್ಚಿನವುಗಳನ್ನೂ ಫಿಲ್ಟರ್ ಮಾಡುತ್ತವೆ.",
+    "pinSetupWorking": "PIN ಸುರಕ್ಷಿತಗೊಳಿಸಲಾಗುತ್ತಿದೆ…",
+    "pinSetupTimeout": "PIN ಹೊಂದಿಸಲು ಹೆಚ್ಚು ಸಮಯವಾಯಿತು. ಖಾತೆ ಲಾಗಿನ್ ಆಗಿದೆ. ಮತ್ತೆ ಉಳಿಸಿ."
   },
   "te": {
     "name": "పేరు",
@@ -1044,7 +1052,9 @@
     "favourites": "ఇష్టమైనవి",
     "addFavourite": "ఇష్టమైనవాటికి జోడించండి",
     "removeFavourite": "ఇష్టమైనవాటి నుండి తీసివేయండి",
-    "favouritesHelp": "వస్తువును ఇక్కడ ఉంచడానికి నక్షత్రాన్ని నొక్కండి. శోధన మరియు వర్గాలు ఇష్టమైనవాటిని కూడా ఫిల్టర్ చేస్తాయి."
+    "favouritesHelp": "వస్తువును ఇక్కడ ఉంచడానికి నక్షత్రాన్ని నొక్కండి. శోధన మరియు వర్గాలు ఇష్టమైనవాటిని కూడా ఫిల్టర్ చేస్తాయి.",
+    "pinSetupWorking": "PIN భద్రపరుస్తోంది…",
+    "pinSetupTimeout": "PIN ఏర్పాటు ఎక్కువ సమయం తీసుకుంది. ఖాతా లాగిన్‌లో ఉంది. మళ్లీ సేవ్ చేయండి."
   },
   "si": {
     "name": "නම",
@@ -1253,7 +1263,9 @@
     "favourites": "ප්‍රියතම",
     "addFavourite": "ප්‍රියතම වෙත එක් කරන්න",
     "removeFavourite": "ප්‍රියතම වෙතින් ඉවත් කරන්න",
-    "favouritesHelp": "භාණ්ඩයක් මෙහි තබා ගැනීමට එහි තරුව තට්ටු කරන්න. සෙවුම සහ කාණ්ඩ ප්‍රියතම භාණ්ඩද පෙරහන් කරයි."
+    "favouritesHelp": "භාණ්ඩයක් මෙහි තබා ගැනීමට එහි තරුව තට්ටු කරන්න. සෙවුම සහ කාණ්ඩ ප්‍රියතම භාණ්ඩද පෙරහන් කරයි.",
+    "pinSetupWorking": "PIN සුරක්ෂිත කරමින්…",
+    "pinSetupTimeout": "PIN සැකසීමට වැඩි කාලයක් ගත විය. ගිණුම තවමත් පිවිසී ඇත. නැවත සුරකින්න."
   },
   "ne": {
     "name": "नाम",
@@ -1462,7 +1474,9 @@
     "favourites": "मनपर्ने",
     "addFavourite": "मनपर्नेमा थप्नुहोस्",
     "removeFavourite": "मनपर्नेबाट हटाउनुहोस्",
-    "favouritesHelp": "वस्तुलाई यहाँ राख्न तारामा ट्याप गर्नुहोस्। खोज र वर्गले मनपर्ने वस्तुहरू पनि छान्छन्।"
+    "favouritesHelp": "वस्तुलाई यहाँ राख्न तारामा ट्याप गर्नुहोस्। खोज र वर्गले मनपर्ने वस्तुहरू पनि छान्छन्।",
+    "pinSetupWorking": "PIN सुरक्षित गरिँदैछ…",
+    "pinSetupTimeout": "PIN सेट गर्न धेरै समय लाग्यो। खाता अझै लग इन छ। फेरि सुरक्षित गर्नुहोस्।"
   },
   "ar": {
     "name": "الاسم",
@@ -1672,7 +1686,9 @@
     "favourites": "المفضلة",
     "addFavourite": "إضافة إلى المفضلة",
     "removeFavourite": "إزالة من المفضلة",
-    "favouritesHelp": "اضغط على نجمة الصنف لحفظه هنا. يطبق البحث والتصنيف على المفضلة أيضاً."
+    "favouritesHelp": "اضغط على نجمة الصنف لحفظه هنا. يطبق البحث والتصنيف على المفضلة أيضاً.",
+    "pinSetupWorking": "جارٍ تأمين رمز PIN…",
+    "pinSetupTimeout": "استغرق إعداد الرمز وقتاً طويلاً. لا يزال حسابك مسجلاً. حاول حفظ الرمز مجدداً."
   },
   "fr": {
     "name": "Nom",
@@ -1881,7 +1897,9 @@
     "favourites": "Favoris",
     "addFavourite": "Ajouter aux favoris",
     "removeFavourite": "Retirer des favoris",
-    "favouritesHelp": "Touchez l’étoile d’un article pour le garder ici. La recherche et les catégories filtrent aussi les favoris."
+    "favouritesHelp": "Touchez l’étoile d’un article pour le garder ici. La recherche et les catégories filtrent aussi les favoris.",
+    "pinSetupWorking": "Sécurisation du PIN…",
+    "pinSetupTimeout": "La configuration du PIN a pris trop de temps. Votre compte reste connecté. Réessayez d’enregistrer le PIN."
   },
   "es": {
     "name": "Nombre",
@@ -2090,7 +2108,9 @@
     "favourites": "Favoritos",
     "addFavourite": "Añadir a favoritos",
     "removeFavourite": "Quitar de favoritos",
-    "favouritesHelp": "Toca la estrella de un artículo para guardarlo aquí. La búsqueda y las categorías también filtran los favoritos."
+    "favouritesHelp": "Toca la estrella de un artículo para guardarlo aquí. La búsqueda y las categorías también filtran los favoritos.",
+    "pinSetupWorking": "Protegiendo el PIN…",
+    "pinSetupTimeout": "La configuración tardó demasiado. Tu cuenta sigue conectada. Guarda el PIN de nuevo."
   },
   "pt": {
     "name": "Nome",
@@ -2299,7 +2319,9 @@
     "favourites": "Favoritos",
     "addFavourite": "Adicionar aos favoritos",
     "removeFavourite": "Remover dos favoritos",
-    "favouritesHelp": "Toque na estrela de um produto para guardá-lo aqui. A pesquisa e as categorias também filtram os favoritos."
+    "favouritesHelp": "Toque na estrela de um produto para guardá-lo aqui. A pesquisa e as categorias também filtram os favoritos.",
+    "pinSetupWorking": "Protegendo o PIN…",
+    "pinSetupTimeout": "A configuração demorou demasiado. A conta continua conectada. Tente guardar o PIN novamente."
   },
   "id": {
     "name": "Nama",
@@ -2508,7 +2530,9 @@
     "favourites": "Favorit",
     "addFavourite": "Tambahkan ke favorit",
     "removeFavourite": "Hapus dari favorit",
-    "favouritesHelp": "Ketuk bintang pada barang untuk menyimpannya di sini. Pencarian dan kategori juga menyaring favorit."
+    "favouritesHelp": "Ketuk bintang pada barang untuk menyimpannya di sini. Pencarian dan kategori juga menyaring favorit.",
+    "pinSetupWorking": "Mengamankan PIN…",
+    "pinSetupTimeout": "Pengaturan PIN terlalu lama. Akun masih masuk. Coba simpan PIN lagi."
   },
   "th": {
     "name": "ชื่อ",
@@ -2717,7 +2741,9 @@
     "favourites": "รายการโปรด",
     "addFavourite": "เพิ่มในรายการโปรด",
     "removeFavourite": "นำออกจากรายการโปรด",
-    "favouritesHelp": "แตะดาวบนสินค้าเพื่อเก็บไว้ที่นี่ การค้นหาและหมวดหมู่จะกรองรายการโปรดด้วย"
+    "favouritesHelp": "แตะดาวบนสินค้าเพื่อเก็บไว้ที่นี่ การค้นหาและหมวดหมู่จะกรองรายการโปรดด้วย",
+    "pinSetupWorking": "กำลังรักษาความปลอดภัย PIN…",
+    "pinSetupTimeout": "ตั้งค่า PIN นานเกินไป บัญชียังเข้าสู่ระบบอยู่ ลองบันทึก PIN อีกครั้ง"
   },
   "de": {
     "name": "Name",
@@ -2926,7 +2952,9 @@
     "favourites": "Favoriten",
     "addFavourite": "Zu Favoriten hinzufügen",
     "removeFavourite": "Aus Favoriten entfernen",
-    "favouritesHelp": "Tippe auf den Stern eines Artikels, um ihn hier zu speichern. Suche und Kategorien filtern auch die Favoriten."
+    "favouritesHelp": "Tippe auf den Stern eines Artikels, um ihn hier zu speichern. Suche und Kategorien filtern auch die Favoriten.",
+    "pinSetupWorking": "PIN wird gesichert…",
+    "pinSetupTimeout": "Die PIN-Einrichtung dauerte zu lange. Dein Konto ist weiter angemeldet. Speichere die PIN erneut."
   },
   "sw": {
     "name": "Jina",
@@ -3135,7 +3163,9 @@
     "favourites": "Vipendwa",
     "addFavourite": "Ongeza kwenye vipendwa",
     "removeFavourite": "Ondoa kwenye vipendwa",
-    "favouritesHelp": "Gusa nyota ya bidhaa ili kuihifadhi hapa. Utafutaji na makundi pia huchuja vipendwa."
+    "favouritesHelp": "Gusa nyota ya bidhaa ili kuihifadhi hapa. Utafutaji na makundi pia huchuja vipendwa.",
+    "pinSetupWorking": "Inalinda PIN…",
+    "pinSetupTimeout": "Kuweka PIN kumechukua muda mrefu. Akaunti bado imeingia. Jaribu kuhifadhi PIN tena."
   },
   "nl": {
     "name": "Naam",
@@ -3344,7 +3374,9 @@
     "favourites": "Favorieten",
     "addFavourite": "Toevoegen aan favorieten",
     "removeFavourite": "Verwijderen uit favorieten",
-    "favouritesHelp": "Tik op de ster van een artikel om het hier te bewaren. Zoeken en categorieën filteren ook favorieten."
+    "favouritesHelp": "Tik op de ster van een artikel om het hier te bewaren. Zoeken en categorieën filteren ook favorieten.",
+    "pinSetupWorking": "PIN beveiligen…",
+    "pinSetupTimeout": "Het instellen duurde te lang. Je account is nog ingelogd. Probeer de PIN opnieuw op te slaan."
   },
   "it": {
     "name": "Nome",
@@ -3553,6 +3585,8 @@
     "favourites": "Preferiti",
     "addFavourite": "Aggiungi ai preferiti",
     "removeFavourite": "Rimuovi dai preferiti",
-    "favouritesHelp": "Tocca la stella di un articolo per salvarlo qui. Ricerca e categorie filtrano anche i preferiti."
+    "favouritesHelp": "Tocca la stella di un articolo per salvarlo qui. Ricerca e categorie filtrano anche i preferiti.",
+    "pinSetupWorking": "Protezione del PIN…",
+    "pinSetupTimeout": "La configurazione ha richiesto troppo tempo. L’account è ancora connesso. Prova a salvare di nuovo il PIN."
   }
 }

@@ -23,6 +23,24 @@ class PosnicPrinterModule : Module() {
 
   override fun definition() = ModuleDefinition {
     Name("PosnicPrinter")
+    AsyncFunction("derivePinKey") { pin: String, saltHex: String, promise: Promise ->
+      // Dedicated worker: PIN setup neither blocks Hermes nor printer I/O.
+      val worker = Executors.newSingleThreadExecutor()
+      worker.execute {
+        try {
+          require(Regex("[0-9]{4,6}").matches(pin))
+          require(Regex("[a-f0-9]{96}").matches(saltHex))
+          val salt = saltHex.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+          val spec = javax.crypto.spec.PBEKeySpec(pin.toCharArray(), salt, 600000, 256)
+          try {
+            val key = javax.crypto.SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).encoded
+            try { promise.resolve(key.joinToString("") { "%02x".format(it.toInt() and 255) }) }
+            finally { key.fill(0) }
+          } finally { spec.clearPassword(); salt.fill(0) }
+        } catch (error: Exception) { promise.reject("PIN_DERIVATION_FAILED", "PIN setup could not complete. Try again.", null) }
+        finally { worker.shutdown() }
+      }
+    }
     AsyncFunction("pairedDevices") {
       val bluetooth = adapter()
       if (!bluetooth.isEnabled) error("deviceUnavailable")

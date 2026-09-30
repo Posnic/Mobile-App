@@ -1,6 +1,15 @@
+import { requireOptionalNativeModule } from "expo";
+import { Platform } from "react-native";
+import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
 import * as Crypto from "expo-crypto";
 import * as SecureStore from "expo-secure-store";
 import { SessionVault } from "../services/sessionVault";
+const native =
+  Platform.OS === "android"
+    ? requireOptionalNativeModule<{
+        derivePinKey(pin: string, salt: string): Promise<string>;
+      }>("PosnicPrinter")
+    : null;
 export const vault = new SessionVault(
   {
     get: (key) => SecureStore.getItemAsync(key),
@@ -8,4 +17,8 @@ export const vault = new SessionVault(
     remove: (key) => SecureStore.deleteItemAsync(key),
   },
   (length) => Crypto.getRandomBytes(length),
+  native?.derivePinKey
+    ? async (pin, salt) =>
+        hexToBytes(await native.derivePinKey(pin, bytesToHex(salt)))
+    : undefined,
 );

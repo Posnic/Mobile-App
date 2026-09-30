@@ -1,5 +1,11 @@
 # Implementation status — 1 October 2026
 
+## First-time PIN correction — beta11
+
+Android 0.3.0-beta.11 performs new PIN key derivation in a dedicated native worker (PBKDF2-HMAC-SHA256, 600,000 iterations, 32-byte key). This removes first-time setup from the JavaScript scrypt path that could exceed its 20-second deadline on phones. The per-install secure-store secret, random salt, AES-GCM sealing and persistent attempt limits remain. PIN records carry the KDF identifier; existing scrypt records remain readable without destructive migration. If an older PIN is too slow on a particular phone, password recovery followed by setting a new PIN uses the native format.
+
+Setup displays localized progress. A setup timeout no longer tells a first-time user to reset an existing PIN. Failed or cancelled derivation cannot create a partial PIN record or replace the signed-in account. Native setup, restart, wrong-PIN rejection, failed setup, cancellation/key clearing and legacy compatibility have regression coverage. Android versionCode 20; install over the existing application without clearing data.
+
 ## Login correction — beta10
 
 Android 0.3.0-beta.10 fixes password login when the phone retains a session cookie. The installed server log showed `/users/kioskMobileLogin` rejected by CSRF middleware, although the account was `super_admin` and Mobile POS was enabled. The client now omits ambient cookies and reflects the same server's CSRF response header from its preceding probe for native cookie-store compatibility. No server ACL or CSRF exemption is added. Top-level session-security failures are no longer labelled as role denial.

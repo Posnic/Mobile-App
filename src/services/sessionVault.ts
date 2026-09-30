@@ -12,7 +12,12 @@ export interface RememberedAccount {
   password: string;
   server: string;
 }
+export type NativePinDeriver = (
+  pin: string,
+  salt: Uint8Array,
+) => Promise<Uint8Array>;
 interface PinRecord {
+  kdf?: "pbkdf2-sha256-600k";
   salt: string;
   nonce: string;
   data: string;
@@ -60,6 +65,7 @@ export class SessionVault {
   constructor(
     private store: SecretStore,
     private random: (length: number) => Uint8Array,
+    private nativeDerive?: NativePinDeriver,
   ) {}
   private serial<T>(fn: () => Promise<T>) {
     const next = this.tail.then(fn);
@@ -129,12 +135,23 @@ export class SessionVault {
     pin: string,
     salt: string,
     generation = this.generation,
+    kdf?: PinRecord["kdf"],
   ) {
     const started = Date.now();
     let secret = await this.store.get("posnic.install-secret");
     if (!secret) {
       secret = bytesToHex(this.random(32));
       await this.store.set("posnic.install-secret", secret);
+    }
+    if (kdf) {
+      if (kdf !== "pbkdf2-sha256-600k" || !this.nativeDerive)
+        throw Error("nativeBuildRequired");
+      const key = await this.nativeDerive(pin, hexToBytes(salt + secret));
+      if (generation !== this.generation || key.length !== 32) {
+        key.fill(0);
+        throw Error("pinLocked");
+      }
+      return key;
     }
     return scryptAsync(encode(pin), hexToBytes(salt + secret), {
       N: 32768,
@@ -178,12 +195,19 @@ export class SessionVault {
         password: "",
       };
       const salt = bytesToHex(this.random(16));
-      const key = await this.derive(pin, salt);
+      const kdf = this.nativeDerive
+        ? ("pbkdf2-sha256-600k" as const)
+        : undefined;
+      const key = await this.derive(pin, salt, generation, kdf);
       if (generation !== this.generation) {
         key.fill(0);
         throw new Error("pinLocked");
       }
-      await this.seal({ salt, nonce: "", data: "", failures: 0 }, key, account);
+      await this.seal(
+        { salt, nonce: "", data: "", failures: 0, ...(kdf ? { kdf } : {}) },
+        key,
+        account,
+      );
       this.key?.fill(0);
       this.key = key;
       this.active = account;
@@ -220,7 +244,7 @@ export class SessionVault {
         "posnic.pin",
         JSON.stringify({ ...record, failures: record.failures + 1 }),
       );
-      const key = await this.derive(pin, record.salt, generation);
+      const key = await this.derive(pin, record.salt, generation, record.kdf);
       let account: RememberedAccount;
       try {
         account = JSON.parse(

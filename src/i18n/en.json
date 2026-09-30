@@ -241,5 +241,7 @@
   "favourites": "Favourites",
   "addFavourite": "Add to favourites",
   "removeFavourite": "Remove from favourites",
-  "favouritesHelp": "Tap the star on an item to keep it here. Search and categories also filter favourites."
+  "favouritesHelp": "Tap the star on an item to keep it here. Search and categories also filter favourites.",
+  "pinSetupWorking": "Securing your PIN…",
+  "pinSetupTimeout": "PIN setup took too long. Your account is still signed in. Try saving the PIN again."
 }

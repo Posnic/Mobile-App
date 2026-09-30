@@ -2978,6 +2978,12 @@ function Till() {
           <>
             {back("more")}
             {heading(t("setPin"))}
+            {busy && (
+              <View accessibilityRole="progressbar">
+                <ActivityIndicator color={palette.accent} />
+                {help(t("pinSetupWorking"))}
+              </View>
+            )}
             {help(t("pinHelp"))}
             {field(
               t("pin"),
@@ -3000,7 +3006,16 @@ function Till() {
               () =>
                 void run(async () => {
                   if (pin !== pinConfirm) throw new Error("pinMismatch");
-                  await vault.enroll(pin);
+                  try {
+                    await vault.enroll(pin);
+                  } catch (error) {
+                    if (
+                      error instanceof Error &&
+                      error.message === "pinTimeout"
+                    )
+                      throw Error("pinSetupTimeout");
+                    throw error;
+                  }
                   setPinEnabled(true);
                   setPin("");
                   setPinConfirm("");

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { randomBytes } from "node:crypto";
+import { randomBytes, pbkdf2Sync } from "node:crypto";
 import {
   SessionVault,
   validPin,
@@ -88,4 +88,64 @@ test("cancelling an in-flight unlock cannot restore a session later", async () =
   await assert.rejects(() => opening, /pinLocked/);
   assert.equal(await vault.token(), null);
   assert.deepEqual(await vault.unlock("4829"), account);
+});
+
+const nativeDerive = async (pin: string, salt: Uint8Array) =>
+  new Uint8Array(pbkdf2Sync(pin, salt, 600000, 32, "sha256"));
+test("native PIN setup survives restart, rejects wrong PIN and retains encrypted account", async () => {
+  const { store, data } = setup();
+  const v = new SessionVault(store, randomBytes, nativeDerive);
+  await v.remember(account);
+  await v.enroll("4829");
+  assert.equal(JSON.parse(data.get("posnic.pin")!).kdf, "pbkdf2-sha256-600k");
+  assert.equal(data.has("posnic.account"), false);
+  v.lock();
+  const restarted = new SessionVault(store, randomBytes, nativeDerive);
+  await assert.rejects(restarted.unlock("9871"), /pinWrong/);
+  assert.deepEqual(await restarted.unlock("4829"), account);
+});
+test("failed native first-time setup leaves the signed-in account intact and no partial PIN", async () => {
+  const { store } = setup();
+  const v = new SessionVault(store, randomBytes, async () => {
+    throw Error("pinTimeout");
+  });
+  await v.remember(account);
+  await assert.rejects(v.enroll("4829"), /pinTimeout/);
+  assert.equal(await v.hasPin(), false);
+  assert.deepEqual(await v.account(), account);
+});
+test("native-capable app can unlock an existing legacy scrypt PIN", async () => {
+  const { vault, store } = setup();
+  await vault.remember(account);
+  await vault.enroll("4829");
+  vault.lock();
+  const upgraded = new SessionVault(store, randomBytes, nativeDerive);
+  assert.deepEqual(await upgraded.unlock("4829"), account);
+});
+
+test("locking while native PIN setup runs discards the derived key without saving a PIN", async () => {
+  const { store } = setup();
+  let finish!: (key: Uint8Array) => void;
+  let started!: () => void;
+  const ready = new Promise<void>((resolve) => {
+    started = resolve;
+  });
+  const vault = new SessionVault(
+    store,
+    randomBytes,
+    () =>
+      new Promise<Uint8Array>((resolve) => {
+        finish = resolve;
+        started();
+      }),
+  );
+  await vault.remember(account);
+  const setting = vault.enroll("4829");
+  await ready;
+  vault.lock();
+  const key = new Uint8Array(32).fill(7);
+  finish(key);
+  await assert.rejects(setting, /pinLocked/);
+  assert.ok(key.every((value) => value === 0));
+  assert.equal(await vault.hasPin(), false);
 });
