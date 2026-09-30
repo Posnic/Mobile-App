@@ -1,6 +1,6 @@
 # Mobile POS API contract
 
-Status: client and matching POS server adapter implemented for 0.1.3 testing.
+Status: client 0.3.0-beta.8 and matching POS 1.8.5-beta.6 adapter implemented for pilot testing.
 Desktop location: Settings → Mobile POS. Remote servers must deploy the same API.
 Paths are relative to the chosen server's `/api` base. Do not advertise the mobile
 capability until complete sale ingestion passes integration tests.
@@ -28,9 +28,11 @@ schema is `bootstrap` in `src/services/api.ts`; models are in `src/domain/types.
   a consistent, complete catalogue snapshot.
 - Explicit permissions: sell, quickSale, customerWrite, itemWrite, priceOverride,
   manualUpi. Unsupported actions remain false.
-- Prices use integer minor units, tax uses basis points. This alpha supports whole
-  quantities, two-decimal currencies and one tax rate per line. Return complex
-  items with requiresConfiguration until their options/tax support is implemented.
+- Prices use integer minor units, tax uses basis points. Supported currencies have
+  two decimals and each line has one tax rate. Piece-count quantities are integral.
+  `quantity=fixed3` opts into `quantityScale:1000` and the configured selling unit
+  for weight-machine-based items. Other unsupported configurations remain blocked.
+  Both server and client round base/tax to minor units using the fixed-quantity contract.
 - Item code maps to existing plu_code and preserves leading zeroes. Codes are never
   displayed on sale tiles. Duplicate shortcut matches require selection.
 - Branch UPI accounts carry stable ID, name, VPA, active flag and manual/provider
@@ -42,7 +44,10 @@ schema is `bootstrap` in `src/services/api.ts`; models are in `src/domain/types.
 The client atomically replaces the catalogue and grants, pins authority/shop/branch/
 staff and preserves existing cart and paid-sale snapshots. Refresh failure leaves
 old data intact. The worker runs every 30 seconds while foregrounded and on resume.
-Delta sync, authenticated image caching and OS background work remain outstanding.
+`catalogue=paged` negotiates immutable content-addressed pages of up to 256 items,
+retrieved from `/mobile/v1/catalogue/:version/:page`. Completed pages are reused;
+activation and the new grant commit together. Product images use bounded persistent
+caching from permitted credential-free URLs. OS background work remains outstanding.
 
 ## Sale ingestion
 
@@ -78,12 +83,16 @@ failover needs verified server topology and shared deduplication first.
 `POST /mobile/v1/print-jobs` accepts receipt jobs:
 `{id: "receipt:<sale-id>", saleId, document: "receipt"}` or test jobs:
 `{id: "<unique-test-id>", document: "test"}`. Receipt retry IDs are stable.
-The server owns templates, routing, spooling and reprint audit. This alpha submits
-jobs but does not track delivery or support explicit authorized reprints. Durable
-offline till routing therefore remains incomplete.
+The server owns Till templates, routing and spooling. The print-status capability
+allows receipt status reads without creating a new job. Direct phone printing uses
+a separate durable journal, explicit recovery and no automatic duplicate Till job.
+Android Bluetooth Classic SPP and USB printer-class ESC/POS are implemented;
+OS printing remains available. Transport submission is not proof of physical paper.
 
-Phone printing uses the OS print service. Bluetooth/USB/BLE/raw TCP drivers are
-separate integrations requiring hardware, font, retry and ambiguous-delivery tests.
+`POST /mobile/v1/delivery-status` accepts at most 50 local sale IDs. It returns
+only explicit gateway receipt evidence scoped to the paired license/branch/staff/device,
+matching transaction/server receipt and sync authority. `cloudDelivery` is advertised
+only after protocol support is recorded by the signed sync component.
 
 ## Remaining contracts
 

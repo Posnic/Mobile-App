@@ -26,11 +26,18 @@ details to inspect its job state. This requires the matched API's `printStatus`
 capability. Completion is reported by the Till and is not proof of physical
 paper delivery. A status read never creates another print request.
 
-Android Bluetooth Classic ESC/POS direct printing is added in the
-[offline beta](OFFLINE_DIRECT_PRINT_BETA.md). USB/iOS direct printers, cash-drawer commands, scales and card-terminal
-providers remain unimplemented. Software tests and native bundle
-exports do not certify a scanner or printer model. Physical Android/iPhone and
-Till tests are required before a pilot release.
+Android Bluetooth Classic SPP and USB printer-class bulk ESC/POS direct printing
+are implemented in the [offline beta](OFFLINE_DIRECT_PRINT_BETA.md). Configure the
+exact printer, paper width and optional printer-connected cash drawer in
+**More → Printing**. Permission/identity failures never fall back to another device.
+The drawer pulses only on the first cash receipt attempt, never a retry/reprint.
+Uncertain writes require explicit paper inspection and recovery.
+
+Weighed-item scans open quantity entry in the configured unit. Queued HID scans
+are explicitly paused while entering weight; scan remaining items again afterward.
+This is manual quantity entry, not an attached-scale adapter. iOS direct adapters,
+scales and provider card terminals remain outside this build. Software checks do
+not certify a physical model; use the pilot test guide with the actual hardware.
 
 See `Intranet/docs/MOBILE_POS_HARDWARE_DELIVERY_ROADMAP.md` in the companion Intranet
 repository for the full milestone backlog and acceptance gates, and

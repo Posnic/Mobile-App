@@ -1,70 +1,59 @@
-# Implementation status — 22 September 2026
+# Implementation status — 1 October 2026
 
 ## Current delivery
 
-React Native / Expo application source is implemented in this repository. This is
-an alpha for evaluating the approved selling flow, not a completed production POS
-release. The browser preview runs the same UI with IndexedDB; native builds use
-SQLCipher SQLite and SecureStore. The matching POS desktop test build includes the Mobile POS server integration. Version 0.2.0 adds browser account approval, free-trial return handling and authenticated local-till discovery. Consult release notes for actual deployment status.
+Android `0.3.0-beta.8` with Windows `1.8.5-beta.6` is the independent offline counter
+pilot. All nine approved offline screen journeys are implemented in the application
+and matching POS module. Installation, screen mapping and failure checks are in
+[the test guide](OFFLINE_DIRECT_PRINT_BETA.md). This is a test distribution, not a
+claim that every hardware/provider or future selling feature is finished.
 
-| Area | Implemented now | Required before release |
+| Area | Implemented and checked | Remaining scope |
 |---|---|---|
-| Selling | Visual tiles, compact scan/keypad icons, internal PLU lookup, quick amount, cash/change, optional customer, hold/resume, receipts | Modifiers, variants, weighted quantities, complex taxes, refunds, split tenders and reconciliation |
-| Offline | Atomic local checkout/outbox, retry identity, persisted cart and sale history, permissions/expiry, pinned authority, snapshot refresh | Native interruption/encryption tests, background sync, catalogue/image scale testing, server ingestion |
-| Pairing | Account browser approval, phone-bound grants, LAN discovery, QR/address/code fallback, PIN, revocation and capability checks | Seamless token renewal, changed-IP recovery and physical-device transport QA |
-| Payments | Cash, branch UPI account selection and amount QR, explicit staff confirmation | Branch account administration in POS, verified UPI attempts, terminal providers/readers, uncertain-payment recovery |
-| Printing | Escaped localized HTML receipts, OS print service, separate test document, till-job client | Real printer drivers, delivery tracking, durable offline queue, audited reprints and multilingual hardware QA |
-| Minimal management | Local customer attached to sale; training-only item creation with PLU uniqueness | Version-checked live item/price writes, server customer deduplication and existing customer search |
-| Languages | All 18 POS languages have all 198 mobile messages; bundled offline packs, persisted choice and Arabic direction | Native-speaker review of beta translations; physical-device and thermal-printer font coverage |
-| Training | Isolated sample shop; no live upload; explicit practice-data clearing to return to onboarding | Additional fixtures for complex retail/hospitality cases |
+| Selling | Compact visual tiles, local search/PLU/barcode, quick amount, cash/change, optional customer, hold/resume, receipts; explicit weighed-item quantity entry and units | Variants, modifiers, controlled discounts/price overrides, compound taxes, refunds and split tenders |
+| Offline | Atomic sale/outbox/print intent; bounded paged catalogue activation; indexed Android lookup; persistent images; protected 90-day/10k receipt defaults; server history search | OS background scheduling and wider production-scale benchmarks; physical encrypted-storage interruption testing |
+| Pairing | Cloud account consent/free-trial return, authenticated LAN discovery, QR/address/code fallback, secure remembered credentials, PIN recovery, revocation and ACL | Physical network qualification and broader credential lifecycle work |
+| Payments | Cash; branch-administered UPI accounts/default/selection; amount QR; explicit unverified staff confirmation | Provider-confirmed attempts, terminal/Tap to Pay adapters, refunds and uncertain-payment recovery |
+| Printing | Android Bluetooth Classic SPP/USB printer-class ESC/POS; OS/Till alternatives; durable direct journal; explicit uncertain-outcome recovery; opt-in cash drawer; Till status reads | iOS/vendor adapters and qualification on actual printers/drawers; generic USB does not support every vendor protocol |
+| Sync | Durable idempotent sale/customer/stock effects; local/server/cloud receipt states from explicit evidence | Independent-ledger failover and broader cross-authority reconciliation |
+| Management | Customer attached to sale under ACL; minimal item creation in training | Version-checked live item/price writes and expanded existing-customer search |
+| Languages | All 18 bundled POS locales, including beta packs; persistent choice, Arabic direction, localized quantity parsing | Native-speaker review and physical thermal-font qualification |
 
-The matching POS backend implements the mobile API. Enable the branch under
-Settings → Features in the updated desktop build. Browser account consent also enables the matched branch. Live connection remains gated
-by features.mobilePosV1 so older servers are refused. See [MOBILE_API.md](MOBILE_API.md).
+The native database is SQLCipher SQLite; the browser preview uses IndexedDB and
+memory-only credentials. The public Android APK retains the existing development
+certificate and the Windows installer is unsigned. Neither software tests nor a
+transport write certify physical paper delivery or received electronic funds.
 
 ## Verification
 
-- TypeScript strict check, formatting and attribution checks passed; 30 domain/
-  repository/SQLite/vault/connection tests and 8 browser scenarios passed. The matching server integration has 15 passing real MongoDB/browser tests, including account onboarding to cloud and LAN.
-- Domain/repository tests cover duplicate checkout, commit failure, cash underpayment,
-  offline permission expiry, held carts, durable retry/review, tenant-pinned catalogue
-  replacement, receipt escaping, UPI URI binding and practice-data clearing.
-- Browser tests cover cash checkout while offline, persistence across reload,
-  hidden codes, numeric lookup, quick amount, hold/resume, Tamil persistence,
-  Arabic selected-state accessibility and narrow-screen layout.
-- Production web export passed. The web preview is not an offline-installed PWA.
-- Android ARM64 release-variant compilation succeeded with SQLCipher enabled. This
-  local evaluation APK uses the generated debug signing key, not production signing.
-  No working Android device was attached (ADB reported an offline emulator).
-- iOS, camera hardware, encrypted-storage runtime, printers and payment readers have
-  not been tested on physical devices.
+- 73 mobile unit tests, 34 browser scenarios and 23 real mobile/POS integration
+  cases pass. Strict TypeScript, formatting and attribution checks pass.
+- Matching POS: 11,585 API tests pass (13 skipped), 3,639 desktop tests pass
+  (5 skipped). Gateway/signed-component receipt evidence: 215 tests pass.
+- Tests include 10,017 catalogue items, old-schema migration, lookup beyond the
+  visible page, Unicode search, interrupted/duplicate activation rollback,
+  stale-price selection, restart persistence, repeated uploads, quantity ACL,
+  weighed-item stock replay, cached images and cloud receipt evidence.
+- Android release assembly and Windows payload/source verification pass. No
+  physical printer, terminal or attached weighing machine is certified here.
+- Cloud receipt labels require gateway protocol 1 and signed sync component 1.7.3,
+  published to assigned beta-channel cloud tenants. Community installs retain
+  server-only acknowledgment. No automatic independent-ledger failover is enabled.
 
-## Integration order
+## Current contracts
 
-1. Implement and test the authenticated bootstrap/device grant and atomic sale
-   ingestion contract in POS using existing domain/accounting services.
-2. Test real offline recovery, duplicate server submission and revoked-device flows.
-3. Add branch UPI account administration and a selected payment-provider adapter.
-4. Implement direct printer support for the chosen models and till delivery tracking.
-5. Finish language packs, reconciliation, accessibility and field testing before beta.
+Money uses integer minor units for supported two-decimal currencies and one rate
+per line. Piece-count quantities remain integral. Weight-machine-based items with
+a configured selling unit are explicitly negotiated (`quantity=fixed3`) and allow
+three decimals; the phone asks for entered weight and does not infer it from a
+normal barcode or claim a live scale adapter. Other unsupported item configurations
+remain blocked. Paid/held snapshots preserve the grant that issued their prices.
 
-Printer model/connectivity and payment provider/reader details are still required
-for hardware-specific adapters. Generic platform printing is not universal thermal
-printer support, and a QR display is not a confirmed payment.
+[API contract](MOBILE_API.md), [devices](DEVICES.md), [ACL](ACCESS_CONTROL.md) and
+[offline test guide](OFFLINE_DIRECT_PRINT_BETA.md) describe the implemented scope.
+The wider roadmap remains a backlog, not an assertion of delivered capability.
 
-## Known engineering limits
-
-This alpha uses two-decimal currencies, whole quantities and one tax rate per line.
-Unsupported currency bootstrap data is rejected. Large catalogues use cached local
-records and bounded pages; performance targets have not yet been benchmarked at
-production scale. Receipts and customer lists need pagination/retention policy.
-Native HTTP LAN access and mDNS permissions must be validated rather than assumed
-from the URL parser. There is no automatic LAN/cloud write failover.
-
-The dependency audit reports 10 moderate findings, all flowing from the build-tool
-xcode/uuid chain. No high/critical findings were reported. npm's suggested force fix
-downgrades the Expo SDK across incompatible major versions, so it was not applied.
-Resolve the upstream build-tool advisory before distributing signed releases.
+## Historical repairs
 
 ## 0.1.1 — native startup repair
 
