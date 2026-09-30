@@ -237,5 +237,9 @@
   "cloudReceiptHelp": "Confirmed by the cloud gateway for this receipt. Stock and other shop data synchronize separately.",
   "catalogueChanged": "This item changed. Refresh the catalogue and select it again.",
   "invalidQuantity": "Enter a valid quantity for this unit, up to 999.",
-  "quantityHelp": "Enter the weight in the unit shown, with up to 3 decimal places."
+  "quantityHelp": "Enter the weight in the unit shown, with up to 3 decimal places.",
+  "favourites": "Favourites",
+  "addFavourite": "Add to favourites",
+  "removeFavourite": "Remove from favourites",
+  "favouritesHelp": "Tap the star on an item to keep it here. Search and categories also filter favourites."
 }

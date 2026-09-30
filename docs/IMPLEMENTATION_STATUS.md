@@ -2,7 +2,7 @@
 
 ## Current delivery
 
-Android `0.3.0-beta.8` with Windows `1.8.5-beta.6` is the independent offline counter
+Android `0.3.0-beta.9` with Windows `1.8.5-beta.6` is the independent offline counter
 pilot. All nine approved offline screen journeys are implemented in the application
 and matching POS module. Installation, screen mapping and failure checks are in
 [the test guide](OFFLINE_DIRECT_PRINT_BETA.md). This is a test distribution, not a
@@ -24,9 +24,11 @@ memory-only credentials. The public Android APK retains the existing development
 certificate and the Windows installer is unsigned. Neither software tests nor a
 transport write certify physical paper delivery or received electronic funds.
 
+See the [control-by-control mockup audit](MOCKUP_IMPLEMENTATION_CHECKLIST.md) for both approved galleries and linked screens. Beta9 adds scoped offline favourites and correct full-catalogue image readiness. The desktop installer is unchanged from beta8.
+
 ## Verification
 
-- 73 mobile unit tests, 34 browser scenarios and 23 real mobile/POS integration
+- 74 mobile unit tests, 36 browser scenarios and 23 real mobile/POS integration
   cases pass. Strict TypeScript, formatting and attribution checks pass.
 - Matching POS: 11,585 API tests pass (13 skipped), 3,639 desktop tests pass
   (5 skipped). Gateway/signed-component receipt evidence: 215 tests pass.

@@ -1,6 +1,6 @@
 # Independent offline counter beta
 
-1 October 2026. Android `0.3.0-beta.8`, matching Windows `1.8.5-beta.6`.
+1 October 2026. Android `0.3.0-beta.9`, matching Windows `1.8.5-beta.6`.
 
 ## Included
 
@@ -16,6 +16,10 @@
 
 - Receipts → Find an older receipt searches the signed-in cashier’s mobile receipts on the paired shop server. Searches are literal and paginated, 50 results at a time, newest first. Server receipt details are read-only; they do not enqueue another upload or print. Other cashiers and branches are excluded even when client parameters are altered. This does not expose all desktop sales.
 - The app explicitly distinguishes server acceptance from cloud confirmation. The app reports cloud receipt delivery only when the signed sync component has stored an explicit matching gateway acknowledgment. Community installations and older components keep the server-only status.
+
+## Beta9 mockup completion
+
+Favourites persist per cashier/branch and work without a network. Tap the small star without adding a sale line, then use the Favourites filter. Offline Data reports downloaded thumbnails for the whole catalogue. See [the full mockup checklist](MOCKUP_IMPLEMENTATION_CHECKLIST.md). This update reuses the verified Windows beta6 installer.
 
 ## Test on a phone
 

@@ -122,6 +122,13 @@ test("catalogue migration, indexed barcode lookup and visible pages stay bounded
       (await repo.catalogue({ code: "10016" })).items[0]?.id,
       "10016",
     );
+    assert.equal((await repo.catalogue({ ids: [] })).total, 0);
+    assert.equal((await repo.catalogue({ ids: [last.items[0]!.id] })).total, 1);
+    assert.equal(
+      (await repo.catalogue({ ids: [last.items[0]!.id], search: "absent" }))
+        .total,
+      0,
+    );
     const second = await repo.catalogue({ offset: 48 });
     assert.equal(second.items.length, 48);
     assert.equal(second.items[0]?.id, "00048");

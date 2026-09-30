@@ -30,6 +30,7 @@ Do not uninstall or clear storage on a device with unsynced sales.
 
 ## Implemented
 
+- Persistent cashier/branch favourites with compact star controls.
 - Visual item tiles, hidden numeric quick codes, camera scanning and amount-only sales.
 - Integer-money checkout, cash received/change, optional customer, held carts and receipts.
 - Transactional sale/outbox commits, retry identifiers, pinned shop/branch, review state

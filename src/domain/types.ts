@@ -166,6 +166,7 @@ export interface DirectPrintJob {
   updatedAt: string;
 }
 export interface SessionData {
+  favourites?: string[];
   catalogue: { count: number; imageCount: number; categories: string[] };
   catalogueUpdatedAt?: string;
   shop: Shop | null;

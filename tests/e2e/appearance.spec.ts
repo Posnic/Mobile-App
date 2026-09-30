@@ -43,3 +43,26 @@ for (const colorScheme of ["light", "dark"] as const) {
     ).toBeTruthy();
   });
 }
+
+test("favourites survive reload and starring does not add a sale line", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByTestId("start-training").click();
+  await page.getByTestId("favourites-filter").click();
+  await expect(page.getByTestId("item-coffee")).toHaveCount(0);
+  await page.getByTestId("favourites-filter").click();
+  await page.getByTestId("favourite-coffee").click();
+  await expect(page.getByTestId("view-cart")).toBeDisabled();
+  await page.getByTestId("favourites-filter").click();
+  await expect(page.getByTestId("item-coffee")).toBeVisible();
+  await expect(page.getByTestId("item-tea")).toHaveCount(0);
+  await page.reload();
+  await page.getByTestId("favourites-filter").click();
+  await expect(page.getByTestId("item-coffee")).toBeVisible();
+  await page.getByTestId("item-coffee").click();
+  await expect(page.getByTestId("view-cart")).toContainText("35");
+  await page.getByTestId("favourite-coffee").click();
+  await expect(page.getByTestId("item-coffee")).toHaveCount(0);
+  await expect(page.getByTestId("view-cart")).toContainText("35");
+});

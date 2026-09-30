@@ -98,3 +98,57 @@ test("large offline catalogue pages and exact code lookup include the final prod
   ).toBeVisible();
   await expect(page.getByText("2", { exact: true })).toBeVisible();
 });
+
+test("offline image readiness counts the whole catalogue, not the visible item page", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByTestId("start-training").click();
+  await page.route("**/mobile/**", (route) => route.abort());
+  await page.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const q = indexedDB.open("posnic-preview");
+      q.onsuccess = () => resolve(q.result);
+      q.onerror = () => reject(q.error);
+    });
+    const read = (key: string) =>
+      new Promise<any>((resolve, reject) => {
+        const q = db.transaction("records").objectStore("records").get(key);
+        q.onsuccess = () => resolve(q.result);
+        q.onerror = () => reject(q.error);
+      });
+    const shop = {
+      ...(await read("shop")),
+      mode: "live",
+      baseUrl: location.origin,
+    };
+    const item = await read("item:coffee");
+    const url = location.origin + "/product-image.png";
+    const scope = JSON.stringify([shop.baseUrl, shop.id, shop.branchId]);
+    const hash = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(JSON.stringify([scope, url, ""])),
+    );
+    const key = Array.from(new Uint8Array(hash), (b) =>
+      b.toString(16).padStart(2, "0"),
+    ).join("");
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction("records", "readwrite"),
+        store = tx.objectStore("records");
+      store.put(shop, "shop");
+      store.put(
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=",
+        "image:" + key,
+      );
+      for (let n = 0; n < 60; n++)
+        store.put({ ...item, id: "image" + n, image: url }, "item:image" + n);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+    db.close();
+  });
+  await page.reload();
+  await page.getByRole("tab", { name: "More", exact: true }).click();
+  await page.getByText("Offline data", { exact: true }).click();
+  await expect(page.getByText("60 / 60", { exact: true })).toBeVisible();
+});

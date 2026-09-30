@@ -660,3 +660,31 @@ test("weighed item requires an explicit quantity and reductions keep the void AC
     /0.25 kg/,
   );
 });
+
+test("favourites persist independently of the cart and stay scoped to cashier and branch", async () => {
+  const { repo, storage } = setup();
+  await repo.startTraining();
+  await repo.toggleFavourite(trainingItems[0]!.id);
+  const restarted = new Repository(
+    storage,
+    () => "restarted",
+    () => 1000,
+  );
+  const saved = await restarted.load();
+  assert.deepEqual(saved.favourites, [trainingItems[0]!.id]);
+  assert.equal(saved.cart.lines.length, 0);
+  assert.equal((await restarted.catalogue({ ids: saved.favourites })).total, 1);
+  assert.equal((await restarted.catalogue({ ids: [] })).total, 0);
+  await storage.batch([
+    { key: "shop", value: { ...trainingShop, staffId: "other" } },
+  ]);
+  assert.deepEqual((await restarted.load()).favourites, []);
+  await storage.batch([
+    { key: "shop", value: { ...trainingShop, branchId: "other" } },
+  ]);
+  assert.deepEqual((await restarted.load()).favourites, []);
+  await storage.batch([{ key: "shop", value: trainingShop }]);
+  await restarted.toggleFavourite(trainingItems[0]!.id);
+  assert.deepEqual((await restarted.load()).favourites, []);
+  await assert.rejects(restarted.toggleFavourite("missing"), /notFound/);
+});

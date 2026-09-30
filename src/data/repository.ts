@@ -68,6 +68,9 @@ export class Repository {
     this.catalogueCache = items;
     return {
       shop,
+      favourites: shop
+        ? ((await this.store.get<string[]>(this.favouritesKey(shop))) ?? [])
+        : [],
       catalogueUpdatedAt: catalogueUpdatedAt ?? undefined,
       items: items.items,
       catalogue: items.summary,
@@ -94,6 +97,30 @@ export class Repository {
   async catalogue(query: CatalogueQuery = {}) {
     await this.tail;
     return this.queryCatalogue(query);
+  }
+  private favouritesKey(shop: Shop) {
+    return (
+      "favourites:" +
+      JSON.stringify([shop.mode, shop.id, shop.branchId, shop.staffId])
+    );
+  }
+  async toggleFavourite(id: string) {
+    return this.serial(async () => {
+      const shop = await this.authorized("sell");
+      const key = this.favouritesKey(shop);
+      const current = (await this.store.get<string[]>(key)) ?? [];
+      const item = await this.store.get<Item>("item:" + id);
+      if (!current.includes(id) && (!item || !item.active))
+        throw Error("notFound");
+      await this.store.batch([
+        {
+          key,
+          value: current.includes(id)
+            ? current.filter((value) => value !== id)
+            : [...current, id],
+        },
+      ]);
+    });
   }
   async *imageItems(): AsyncGenerator<Item> {
     const version = (await this.store.get<Shop>("shop"))?.snapshotVersion;

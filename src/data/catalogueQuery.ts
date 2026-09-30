@@ -2,6 +2,7 @@ import type { Item } from "../domain/types";
 import { normalizeDigits } from "../domain/money";
 
 export interface CatalogueQuery {
+  ids?: string[];
   search?: string;
   category?: string;
   code?: string;
@@ -28,6 +29,7 @@ export function bounds(query: CatalogueQuery) {
 }
 export function matchesItem(item: Item, query: CatalogueQuery) {
   if (!item.active) return false;
+  if (query.ids && !query.ids.includes(item.id)) return false;
   if (query.category && item.category !== query.category) return false;
   if (query.code !== undefined && item.code !== query.code) return false;
   if (query.barcode !== undefined && item.barcode !== query.barcode)

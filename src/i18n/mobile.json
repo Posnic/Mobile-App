@@ -204,7 +204,11 @@
     "cloudReceiptHelp": "இந்த ரசீது கிளவுட் நுழைவாயிலால் உறுதிப்படுத்தப்பட்டது. சரக்கு மற்றும் பிற கடைத் தரவு தனியாக ஒத்திசைக்கப்படும்.",
     "catalogueChanged": "இந்தப் பொருள் மாறியுள்ளது. பொருள் பட்டியலைப் புதுப்பித்து மீண்டும் தேர்ந்தெடுக்கவும்.",
     "invalidQuantity": "இந்த அலகிற்கு 999 வரை செல்லுபடியான அளவை உள்ளிடவும்.",
-    "quantityHelp": "காட்டப்பட்ட அலகில் எடையை 3 தசம இடங்கள் வரை உள்ளிடவும்."
+    "quantityHelp": "காட்டப்பட்ட அலகில் எடையை 3 தசம இடங்கள் வரை உள்ளிடவும்.",
+    "favourites": "பிடித்தவை",
+    "addFavourite": "பிடித்தவற்றில் சேர்",
+    "removeFavourite": "பிடித்தவற்றிலிருந்து நீக்கு",
+    "favouritesHelp": "பொருளின் நட்சத்திரத்தைத் தட்டி இங்கே சேமிக்கவும். தேடலும் வகைகளும் பிடித்தவற்றையும் வடிகட்டும்."
   },
   "hi": {
     "name": "नाम",
@@ -409,7 +413,11 @@
     "cloudReceiptHelp": "इस रसीद की क्लाउड गेटवे ने पुष्टि की है। स्टॉक और अन्य दुकान डेटा अलग से सिंक होते हैं।",
     "catalogueChanged": "यह वस्तु बदल गई है। वस्तु सूची रीफ़्रेश करके इसे फिर चुनें।",
     "invalidQuantity": "इस इकाई के लिए 999 तक मान्य मात्रा दर्ज करें।",
-    "quantityHelp": "दिखाई गई इकाई में अधिकतम 3 दशमलव अंकों के साथ वजन दर्ज करें।"
+    "quantityHelp": "दिखाई गई इकाई में अधिकतम 3 दशमलव अंकों के साथ वजन दर्ज करें।",
+    "favourites": "पसंदीदा",
+    "addFavourite": "पसंदीदा में जोड़ें",
+    "removeFavourite": "पसंदीदा से हटाएँ",
+    "favouritesHelp": "वस्तु को यहाँ रखने के लिए तारे पर टैप करें। खोज और श्रेणियाँ पसंदीदा को भी फ़िल्टर करती हैं।"
   },
   "ml": {
     "name": "പേര്",
@@ -614,7 +622,11 @@
     "cloudReceiptHelp": "ഈ രസീത് ക്ലൗഡ് ഗേറ്റ്‌വേ സ്ഥിരീകരിച്ചു. സ്റ്റോക്കും മറ്റ് കട വിവരങ്ങളും പ്രത്യേകം സിങ്ക് ചെയ്യുന്നു.",
     "catalogueChanged": "ഈ ഉൽപ്പന്നം മാറിയിരിക്കുന്നു. ഉൽപ്പന്നപ്പട്ടിക പുതുക്കി വീണ്ടും തിരഞ്ഞെടുക്കുക.",
     "invalidQuantity": "ഈ യൂണിറ്റിന് 999 വരെയുള്ള സാധുവായ അളവ് നൽകുക.",
-    "quantityHelp": "കാണിച്ച യൂണിറ്റിൽ 3 ദശാംശ സ്ഥാനങ്ങൾ വരെ ഭാരം നൽകുക."
+    "quantityHelp": "കാണിച്ച യൂണിറ്റിൽ 3 ദശാംശ സ്ഥാനങ്ങൾ വരെ ഭാരം നൽകുക.",
+    "favourites": "പ്രിയപ്പെട്ടവ",
+    "addFavourite": "പ്രിയപ്പെട്ടവയിൽ ചേർക്കുക",
+    "removeFavourite": "പ്രിയപ്പെട്ടവയിൽ നിന്ന് നീക്കുക",
+    "favouritesHelp": "ഇവിടെ സൂക്ഷിക്കാൻ ഇനത്തിലെ നക്ഷത്രം തൊടുക. തിരയലും വിഭാഗങ്ങളും പ്രിയപ്പെട്ടവയും ഫിൽട്ടർ ചെയ്യും."
   },
   "kn": {
     "name": "ಹೆಸರು",
@@ -819,7 +831,11 @@
     "cloudReceiptHelp": "ಈ ರಸೀದಿಯನ್ನು ಕ್ಲೌಡ್ ಗೇಟ್‌ವೇ ದೃಢೀಕರಿಸಿದೆ. ದಾಸ್ತಾನು ಮತ್ತು ಇತರ ಅಂಗಡಿ ಡೇಟಾ ಪ್ರತ್ಯೇಕವಾಗಿ ಸಿಂಕ್ ಆಗುತ್ತದೆ.",
     "catalogueChanged": "ಈ ವಸ್ತು ಬದಲಾಗಿದೆ. ವಸ್ತುಪಟ್ಟಿಯನ್ನು ನವೀಕರಿಸಿ ಮತ್ತೆ ಆಯ್ಕೆಮಾಡಿ.",
     "invalidQuantity": "ಈ ಘಟಕಕ್ಕೆ 999 ವರೆಗಿನ ಮಾನ್ಯ ಪ್ರಮಾಣವನ್ನು ನಮೂದಿಸಿ.",
-    "quantityHelp": "ತೋರಿಸಿರುವ ಘಟಕದಲ್ಲಿ 3 ದಶಮಾಂಶ ಸ್ಥಾನಗಳವರೆಗೆ ತೂಕ ನಮೂದಿಸಿ."
+    "quantityHelp": "ತೋರಿಸಿರುವ ಘಟಕದಲ್ಲಿ 3 ದಶಮಾಂಶ ಸ್ಥಾನಗಳವರೆಗೆ ತೂಕ ನಮೂದಿಸಿ.",
+    "favourites": "ಮೆಚ್ಚಿನವು",
+    "addFavourite": "ಮೆಚ್ಚಿನವುಗಳಿಗೆ ಸೇರಿಸಿ",
+    "removeFavourite": "ಮೆಚ್ಚಿನವುಗಳಿಂದ ತೆಗೆದುಹಾಕಿ",
+    "favouritesHelp": "ವಸ್ತುವನ್ನು ಇಲ್ಲಿ ಉಳಿಸಲು ನಕ್ಷತ್ರವನ್ನು ಒತ್ತಿ. ಹುಡುಕಾಟ ಮತ್ತು ವಿಭಾಗಗಳು ಮೆಚ್ಚಿನವುಗಳನ್ನೂ ಫಿಲ್ಟರ್ ಮಾಡುತ್ತವೆ."
   },
   "te": {
     "name": "పేరు",
@@ -1024,7 +1040,11 @@
     "cloudReceiptHelp": "ఈ రసీదును క్లౌడ్ గేట్‌వే నిర్ధారించింది. స్టాక్ మరియు ఇతర దుకాణ డేటా విడిగా సింక్ అవుతాయి.",
     "catalogueChanged": "ఈ వస్తువు మారింది. వస్తువుల జాబితాను నవీకరించి మళ్లీ ఎంచుకోండి.",
     "invalidQuantity": "ఈ యూనిట్‌కు 999 వరకు చెల్లుబాటు అయ్యే పరిమాణాన్ని నమోదు చేయండి.",
-    "quantityHelp": "చూపిన యూనిట్‌లో 3 దశాంశ స్థానాల వరకు బరువును నమోదు చేయండి."
+    "quantityHelp": "చూపిన యూనిట్‌లో 3 దశాంశ స్థానాల వరకు బరువును నమోదు చేయండి.",
+    "favourites": "ఇష్టమైనవి",
+    "addFavourite": "ఇష్టమైనవాటికి జోడించండి",
+    "removeFavourite": "ఇష్టమైనవాటి నుండి తీసివేయండి",
+    "favouritesHelp": "వస్తువును ఇక్కడ ఉంచడానికి నక్షత్రాన్ని నొక్కండి. శోధన మరియు వర్గాలు ఇష్టమైనవాటిని కూడా ఫిల్టర్ చేస్తాయి."
   },
   "si": {
     "name": "නම",
@@ -1229,7 +1249,11 @@
     "cloudReceiptHelp": "මෙම රිසිට්පත ක්ලවුඩ් ගේට්වේ විසින් තහවුරු කර ඇත. තොග සහ අනෙකුත් වෙළඳසැල් දත්ත වෙනම සමමුහුර්ත වේ.",
     "catalogueChanged": "මෙම භාණ්ඩය වෙනස් වී ඇත. භාණ්ඩ ලැයිස්තුව යාවත්කාලීන කර නැවත තෝරන්න.",
     "invalidQuantity": "මෙම ඒකකයට 999 දක්වා වලංගු ප්‍රමාණයක් ඇතුළත් කරන්න.",
-    "quantityHelp": "පෙන්වා ඇති ඒකකයෙන් දශම ස්ථාන 3ක් දක්වා බර ඇතුළත් කරන්න."
+    "quantityHelp": "පෙන්වා ඇති ඒකකයෙන් දශම ස්ථාන 3ක් දක්වා බර ඇතුළත් කරන්න.",
+    "favourites": "ප්‍රියතම",
+    "addFavourite": "ප්‍රියතම වෙත එක් කරන්න",
+    "removeFavourite": "ප්‍රියතම වෙතින් ඉවත් කරන්න",
+    "favouritesHelp": "භාණ්ඩයක් මෙහි තබා ගැනීමට එහි තරුව තට්ටු කරන්න. සෙවුම සහ කාණ්ඩ ප්‍රියතම භාණ්ඩද පෙරහන් කරයි."
   },
   "ne": {
     "name": "नाम",
@@ -1434,7 +1458,11 @@
     "cloudReceiptHelp": "यो रसिद क्लाउड गेटवेले पुष्टि गरेको छ। मौज्दात र अन्य पसल डेटा छुट्टै सिंक हुन्छन्।",
     "catalogueChanged": "यो वस्तु परिवर्तन भएको छ। वस्तु सूची ताजा गरी फेरि चयन गर्नुहोस्।",
     "invalidQuantity": "यस एकाइको लागि 999 सम्म मान्य परिमाण प्रविष्ट गर्नुहोस्।",
-    "quantityHelp": "देखाइएको एकाइमा 3 दशमलव स्थानसम्म तौल प्रविष्ट गर्नुहोस्।"
+    "quantityHelp": "देखाइएको एकाइमा 3 दशमलव स्थानसम्म तौल प्रविष्ट गर्नुहोस्।",
+    "favourites": "मनपर्ने",
+    "addFavourite": "मनपर्नेमा थप्नुहोस्",
+    "removeFavourite": "मनपर्नेबाट हटाउनुहोस्",
+    "favouritesHelp": "वस्तुलाई यहाँ राख्न तारामा ट्याप गर्नुहोस्। खोज र वर्गले मनपर्ने वस्तुहरू पनि छान्छन्।"
   },
   "ar": {
     "name": "الاسم",
@@ -1640,7 +1668,11 @@
     "cloudReceiptHelp": "أكدت بوابة السحابة استلام هذا الإيصال. تتم مزامنة المخزون وبيانات المتجر الأخرى بشكل منفصل.",
     "catalogueChanged": "تغيّر هذا الصنف. حدّث قائمة الأصناف ثم اختره مجددًا.",
     "invalidQuantity": "أدخل كمية صالحة لهذه الوحدة، بحد أقصى 999.",
-    "quantityHelp": "أدخل الوزن بالوحدة المعروضة، حتى 3 منازل عشرية."
+    "quantityHelp": "أدخل الوزن بالوحدة المعروضة، حتى 3 منازل عشرية.",
+    "favourites": "المفضلة",
+    "addFavourite": "إضافة إلى المفضلة",
+    "removeFavourite": "إزالة من المفضلة",
+    "favouritesHelp": "اضغط على نجمة الصنف لحفظه هنا. يطبق البحث والتصنيف على المفضلة أيضاً."
   },
   "fr": {
     "name": "Nom",
@@ -1845,7 +1877,11 @@
     "cloudReceiptHelp": "La passerelle cloud a confirmé ce reçu. Le stock et les autres données du magasin se synchronisent séparément.",
     "catalogueChanged": "Cet article a changé. Actualisez le catalogue et sélectionnez-le à nouveau.",
     "invalidQuantity": "Saisissez une quantité valide pour cette unité, jusqu’à 999.",
-    "quantityHelp": "Saisissez le poids dans l’unité affichée, avec 3 décimales au maximum."
+    "quantityHelp": "Saisissez le poids dans l’unité affichée, avec 3 décimales au maximum.",
+    "favourites": "Favoris",
+    "addFavourite": "Ajouter aux favoris",
+    "removeFavourite": "Retirer des favoris",
+    "favouritesHelp": "Touchez l’étoile d’un article pour le garder ici. La recherche et les catégories filtrent aussi les favoris."
   },
   "es": {
     "name": "Nombre",
@@ -2050,7 +2086,11 @@
     "cloudReceiptHelp": "La pasarela de la nube confirmó este recibo. Las existencias y otros datos de la tienda se sincronizan por separado.",
     "catalogueChanged": "Este artículo ha cambiado. Actualiza el catálogo y selecciónalo de nuevo.",
     "invalidQuantity": "Introduce una cantidad válida para esta unidad, hasta 999.",
-    "quantityHelp": "Introduce el peso en la unidad indicada, con hasta 3 decimales."
+    "quantityHelp": "Introduce el peso en la unidad indicada, con hasta 3 decimales.",
+    "favourites": "Favoritos",
+    "addFavourite": "Añadir a favoritos",
+    "removeFavourite": "Quitar de favoritos",
+    "favouritesHelp": "Toca la estrella de un artículo para guardarlo aquí. La búsqueda y las categorías también filtran los favoritos."
   },
   "pt": {
     "name": "Nome",
@@ -2255,7 +2295,11 @@
     "cloudReceiptHelp": "A plataforma da nuvem confirmou este recibo. O stock e os outros dados da loja sincronizam separadamente.",
     "catalogueChanged": "Este artigo mudou. Atualize o catálogo e selecione-o novamente.",
     "invalidQuantity": "Insira uma quantidade válida para esta unidade, até 999.",
-    "quantityHelp": "Insira o peso na unidade indicada, com até 3 casas decimais."
+    "quantityHelp": "Insira o peso na unidade indicada, com até 3 casas decimais.",
+    "favourites": "Favoritos",
+    "addFavourite": "Adicionar aos favoritos",
+    "removeFavourite": "Remover dos favoritos",
+    "favouritesHelp": "Toque na estrela de um produto para guardá-lo aqui. A pesquisa e as categorias também filtram os favoritos."
   },
   "id": {
     "name": "Nama",
@@ -2460,7 +2504,11 @@
     "cloudReceiptHelp": "Gateway cloud mengonfirmasi struk ini. Stok dan data toko lainnya disinkronkan secara terpisah.",
     "catalogueChanged": "Produk ini telah berubah. Segarkan katalog dan pilih kembali.",
     "invalidQuantity": "Masukkan jumlah yang valid untuk satuan ini, hingga 999.",
-    "quantityHelp": "Masukkan berat dalam satuan yang ditampilkan, maksimal 3 angka desimal."
+    "quantityHelp": "Masukkan berat dalam satuan yang ditampilkan, maksimal 3 angka desimal.",
+    "favourites": "Favorit",
+    "addFavourite": "Tambahkan ke favorit",
+    "removeFavourite": "Hapus dari favorit",
+    "favouritesHelp": "Ketuk bintang pada barang untuk menyimpannya di sini. Pencarian dan kategori juga menyaring favorit."
   },
   "th": {
     "name": "ชื่อ",
@@ -2665,7 +2713,11 @@
     "cloudReceiptHelp": "เกตเวย์คลาวด์ยืนยันใบเสร็จนี้แล้ว สต็อกและข้อมูลร้านอื่นซิงค์แยกกัน",
     "catalogueChanged": "สินค้านี้มีการเปลี่ยนแปลง โปรดรีเฟรชรายการสินค้าแล้วเลือกอีกครั้ง",
     "invalidQuantity": "ป้อนจำนวนที่ถูกต้องสำหรับหน่วยนี้ ไม่เกิน 999",
-    "quantityHelp": "ป้อนน้ำหนักตามหน่วยที่แสดง โดยใช้ทศนิยมได้ไม่เกิน 3 ตำแหน่ง"
+    "quantityHelp": "ป้อนน้ำหนักตามหน่วยที่แสดง โดยใช้ทศนิยมได้ไม่เกิน 3 ตำแหน่ง",
+    "favourites": "รายการโปรด",
+    "addFavourite": "เพิ่มในรายการโปรด",
+    "removeFavourite": "นำออกจากรายการโปรด",
+    "favouritesHelp": "แตะดาวบนสินค้าเพื่อเก็บไว้ที่นี่ การค้นหาและหมวดหมู่จะกรองรายการโปรดด้วย"
   },
   "de": {
     "name": "Name",
@@ -2870,7 +2922,11 @@
     "cloudReceiptHelp": "Das Cloud-Gateway hat diesen Beleg bestätigt. Bestand und andere Ladendaten werden separat synchronisiert.",
     "catalogueChanged": "Dieser Artikel wurde geändert. Aktualisieren Sie den Katalog und wählen Sie ihn erneut aus.",
     "invalidQuantity": "Geben Sie eine gültige Menge für diese Einheit bis 999 ein.",
-    "quantityHelp": "Geben Sie das Gewicht in der angezeigten Einheit mit bis zu 3 Nachkommastellen ein."
+    "quantityHelp": "Geben Sie das Gewicht in der angezeigten Einheit mit bis zu 3 Nachkommastellen ein.",
+    "favourites": "Favoriten",
+    "addFavourite": "Zu Favoriten hinzufügen",
+    "removeFavourite": "Aus Favoriten entfernen",
+    "favouritesHelp": "Tippe auf den Stern eines Artikels, um ihn hier zu speichern. Suche und Kategorien filtern auch die Favoriten."
   },
   "sw": {
     "name": "Jina",
@@ -3075,7 +3131,11 @@
     "cloudReceiptHelp": "Lango la wingu limethibitisha risiti hii. Bidhaa zilizopo na data nyingine za duka husawazishwa kando.",
     "catalogueChanged": "Bidhaa hii imebadilika. Sasisha orodha ya bidhaa na uichague tena.",
     "invalidQuantity": "Weka kiasi halali kwa kipimo hiki, hadi 999.",
-    "quantityHelp": "Weka uzito kwa kipimo kilichoonyeshwa, hadi nafasi 3 za desimali."
+    "quantityHelp": "Weka uzito kwa kipimo kilichoonyeshwa, hadi nafasi 3 za desimali.",
+    "favourites": "Vipendwa",
+    "addFavourite": "Ongeza kwenye vipendwa",
+    "removeFavourite": "Ondoa kwenye vipendwa",
+    "favouritesHelp": "Gusa nyota ya bidhaa ili kuihifadhi hapa. Utafutaji na makundi pia huchuja vipendwa."
   },
   "nl": {
     "name": "Naam",
@@ -3280,7 +3340,11 @@
     "cloudReceiptHelp": "De cloudgateway heeft deze bon bevestigd. Voorraad en andere winkelgegevens synchroniseren afzonderlijk.",
     "catalogueChanged": "Dit artikel is gewijzigd. Vernieuw de catalogus en selecteer het opnieuw.",
     "invalidQuantity": "Voer een geldige hoeveelheid voor deze eenheid in, tot 999.",
-    "quantityHelp": "Voer het gewicht in de getoonde eenheid in, met maximaal 3 decimalen."
+    "quantityHelp": "Voer het gewicht in de getoonde eenheid in, met maximaal 3 decimalen.",
+    "favourites": "Favorieten",
+    "addFavourite": "Toevoegen aan favorieten",
+    "removeFavourite": "Verwijderen uit favorieten",
+    "favouritesHelp": "Tik op de ster van een artikel om het hier te bewaren. Zoeken en categorieën filteren ook favorieten."
   },
   "it": {
     "name": "Nome",
@@ -3485,6 +3549,10 @@
     "cloudReceiptHelp": "Il gateway cloud ha confermato questa ricevuta. Scorte e altri dati del negozio si sincronizzano separatamente.",
     "catalogueChanged": "Questo articolo è cambiato. Aggiorna il catalogo e selezionalo di nuovo.",
     "invalidQuantity": "Inserisci una quantità valida per questa unità, fino a 999.",
-    "quantityHelp": "Inserisci il peso nell’unità indicata, con un massimo di 3 decimali."
+    "quantityHelp": "Inserisci il peso nell’unità indicata, con un massimo di 3 decimali.",
+    "favourites": "Preferiti",
+    "addFavourite": "Aggiungi ai preferiti",
+    "removeFavourite": "Rimuovi dai preferiti",
+    "favouritesHelp": "Tocca la stella di un articolo per salvarlo qui. Ricerca e categorie filtrano anche i preferiti."
   }
 }

@@ -169,6 +169,10 @@ export function sqliteStorage(db: Connection): Storage {
             params.push(query[column]!);
           }
         }
+        if (query.ids) {
+          where.push("i.key IN (SELECT 'item:' || value FROM json_each(?))");
+          params.push(JSON.stringify(query.ids));
+        }
         if (query.imagesOnly) where.push("i.image=1");
         if (query.search) {
           where.push("(instr(i.name,?)>0 OR i.code=? OR i.barcode=?)");

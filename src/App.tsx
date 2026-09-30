@@ -157,6 +157,7 @@ function Till() {
   const [serverReceipt, setServerReceipt] = useState<ServerReceipt | null>(
     null,
   );
+  const [favouritesOnly, setFavouritesOnly] = useState(false);
   const [receiptQuery, setReceiptQuery] = useState("");
   const [authorizationCode, setAuthorizationCode] = useState("");
   const accountRequest = useRef<AbortController | null>(null);
@@ -357,7 +358,7 @@ function Till() {
       setDirectJobs(await repo.directPrintJobs());
     }
   }, [repo]);
-  useEffect(() => setItemPage(0), [query, category]);
+  useEffect(() => setItemPage(0), [query, category, favouritesOnly]);
   useEffect(() => {
     let active = true;
     setCatalogueView(null);
@@ -366,6 +367,7 @@ function Till() {
       () => {
         void repo
           .catalogue({
+            ids: favouritesOnly ? (state?.favourites ?? []) : undefined,
             search: query,
             category,
             offset: itemPage * 48,
@@ -390,6 +392,8 @@ function Till() {
   }, [
     repo,
     shop?.snapshotVersion,
+    state?.favourites,
+    favouritesOnly,
     state?.items,
     query,
     category,
@@ -1671,6 +1675,15 @@ function Till() {
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.categories}
                   >
+                    <Pressable
+                      testID="favourites-filter"
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: favouritesOnly }}
+                      onPress={() => setFavouritesOnly(!favouritesOnly)}
+                      style={[styles.chip, favouritesOnly && styles.chipActive]}
+                    >
+                      <Text style={styles.small}>{"☆ " + t("favourites")}</Text>
+                    </Pressable>
                     {["", ...state.catalogue.categories].map((cat) => (
                       <Pressable
                         key={cat}
@@ -1709,71 +1722,115 @@ function Till() {
                   contentContainerStyle={{ gap: 8 }}
                   ListEmptyComponent={
                     catalogueView ? (
-                      help(t("noMatch"))
+                      help(t(favouritesOnly ? "favouritesHelp" : "noMatch"))
                     ) : (
                       <ActivityIndicator color={palette.accent} />
                     )
                   }
                   renderItem={({ item }) => (
-                    <Pressable
-                      testID={"item-" + item.id}
-                      accessibilityRole="button"
-                      accessibilityLabel={item.name + " " + money(item.price)}
-                      onPress={() => void addItem(item)}
-                      style={({ pressed }) => [
+                    <View
+                      style={[
                         styles.tile,
                         { maxWidth: `${100 / columns - 1.5}%` },
-                        pressed && styles.pressed,
                       ]}
                     >
-                      <View
-                        style={[
-                          styles.art,
-                          item.shape === "circle" && { borderRadius: 40 },
-                          item.shape === "diamond" && { borderRadius: 12 },
+                      <Pressable
+                        testID={"item-" + item.id}
+                        accessibilityRole="button"
+                        accessibilityLabel={item.name + " " + money(item.price)}
+                        onPress={() => void addItem(item)}
+                        style={({ pressed }) => [
+                          { width: "100%" },
+                          pressed && styles.pressed,
                         ]}
                       >
-                        {cachedImages[item.id] && !failedImages[item.id] ? (
-                          <Image
-                            source={{ uri: cachedImages[item.id] }}
-                            onError={() =>
-                              setFailedImages((previous) => ({
-                                ...previous,
-                                [item.id]: true,
-                              }))
-                            }
-                            style={{ width: "100%", height: "100%" }}
-                            resizeMode="cover"
-                          />
-                        ) : (
-                          <Text style={{ fontSize: 25 }}>
-                            {item.visual || "📦"}
-                          </Text>
+                        <View
+                          style={[
+                            styles.art,
+                            item.shape === "circle" && { borderRadius: 40 },
+                            item.shape === "diamond" && { borderRadius: 12 },
+                          ]}
+                        >
+                          {cachedImages[item.id] && !failedImages[item.id] ? (
+                            <Image
+                              source={{ uri: cachedImages[item.id] }}
+                              onError={() =>
+                                setFailedImages((previous) => ({
+                                  ...previous,
+                                  [item.id]: true,
+                                }))
+                              }
+                              style={{ width: "100%", height: "100%" }}
+                              resizeMode="cover"
+                            />
+                          ) : (
+                            <Text style={{ fontSize: 25 }}>
+                              {item.visual || "📦"}
+                            </Text>
+                          )}
+                        </View>
+                        {state.cart.lines.some(
+                          (line) => line.itemId === item.id,
+                        ) && (
+                          <View style={styles.itemCount}>
+                            <Text style={styles.itemCountText}>
+                              {state.cart.lines
+                                .filter((line) => line.itemId === item.id)
+                                .reduce(
+                                  (count, line) => count + line.quantity,
+                                  0,
+                                )}
+                            </Text>
+                          </View>
                         )}
-                      </View>
-                      {state.cart.lines.some(
-                        (line) => line.itemId === item.id,
-                      ) && (
-                        <View style={styles.itemCount}>
-                          <Text style={styles.itemCountText}>
-                            {state.cart.lines
-                              .filter((line) => line.itemId === item.id)
-                              .reduce(
-                                (count, line) => count + line.quantity,
-                                0,
-                              )}
+                        <View style={styles.tileLabel}>
+                          <Text style={styles.itemName} numberOfLines={2}>
+                            {item.name}
+                          </Text>
+                          <Text style={styles.itemPrice}>
+                            {money(item.price)}
                           </Text>
                         </View>
-                      )}
-                      <View style={styles.tileLabel}>
-                        <Text style={styles.itemName} numberOfLines={2}>
-                          {item.name}
-                        </Text>
-                        <Text style={styles.itemPrice}>
-                          {money(item.price)}
-                        </Text>
-                      </View>
-                    </Pressable>
+                      </Pressable>
+                      <Pressable
+                        testID={"favourite-" + item.id}
+                        accessibilityRole="button"
+                        accessibilityLabel={
+                          t(
+                            state.favourites?.includes(item.id)
+                              ? "removeFavourite"
+                              : "addFavourite",
+                          ) +
+                          " · " +
+                          item.name
+                        }
+                        accessibilityState={{
+                          selected: !!state.favourites?.includes(item.id),
+                        }}
+                        onPress={() =>
+                          void run(() => repo.toggleFavourite(item.id))
+                        }
+                        style={{
+                          position: "absolute",
+                          end: 0,
+                          top: 0,
+                          width: 44,
+                          height: 44,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Feather
+                          name="star"
+                          size={18}
+                          color={
+                            state.favourites?.includes(item.id)
+                              ? palette.accent
+                              : palette.muted
+                          }
+                        />
+                      </Pressable>
+                    </View>
                   )}
                 />
                 {shownCount > 48 && (
@@ -2553,10 +2610,7 @@ function Till() {
                 {row(t("receipts"), String(state.sales.length))}
                 {row(
                   t("productImages"),
-                  Object.keys(cachedImages).filter((id) => !failedImages[id])
-                    .length +
-                    " / " +
-                    state.catalogue.imageCount,
+                  imageReadyCount + " / " + state.catalogue.imageCount,
                 )}
                 {row(t("pending"), String(state.outbox.length))}
                 {diskUsage &&
@@ -3699,8 +3753,8 @@ function makeStyles(p: {
     itemPrice: { fontSize: 13, fontWeight: "500", color: p.muted },
     itemCount: {
       position: "absolute",
-      top: 10,
-      end: 8,
+      top: 42,
+      end: 0,
       minWidth: 22,
       height: 22,
       borderRadius: 11,
