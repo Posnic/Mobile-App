@@ -201,7 +201,8 @@
     "storageLow": "சேமிப்பிடம் குறைவாக உள்ளது. விற்பனைகளுக்கு இடம் விட படப் பதிவிறக்கங்கள் நிறுத்தப்படுகின்றன. தொலைபேசியில் இடத்தை விடுவிக்கவும்; ஒத்திசைக்காத விற்பனைகள் இருக்கும்போது செயலித் தரவை அழிக்க வேண்டாம்.",
     "cloudReceived": "கிளவுடில் பெறப்பட்டது",
     "cloudWaiting": "கிளவுட் ரசீதுக்காகக் காத்திருக்கிறது",
-    "cloudReceiptHelp": "இந்த ரசீது கிளவுட் நுழைவாயிலால் உறுதிப்படுத்தப்பட்டது. சரக்கு மற்றும் பிற கடைத் தரவு தனியாக ஒத்திசைக்கப்படும்."
+    "cloudReceiptHelp": "இந்த ரசீது கிளவுட் நுழைவாயிலால் உறுதிப்படுத்தப்பட்டது. சரக்கு மற்றும் பிற கடைத் தரவு தனியாக ஒத்திசைக்கப்படும்.",
+    "catalogueChanged": "இந்தப் பொருள் மாறியுள்ளது. பொருள் பட்டியலைப் புதுப்பித்து மீண்டும் தேர்ந்தெடுக்கவும்."
   },
   "hi": {
     "name": "नाम",
@@ -403,7 +404,8 @@
     "storageLow": "स्टोरेज कम है। बिक्री के लिए जगह रखने हेतु चित्र डाउनलोड रुकते हैं। फोन में जगह खाली करें; बिक्री सिंक होने से पहले ऐप डेटा न मिटाएँ।",
     "cloudReceived": "क्लाउड में प्राप्त",
     "cloudWaiting": "क्लाउड पुष्टि की प्रतीक्षा",
-    "cloudReceiptHelp": "इस रसीद की क्लाउड गेटवे ने पुष्टि की है। स्टॉक और अन्य दुकान डेटा अलग से सिंक होते हैं।"
+    "cloudReceiptHelp": "इस रसीद की क्लाउड गेटवे ने पुष्टि की है। स्टॉक और अन्य दुकान डेटा अलग से सिंक होते हैं।",
+    "catalogueChanged": "यह वस्तु बदल गई है। वस्तु सूची रीफ़्रेश करके इसे फिर चुनें।"
   },
   "ml": {
     "name": "പേര്",
@@ -605,7 +607,8 @@
     "storageLow": "സംഭരണ സ്ഥലം കുറവാണ്. വിൽപ്പനകൾക്കായി ചിത്ര ഡൗൺലോഡുകൾ നിർത്തുന്നു. ഫോണിൽ സ്ഥലം ഒഴിവാക്കുക; സിങ്ക് ചെയ്യാത്ത വിൽപ്പനകൾ ഉള്ളപ്പോൾ ആപ്പ് ഡാറ്റ മായ്ക്കരുത്.",
     "cloudReceived": "ക്ലൗഡിൽ ലഭിച്ചു",
     "cloudWaiting": "ക്ലൗഡ് സ്ഥിരീകരണത്തിനായി കാത്തിരിക്കുന്നു",
-    "cloudReceiptHelp": "ഈ രസീത് ക്ലൗഡ് ഗേറ്റ്‌വേ സ്ഥിരീകരിച്ചു. സ്റ്റോക്കും മറ്റ് കട വിവരങ്ങളും പ്രത്യേകം സിങ്ക് ചെയ്യുന്നു."
+    "cloudReceiptHelp": "ഈ രസീത് ക്ലൗഡ് ഗേറ്റ്‌വേ സ്ഥിരീകരിച്ചു. സ്റ്റോക്കും മറ്റ് കട വിവരങ്ങളും പ്രത്യേകം സിങ്ക് ചെയ്യുന്നു.",
+    "catalogueChanged": "ഈ ഉൽപ്പന്നം മാറിയിരിക്കുന്നു. ഉൽപ്പന്നപ്പട്ടിക പുതുക്കി വീണ്ടും തിരഞ്ഞെടുക്കുക."
   },
   "kn": {
     "name": "ಹೆಸರು",
@@ -807,7 +810,8 @@
     "storageLow": "ಸಂಗ್ರಹಣೆ ಕಡಿಮೆಯಿದೆ. ಮಾರಾಟಗಳಿಗೆ ಸ್ಥಳ ಉಳಿಸಲು ಚಿತ್ರ ಡೌನ್‌ಲೋಡ್ ನಿಲ್ಲುತ್ತದೆ. ಫೋನ್‌ನಲ್ಲಿ ಸ್ಥಳ ಖಾಲಿ ಮಾಡಿ; ಸಿಂಕ್ ಆಗದ ಮಾರಾಟಗಳಿದ್ದರೆ ಆ್ಯಪ್ ಡೇಟಾ ಅಳಿಸಬೇಡಿ.",
     "cloudReceived": "ಕ್ಲೌಡ್‌ನಲ್ಲಿ ಸ್ವೀಕರಿಸಲಾಗಿದೆ",
     "cloudWaiting": "ಕ್ಲೌಡ್ ದೃಢೀಕರಣಕ್ಕಾಗಿ ಕಾಯುತ್ತಿದೆ",
-    "cloudReceiptHelp": "ಈ ರಸೀದಿಯನ್ನು ಕ್ಲೌಡ್ ಗೇಟ್‌ವೇ ದೃಢೀಕರಿಸಿದೆ. ದಾಸ್ತಾನು ಮತ್ತು ಇತರ ಅಂಗಡಿ ಡೇಟಾ ಪ್ರತ್ಯೇಕವಾಗಿ ಸಿಂಕ್ ಆಗುತ್ತದೆ."
+    "cloudReceiptHelp": "ಈ ರಸೀದಿಯನ್ನು ಕ್ಲೌಡ್ ಗೇಟ್‌ವೇ ದೃಢೀಕರಿಸಿದೆ. ದಾಸ್ತಾನು ಮತ್ತು ಇತರ ಅಂಗಡಿ ಡೇಟಾ ಪ್ರತ್ಯೇಕವಾಗಿ ಸಿಂಕ್ ಆಗುತ್ತದೆ.",
+    "catalogueChanged": "ಈ ವಸ್ತು ಬದಲಾಗಿದೆ. ವಸ್ತುಪಟ್ಟಿಯನ್ನು ನವೀಕರಿಸಿ ಮತ್ತೆ ಆಯ್ಕೆಮಾಡಿ."
   },
   "te": {
     "name": "పేరు",
@@ -1009,7 +1013,8 @@
     "storageLow": "నిల్వ తక్కువగా ఉంది. అమ్మకాల కోసం స్థలం ఉంచడానికి చిత్ర డౌన్‌లోడ్ ఆగుతుంది. ఫోన్‌లో స్థలం ఖాళీ చేయండి; సింక్ కాని అమ్మకాలు ఉంటే యాప్ డేటాను తొలగించవద్దు.",
     "cloudReceived": "క్లౌడ్‌లో అందింది",
     "cloudWaiting": "క్లౌడ్ నిర్ధారణ కోసం వేచి ఉంది",
-    "cloudReceiptHelp": "ఈ రసీదును క్లౌడ్ గేట్‌వే నిర్ధారించింది. స్టాక్ మరియు ఇతర దుకాణ డేటా విడిగా సింక్ అవుతాయి."
+    "cloudReceiptHelp": "ఈ రసీదును క్లౌడ్ గేట్‌వే నిర్ధారించింది. స్టాక్ మరియు ఇతర దుకాణ డేటా విడిగా సింక్ అవుతాయి.",
+    "catalogueChanged": "ఈ వస్తువు మారింది. వస్తువుల జాబితాను నవీకరించి మళ్లీ ఎంచుకోండి."
   },
   "si": {
     "name": "නම",
@@ -1211,7 +1216,8 @@
     "storageLow": "ගබඩා ඉඩ අඩුයි. විකුණුම් සඳහා ඉඩ තැබීමට රූප බාගැනීම නවතී. දුරකථනයේ ඉඩ නිදහස් කරන්න; සමමුහුර්ත නොකළ විකුණුම් ඇති විට යෙදුම් දත්ත මකන්න එපා.",
     "cloudReceived": "ක්ලවුඩ් වෙත ලැබුණි",
     "cloudWaiting": "ක්ලවුඩ් තහවුරු කිරීම බලාපොරොත්තුවෙන්",
-    "cloudReceiptHelp": "මෙම රිසිට්පත ක්ලවුඩ් ගේට්වේ විසින් තහවුරු කර ඇත. තොග සහ අනෙකුත් වෙළඳසැල් දත්ත වෙනම සමමුහුර්ත වේ."
+    "cloudReceiptHelp": "මෙම රිසිට්පත ක්ලවුඩ් ගේට්වේ විසින් තහවුරු කර ඇත. තොග සහ අනෙකුත් වෙළඳසැල් දත්ත වෙනම සමමුහුර්ත වේ.",
+    "catalogueChanged": "මෙම භාණ්ඩය වෙනස් වී ඇත. භාණ්ඩ ලැයිස්තුව යාවත්කාලීන කර නැවත තෝරන්න."
   },
   "ne": {
     "name": "नाम",
@@ -1413,7 +1419,8 @@
     "storageLow": "भण्डारण कम छ। बिक्रीका लागि ठाउँ राख्न तस्बिर डाउनलोड रोकिन्छ। फोनमा ठाउँ खाली गर्नुहोस्; सिंक नभएका बिक्री हुँदा एपको डेटा नमेटाउनुहोस्।",
     "cloudReceived": "क्लाउडमा प्राप्त",
     "cloudWaiting": "क्लाउड पुष्टिको प्रतीक्षामा",
-    "cloudReceiptHelp": "यो रसिद क्लाउड गेटवेले पुष्टि गरेको छ। मौज्दात र अन्य पसल डेटा छुट्टै सिंक हुन्छन्।"
+    "cloudReceiptHelp": "यो रसिद क्लाउड गेटवेले पुष्टि गरेको छ। मौज्दात र अन्य पसल डेटा छुट्टै सिंक हुन्छन्।",
+    "catalogueChanged": "यो वस्तु परिवर्तन भएको छ। वस्तु सूची ताजा गरी फेरि चयन गर्नुहोस्।"
   },
   "ar": {
     "name": "الاسم",
@@ -1616,7 +1623,8 @@
     "storageLow": "المساحة منخفضة. تتوقف تنزيلات الصور لترك مساحة للمبيعات. حرر مساحة على الهاتف؛ لا تمسح بيانات التطبيق أثناء انتظار مزامنة المبيعات.",
     "cloudReceived": "تم الاستلام في السحابة",
     "cloudWaiting": "بانتظار تأكيد السحابة",
-    "cloudReceiptHelp": "أكدت بوابة السحابة استلام هذا الإيصال. تتم مزامنة المخزون وبيانات المتجر الأخرى بشكل منفصل."
+    "cloudReceiptHelp": "أكدت بوابة السحابة استلام هذا الإيصال. تتم مزامنة المخزون وبيانات المتجر الأخرى بشكل منفصل.",
+    "catalogueChanged": "تغيّر هذا الصنف. حدّث قائمة الأصناف ثم اختره مجددًا."
   },
   "fr": {
     "name": "Nom",
@@ -1818,7 +1826,8 @@
     "storageLow": "Espace faible. Les images cessent de se télécharger pour préserver les ventes. Libérez de l’espace sans effacer les données de l’application si des ventes attendent la synchronisation.",
     "cloudReceived": "Reçu dans le cloud",
     "cloudWaiting": "En attente de confirmation cloud",
-    "cloudReceiptHelp": "La passerelle cloud a confirmé ce reçu. Le stock et les autres données du magasin se synchronisent séparément."
+    "cloudReceiptHelp": "La passerelle cloud a confirmé ce reçu. Le stock et les autres données du magasin se synchronisent séparément.",
+    "catalogueChanged": "Cet article a changé. Actualisez le catalogue et sélectionnez-le à nouveau."
   },
   "es": {
     "name": "Nombre",
@@ -2020,7 +2029,8 @@
     "storageLow": "Queda poco espacio. Las imágenes dejan de descargarse para reservar espacio para ventas. Libere espacio sin borrar datos de la app si hay ventas pendientes de sincronizar.",
     "cloudReceived": "Recibido en la nube",
     "cloudWaiting": "Esperando confirmación de la nube",
-    "cloudReceiptHelp": "La pasarela de la nube confirmó este recibo. Las existencias y otros datos de la tienda se sincronizan por separado."
+    "cloudReceiptHelp": "La pasarela de la nube confirmó este recibo. Las existencias y otros datos de la tienda se sincronizan por separado.",
+    "catalogueChanged": "Este artículo ha cambiado. Actualiza el catálogo y selecciónalo de nuevo."
   },
   "pt": {
     "name": "Nome",
@@ -2222,7 +2232,8 @@
     "storageLow": "Pouco espaço. As imagens deixam de ser transferidas para reservar espaço para vendas. Liberte espaço sem apagar dados da aplicação enquanto houver vendas por sincronizar.",
     "cloudReceived": "Recebido na nuvem",
     "cloudWaiting": "A aguardar confirmação da nuvem",
-    "cloudReceiptHelp": "A plataforma da nuvem confirmou este recibo. O stock e os outros dados da loja sincronizam separadamente."
+    "cloudReceiptHelp": "A plataforma da nuvem confirmou este recibo. O stock e os outros dados da loja sincronizam separadamente.",
+    "catalogueChanged": "Este artigo mudou. Atualize o catálogo e selecione-o novamente."
   },
   "id": {
     "name": "Nama",
@@ -2424,7 +2435,8 @@
     "storageLow": "Ruang penyimpanan hampir habis. Unduhan gambar berhenti agar ada ruang untuk penjualan. Kosongkan ruang ponsel; jangan hapus data aplikasi saat penjualan belum tersinkron.",
     "cloudReceived": "Diterima di cloud",
     "cloudWaiting": "Menunggu konfirmasi cloud",
-    "cloudReceiptHelp": "Gateway cloud mengonfirmasi struk ini. Stok dan data toko lainnya disinkronkan secara terpisah."
+    "cloudReceiptHelp": "Gateway cloud mengonfirmasi struk ini. Stok dan data toko lainnya disinkronkan secara terpisah.",
+    "catalogueChanged": "Produk ini telah berubah. Segarkan katalog dan pilih kembali."
   },
   "th": {
     "name": "ชื่อ",
@@ -2626,7 +2638,8 @@
     "storageLow": "พื้นที่เหลือน้อย หยุดดาวน์โหลดภาพเพื่อสำรองพื้นที่สำหรับยอดขาย เพิ่มพื้นที่ว่างในโทรศัพท์ อย่าล้างข้อมูลแอปขณะรอซิงค์ยอดขาย",
     "cloudReceived": "ได้รับในคลาวด์แล้ว",
     "cloudWaiting": "รอการยืนยันจากคลาวด์",
-    "cloudReceiptHelp": "เกตเวย์คลาวด์ยืนยันใบเสร็จนี้แล้ว สต็อกและข้อมูลร้านอื่นซิงค์แยกกัน"
+    "cloudReceiptHelp": "เกตเวย์คลาวด์ยืนยันใบเสร็จนี้แล้ว สต็อกและข้อมูลร้านอื่นซิงค์แยกกัน",
+    "catalogueChanged": "สินค้านี้มีการเปลี่ยนแปลง โปรดรีเฟรชรายการสินค้าแล้วเลือกอีกครั้ง"
   },
   "de": {
     "name": "Name",
@@ -2828,7 +2841,8 @@
     "storageLow": "Wenig Speicher. Bilddownloads pausieren, um Platz für Verkäufe zu lassen. Speicher freigeben; App-Daten bei noch nicht synchronisierten Verkäufen nicht löschen.",
     "cloudReceived": "In der Cloud empfangen",
     "cloudWaiting": "Warten auf Cloud-Bestätigung",
-    "cloudReceiptHelp": "Das Cloud-Gateway hat diesen Beleg bestätigt. Bestand und andere Ladendaten werden separat synchronisiert."
+    "cloudReceiptHelp": "Das Cloud-Gateway hat diesen Beleg bestätigt. Bestand und andere Ladendaten werden separat synchronisiert.",
+    "catalogueChanged": "Dieser Artikel wurde geändert. Aktualisieren Sie den Katalog und wählen Sie ihn erneut aus."
   },
   "sw": {
     "name": "Jina",
@@ -3030,7 +3044,8 @@
     "storageLow": "Nafasi ni ndogo. Upakuaji wa picha unasimama kuacha nafasi ya mauzo. Futa faili nyingine kwenye simu; usifute data ya programu wakati mauzo yanasubiri kusawazishwa.",
     "cloudReceived": "Imepokelewa kwenye wingu",
     "cloudWaiting": "Inasubiri uthibitisho wa wingu",
-    "cloudReceiptHelp": "Lango la wingu limethibitisha risiti hii. Bidhaa zilizopo na data nyingine za duka husawazishwa kando."
+    "cloudReceiptHelp": "Lango la wingu limethibitisha risiti hii. Bidhaa zilizopo na data nyingine za duka husawazishwa kando.",
+    "catalogueChanged": "Bidhaa hii imebadilika. Sasisha orodha ya bidhaa na uichague tena."
   },
   "nl": {
     "name": "Naam",
@@ -3232,7 +3247,8 @@
     "storageLow": "Weinig ruimte. Afbeeldingen downloaden pauzeert om ruimte voor verkopen te houden. Maak ruimte vrij; wis geen app-gegevens zolang verkopen nog moeten synchroniseren.",
     "cloudReceived": "Ontvangen in de cloud",
     "cloudWaiting": "Wacht op cloudbevestiging",
-    "cloudReceiptHelp": "De cloudgateway heeft deze bon bevestigd. Voorraad en andere winkelgegevens synchroniseren afzonderlijk."
+    "cloudReceiptHelp": "De cloudgateway heeft deze bon bevestigd. Voorraad en andere winkelgegevens synchroniseren afzonderlijk.",
+    "catalogueChanged": "Dit artikel is gewijzigd. Vernieuw de catalogus en selecteer het opnieuw."
   },
   "it": {
     "name": "Nome",
@@ -3434,6 +3450,7 @@
     "storageLow": "Spazio insufficiente. I download delle immagini si fermano per lasciare spazio alle vendite. Libera spazio senza cancellare i dati dell’app se ci sono vendite da sincronizzare.",
     "cloudReceived": "Ricevuto nel cloud",
     "cloudWaiting": "In attesa di conferma cloud",
-    "cloudReceiptHelp": "Il gateway cloud ha confermato questa ricevuta. Scorte e altri dati del negozio si sincronizzano separatamente."
+    "cloudReceiptHelp": "Il gateway cloud ha confermato questa ricevuta. Scorte e altri dati del negozio si sincronizzano separatamente.",
+    "catalogueChanged": "Questo articolo è cambiato. Aggiorna il catalogo e selezionalo di nuovo."
   }
 }

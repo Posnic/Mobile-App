@@ -1,5 +1,5 @@
 import type { Item } from "../domain/types";
-import type { Storage } from "../data/storage";
+import type { Storage, CatalogueSnapshot } from "../data/storage";
 
 export interface CatalogueManifest {
   version: string;
@@ -12,12 +12,26 @@ interface SavedPage {
 }
 
 /** Pages persist independently; callers activate only the complete, validated result. */
+export function downloadCatalogue(
+  manifest: CatalogueManifest,
+  scope: string,
+  store: Storage,
+  fetchPage: (index: number, id: string) => Promise<Item[]>,
+  streamed: true,
+): Promise<CatalogueSnapshot>;
+export function downloadCatalogue(
+  manifest: CatalogueManifest,
+  scope: string,
+  store: Storage,
+  fetchPage: (index: number, id: string) => Promise<Item[]>,
+): Promise<Item[]>;
 export async function downloadCatalogue(
   manifest: CatalogueManifest,
   scope: string,
   store: Storage,
   fetchPage: (index: number, id: string) => Promise<Item[]>,
-): Promise<Item[]> {
+  streamed = false,
+): Promise<Item[] | CatalogueSnapshot> {
   if (
     manifest.pages.reduce((sum, page) => sum + page.count, 0) !== manifest.count
   )
@@ -39,10 +53,10 @@ export async function downloadCatalogue(
     for (const item of cached.items) {
       if (ids.has(item.id)) throw new Error("invalidServer");
       ids.add(item.id);
-      items.push(item);
+      if (!streamed) items.push(item);
     }
   }
-  if (items.length !== manifest.count) throw new Error("invalidServer");
+  if (ids.size !== manifest.count) throw new Error("invalidServer");
   // Keep downloaded pages for retries and unchanged-page reuse. Old page cleanup
   // happens only after every replacement page has been validated and persisted.
   const keep = new Set(manifest.pages.map((page) => prefix + page.id));
@@ -52,5 +66,10 @@ export async function downloadCatalogue(
   await store.batch(
     old.filter((key) => !keep.has(key)).map((key) => ({ key, value: null })),
   );
-  return items;
+  return streamed
+    ? {
+        pages: manifest.pages.map((page) => prefix + page.id),
+        count: manifest.count,
+      }
+    : items;
 }

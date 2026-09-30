@@ -1,4 +1,9 @@
-import type { Storage, Change } from "./storage";
+import {
+  catalogueCollector,
+  type CatalogueQuery,
+  type CatalogueResult,
+} from "./catalogueQuery";
+import type { Storage, Change, CatalogueInput } from "./storage";
 import type {
   Cart,
   Customer,
@@ -19,7 +24,7 @@ import { receiptsToPrune, printNeedsAttention } from "../domain/retention";
 
 export class Repository {
   private tail: Promise<unknown> = Promise.resolve();
-  private catalogueCache: Item[] | null = null;
+  private catalogueCache: CatalogueResult | null = null;
   constructor(
     private store: Storage,
     private uuid: () => string,
@@ -51,7 +56,7 @@ export class Repository {
       catalogueUpdatedAt,
     ] = await Promise.all([
       this.store.get<Shop>("shop"),
-      this.catalogueCache ?? this.store.list<Item>("item:"),
+      this.catalogueCache ?? this.queryCatalogue({}),
       this.store.get<Cart>("cart"),
       this.store.list<Cart>("held:"),
       this.store.list<Sale>("sale:"),
@@ -64,7 +69,8 @@ export class Repository {
     return {
       shop,
       catalogueUpdatedAt: catalogueUpdatedAt ?? undefined,
-      items,
+      items: items.items,
+      catalogue: items.summary,
       cart: cart ?? this.newCart(),
       held,
       sales: sales.sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
@@ -76,6 +82,39 @@ export class Repository {
       },
       customers,
     };
+  }
+  private async queryCatalogue(
+    query: CatalogueQuery,
+  ): Promise<CatalogueResult> {
+    if (this.store.catalogue) return this.store.catalogue(query);
+    const result = catalogueCollector(query);
+    for (const item of await this.store.list<Item>("item:")) result.add(item);
+    return result.finish();
+  }
+  async catalogue(query: CatalogueQuery = {}) {
+    await this.tail;
+    return this.queryCatalogue(query);
+  }
+  async *imageItems(): AsyncGenerator<Item> {
+    const version = (await this.store.get<Shop>("shop"))?.snapshotVersion;
+    let offset = 0;
+    for (;;) {
+      const page = await this.catalogue({
+        imagesOnly: true,
+        offset,
+        limit: 256,
+      });
+      if ((await this.store.get<Shop>("shop"))?.snapshotVersion !== version)
+        throw Error("catalogueChanged");
+      for (const item of page.items) yield item;
+      offset += page.items.length;
+      if (offset >= page.total || !page.items.length) return;
+    }
+  }
+  private async itemKeys() {
+    return this.store.keys
+      ? this.store.keys("item:")
+      : (await this.store.list<Item>("item:")).map((item) => "item:" + item.id);
   }
   async startTraining() {
     return this.serial(async () => {
@@ -91,19 +130,33 @@ export class Repository {
       this.catalogueCache = null;
     });
   }
-  async pair(shop: Shop, items: Item[]) {
+  private async replaceCatalogue(items: CatalogueInput, changes: Change[]) {
+    if (!Array.isArray(items)) {
+      if (!this.store.replaceCatalogue) throw Error("storageUnavailable");
+      await this.store.replaceCatalogue(items, changes);
+      return;
+    }
+    if (new Set(items.map((item) => item.id)).size !== items.length)
+      throw Error("invalidServer");
+    const old = await this.itemKeys();
+    await this.store.batch([
+      ...old.map((key) => ({ key, value: null })),
+      ...items.map((item) => ({ key: "item:" + item.id, value: item })),
+      ...changes,
+    ]);
+  }
+  async pair(shop: Shop, items: CatalogueInput) {
     return this.serial(async () => {
       if (await this.store.get("shop")) throw new Error("shopAlreadyPaired");
       if (!shop.id || !shop.branchId || !shop.snapshotVersion)
         throw new Error("invalidServer");
-      await this.store.batch([
+      await this.replaceCatalogue(items, [
         { key: "shop", value: shop },
         {
           key: "catalogue-updated-at",
           value: new Date(this.now()).toISOString(),
         },
         { key: "cart", value: this.newCart() },
-        ...items.map((item) => ({ key: "item:" + item.id, value: item })),
       ]);
       this.catalogueCache = null;
     });
@@ -124,7 +177,9 @@ export class Repository {
         "receipt-sequence",
         "catalogue-updated-at",
       ].map((key) => ({ key, value: null }));
-      for (const prefix of ["item:", "sale:", "held:", "customer:", "print:"])
+      for (const key of await this.itemKeys())
+        changes.push({ key, value: null });
+      for (const prefix of ["sale:", "held:", "customer:", "print:"])
         for (const row of await this.store.list<{ id: string }>(prefix))
           changes.push({ key: prefix + row.id, value: null });
       await this.store.batch(changes);
@@ -171,7 +226,9 @@ export class Repository {
         });
         changes.push({ key: "print:" + job.id, value: null });
       }
-      for (const prefix of ["item:", "sale:", "held:", "customer:"])
+      for (const key of await this.itemKeys())
+        changes.push({ key, value: null });
+      for (const prefix of ["sale:", "held:", "customer:"])
         for (const row of await this.store.list<{ id: string }>(prefix))
           changes.push({ key: prefix + row.id, value: null });
       await this.store.batch(changes);
@@ -213,7 +270,7 @@ export class Repository {
       ]);
     });
   }
-  async refreshCatalogue(shop: Shop, items: Item[]) {
+  async refreshCatalogue(shop: Shop, items: CatalogueInput) {
     return this.serial(async () => {
       const current = await this.store.get<Shop>("shop");
       if (
@@ -226,13 +283,8 @@ export class Repository {
         current.baseUrl !== shop.baseUrl
       )
         throw new Error("invalidServer");
-      if (new Set(items.map((item) => item.id)).size !== items.length)
-        throw new Error("invalidServer");
-      const old = await this.store.list<Item>("item:");
-      // Snapshot replacement is atomic. Existing cart and sale prices remain untouched.
-      await this.store.batch([
-        ...old.map((item) => ({ key: "item:" + item.id, value: null })),
-        ...items.map((item) => ({ key: "item:" + item.id, value: item })),
+      // Activate all pages and the grant together. Paid/held snapshots stay untouched.
+      await this.replaceCatalogue(items, [
         { key: "shop", value: shop },
         {
           key: "catalogue-updated-at",
@@ -245,8 +297,16 @@ export class Repository {
   async addItem(item: Item) {
     return this.serial(async () => {
       const shop = await this.authorized("sell");
-      if (!item.active || item.requiresConfiguration)
-        throw new Error("itemUnavailable");
+      const current = await this.store.get<Item>("item:" + item.id);
+      if (
+        !current ||
+        !current.active ||
+        ["name", "price", "taxBps", "taxInclusive", "barcode"].some(
+          (key) => current[key as keyof Item] !== item[key as keyof Item],
+        )
+      )
+        throw new Error("catalogueChanged");
+      if (current.requiresConfiguration) throw new Error("itemUnavailable");
       const cart = (await this.store.get<Cart>("cart")) ?? this.newCart();
       const existing = cart.lines.find(
         (line) =>
@@ -273,7 +333,8 @@ export class Repository {
     });
   }
   async scanProduct(input: string): Promise<string> {
-    const { items } = await this.load();
+    const barcode = input.replace(/[\r\n]+$/, "");
+    const { items } = await this.catalogue({ barcode, limit: 2 });
     const item = resolveProductScan(items, input);
     await this.addItem(item);
     return item.name;
@@ -360,9 +421,8 @@ export class Repository {
       const shop = await this.authorized("itemWrite");
       // Master writes require a server version-check contract. Training is isolated.
       if (shop.mode !== "training") throw new Error("serverRequired");
-      const code = quickCode(item.code),
-        items = await this.store.list<Item>("item:");
-      if (code && items.some((i) => i.active && i.code === code))
+      const code = quickCode(item.code);
+      if (code && (await this.queryCatalogue({ code, limit: 1 })).total)
         throw new Error("duplicateCode");
       if (
         !item.name.trim() ||

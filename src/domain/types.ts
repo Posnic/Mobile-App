@@ -162,6 +162,7 @@ export interface DirectPrintJob {
   updatedAt: string;
 }
 export interface SessionData {
+  catalogue: { count: number; imageCount: number; categories: string[] };
   catalogueUpdatedAt?: string;
   shop: Shop | null;
   items: Item[];

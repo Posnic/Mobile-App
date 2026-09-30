@@ -260,6 +260,14 @@ test("catalogue refresh is atomic, tenant pinned, and preserves cart price snaps
   assert.equal(state.items[0]?.price, 9900);
   assert.equal(state.cart.lines[0]?.price, 3500);
   assert.equal(state.shop?.snapshotVersion, "next");
+  await assert.rejects(repo.addItem(trainingItems[0]!), /catalogueChanged/);
+  await assert.rejects(repo.addItem(trainingItems[1]!), /catalogueChanged/);
+  await repo.addItem(changed);
+  const updated = await repo.load();
+  assert.deepEqual(
+    updated.cart.lines.map((line) => line.price),
+    [3500, 9900],
+  );
 });
 
 test("leaving training clears only practice data and refuses live shops", async () => {

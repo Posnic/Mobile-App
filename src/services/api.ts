@@ -1,3 +1,4 @@
+import type { CatalogueInput } from "../data/storage";
 import { z } from "zod";
 import type { Sale, Shop, Item } from "../domain/types";
 import { downloadCatalogue } from "./catalogueDownload";
@@ -79,7 +80,7 @@ export class PosnicApi {
     code?: string,
     persist = true,
     codeVerifier?: string,
-  ): Promise<{ shop: Shop; items: Item[]; token: string }> {
+  ): Promise<{ shop: Shop; items: CatalogueInput; token: string }> {
     const runtime = await this.probe();
     if (runtime.features?.mobilePosV1 !== true)
       throw new Error("serverUpgrade");
@@ -128,7 +129,7 @@ export class PosnicApi {
       throw new ApiError("invalidServer", 409);
     return response;
   }
-  async catalogue(): Promise<{ shop: Shop; items: Item[] }> {
+  async catalogue(): Promise<{ shop: Shop; items: CatalogueInput }> {
     const data = await this.readCatalogue(await credentials.get());
     return {
       shop: { ...data.shop, mode: "live", baseUrl: this.base },
@@ -209,6 +210,7 @@ export class PosnicApi {
           throw new ApiError("invalidServer", 409);
         return page.items;
       },
+      true,
     );
     return { shop, items };
   }

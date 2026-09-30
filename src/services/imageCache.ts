@@ -90,7 +90,7 @@ export async function readImage(
 
 /** Completed images survive restart; failed/partial files are never published. */
 export async function cacheProductImages(
-  items: Item[],
+  items: Iterable<Item> | AsyncIterable<Item>,
   shop: Shop,
   files: ImageFiles,
   signal: AbortSignal,
@@ -99,10 +99,10 @@ export async function cacheProductImages(
 ) {
   if (!shop.baseUrl || shop.mode !== "live") return;
   const scope = JSON.stringify([shop.baseUrl, shop.id, shop.branchId]);
-  const missing: { item: Item; url: string; key: string }[] = [];
   const keep = new Set<string>();
+  const running = new Set<Promise<void>>();
   let inspected = 0;
-  for (const item of items) {
+  for await (const item of items) {
     if (++inspected % 64 === 0)
       await new Promise((resolve) => setTimeout(resolve, 0));
     if (signal.aborted) return;
@@ -111,37 +111,37 @@ export async function cacheProductImages(
     const key = imageKey(scope, url, item.imageRevision);
     keep.add(key);
     const saved = await files.get(key).catch(() => null);
-    if (saved) onImage(item.id, saved);
-    else missing.push({ item, url, key });
-  }
-  if (signal.aborted) return;
-  await files.prune?.(keep).catch(() => {});
-  // Two transfers maximum. Images never hold up sale upload or catalogue activation.
-  let next = 0;
-  await Promise.all(
-    [0, 1].map(async () => {
-      while (!signal.aborted && next < missing.length) {
-        const entry = missing[next++]!;
-        const controller = new AbortController();
-        const cancel = () => controller.abort();
-        signal.addEventListener("abort", cancel, { once: true });
-        const timeout = setTimeout(cancel, 12000);
-        try {
-          const { bytes, mime } = await readImage(
-            entry.url,
-            controller.signal,
-            fetcher,
-          );
-          if (signal.aborted) return;
-          const uri = await files.put(entry.key, bytes, mime);
-          if (!signal.aborted) onImage(entry.item.id, uri);
-        } catch {
-          /* Keep the item's configured icon. Retry missing images on reconnect. */
-        } finally {
-          clearTimeout(timeout);
-          signal.removeEventListener("abort", cancel);
-        }
+    if (saved) {
+      onImage(item.id, saved);
+      continue;
+    }
+    const task = (async () => {
+      const controller = new AbortController();
+      const cancel = () => controller.abort();
+      signal.addEventListener("abort", cancel, { once: true });
+      const timeout = setTimeout(cancel, 12000);
+      try {
+        if (signal.aborted) return;
+        const { bytes, mime } = await readImage(
+          url,
+          controller.signal,
+          fetcher,
+        );
+        if (signal.aborted) return;
+        const uri = await files.put(key, bytes, mime);
+        if (!signal.aborted) onImage(item.id, uri);
+      } catch {
+        // Keep the configured icon; a later refresh retries missing images.
+      } finally {
+        clearTimeout(timeout);
+        signal.removeEventListener("abort", cancel);
       }
-    }),
-  );
+    })();
+    running.add(task);
+    void task.finally(() => running.delete(task));
+    if (running.size >= 2) await Promise.race(running);
+  }
+  await Promise.all(running);
+  // Prune only after examining the complete active catalogue, never a visible page.
+  if (!signal.aborted) await files.prune?.(keep).catch(() => {});
 }

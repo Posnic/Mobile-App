@@ -41,3 +41,60 @@ test("offline data and sync screens preserve the basket and explain server ackno
   await page.getByRole("tab", { name: "Sell", exact: true }).click();
   await expect(page.getByTestId("view-cart")).toContainText("35");
 });
+
+test("large offline catalogue pages and exact code lookup include the final product", async ({
+  page,
+}) => {
+  test.setTimeout(60000);
+  await page.goto("/");
+  await page.getByTestId("start-training").click();
+  await expect(page.getByTestId("item-coffee")).toBeVisible();
+  await page.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const q = indexedDB.open("posnic-preview");
+      q.onsuccess = () => resolve(q.result);
+      q.onerror = () => reject(q.error);
+    });
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction("records", "readwrite"),
+        store = tx.objectStore("records");
+      const q = store.get("item:coffee");
+      q.onsuccess = () => {
+        for (let n = 0; n < 10017; n++) {
+          const id = "large" + String(n).padStart(5, "0");
+          store.put(
+            {
+              ...q.result,
+              id,
+              code: String(n),
+              barcode: "000" + n,
+              name: n === 10016 ? "Final warehouse item" : "Warehouse " + id,
+              category: "Warehouse",
+            },
+            "item:" + id,
+          );
+        }
+      };
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+    db.close();
+  });
+  await page.reload();
+  await expect(page.getByTestId("item-coffee")).toBeVisible();
+  expect(
+    await page.locator('[data-testid^="item-"]').count(),
+  ).toBeLessThanOrEqual(48);
+  await page
+    .getByRole("textbox", { name: "Search items" })
+    .fill("Final warehouse");
+  await expect(page.getByTestId("item-large10016")).toBeVisible();
+  await page.getByTestId("item-large10016").click();
+  await page.getByRole("textbox", { name: "Search items" }).fill("10016");
+  await page.getByRole("textbox", { name: "Search items" }).press("Enter");
+  await page.getByTestId("view-cart").click();
+  await expect(
+    page.getByText("Final warehouse item", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("2", { exact: true })).toBeVisible();
+});

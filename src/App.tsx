@@ -1,3 +1,4 @@
+import type { CatalogueResult } from "./data/catalogueQuery";
 import React, {
   useCallback,
   useEffect,
@@ -69,7 +70,11 @@ import { adjacentRecord } from "./domain/gestures";
 import { deviceOptions, receiptJobMessage } from "./domain/devices";
 import { ScanQueue } from "./domain/scanQueue";
 import { printNeedsAttention } from "./domain/retention";
-import { cacheProductImages } from "./services/imageCache";
+import {
+  cacheProductImages,
+  imageKey,
+  productImageUrl,
+} from "./services/imageCache";
 import { storageUsage } from "./platform/storageUsage";
 import { imageFiles, imageFetch } from "./platform/imageFiles";
 import { Brand } from "./components/Brand";
@@ -112,6 +117,8 @@ export default function App() {
 }
 
 function Till() {
+  const [imageReadyCount, setImageReadyCount] = useState(0);
+  const visibleImageIds = useRef(new Set<string>());
   const [cachedImages, setCachedImages] = useState<Record<string, string>>({});
   const [diskUsage, setDiskUsage] = useState<{
     used: number;
@@ -197,6 +204,10 @@ function Till() {
     [error, setError] = useState(""),
     [notice, setNotice] = useState("");
   const [itemPage, setItemPage] = useState(0);
+  const [catalogueView, setCatalogueView] = useState<CatalogueResult | null>(
+    null,
+  );
+  const [codeMatches, setCodeMatches] = useState<Item[]>([]);
 
   const [locked, setLocked] = useState(false),
     [pinEnabled, setPinEnabled] = useState(false),
@@ -271,24 +282,34 @@ function Till() {
   useEffect(() => {
     const controller = new AbortController();
     let pending: Record<string, string> = {};
+    let ready = 0;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const flush = () => {
-      const batch = pending;
+      const batch = Object.fromEntries(
+        Object.entries(pending).filter(([id]) =>
+          visibleImageIds.current.has(id),
+        ),
+      );
       pending = {};
       timer = undefined;
-      if (!controller.signal.aborted)
-        setCachedImages((previous) => ({ ...previous, ...batch }));
+      if (!controller.signal.aborted) {
+        setImageReadyCount(ready);
+        if (Object.keys(batch).length)
+          setCachedImages((previous) => ({ ...previous, ...batch }));
+      }
     };
     setCachedImages({});
     setFailedImages({});
-    if (shop && state && !locked) {
+    setImageReadyCount(0);
+    if (shop && state && repo && !locked) {
       void cacheProductImages(
-        state.items,
+        repo.imageItems(),
         shop,
         imageFiles,
         controller.signal,
         (id, uri) => {
-          pending[id] = uri;
+          ready++;
+          if (visibleImageIds.current.has(id)) pending[id] = uri;
           if (!timer) timer = setTimeout(flush, 50);
         },
         imageFetch,
@@ -298,7 +319,30 @@ function Till() {
       controller.abort();
       if (timer) clearTimeout(timer);
     };
-  }, [state?.items, shop?.id, shop?.branchId, shop?.baseUrl, locked]);
+  }, [state?.items, repo, shop?.id, shop?.branchId, shop?.baseUrl, locked]);
+  useEffect(() => {
+    let active = true;
+    const items = catalogueView?.items ?? [];
+    visibleImageIds.current = new Set(items.map((item) => item.id));
+    setCachedImages({});
+    setFailedImages({});
+    if (!shop?.baseUrl || locked) return;
+    const scope = JSON.stringify([shop.baseUrl, shop.id, shop.branchId]);
+    void Promise.all(
+      items.map(async (item) => {
+        const url = item.image && productImageUrl(item.image, shop.baseUrl!);
+        if (!url) return;
+        const uri = await imageFiles
+          .get(imageKey(scope, url, item.imageRevision))
+          .catch(() => null);
+        if (uri && active)
+          setCachedImages((previous) => ({ ...previous, [item.id]: uri }));
+      }),
+    );
+    return () => {
+      active = false;
+    };
+  }, [catalogueView, shop?.baseUrl, shop?.id, shop?.branchId, locked]);
   const refresh = useCallback(async () => {
     if (repo) {
       setState(await repo.load());
@@ -306,6 +350,60 @@ function Till() {
     }
   }, [repo]);
   useEffect(() => setItemPage(0), [query, category]);
+  useEffect(() => {
+    let active = true;
+    setCatalogueView(null);
+    if (!repo || !shop || locked) return;
+    const timer = setTimeout(
+      () => {
+        void repo
+          .catalogue({
+            search: query,
+            category,
+            offset: itemPage * 48,
+            limit: 48,
+          })
+          .then((result) => {
+            if (active) {
+              setCatalogueView(result);
+              if (itemPage && itemPage * 48 >= result.total) setItemPage(0);
+            }
+          })
+          .catch(() => {
+            if (active) setError("storageUnavailable");
+          });
+      },
+      query ? 120 : 0,
+    );
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [
+    repo,
+    shop?.snapshotVersion,
+    state?.items,
+    query,
+    category,
+    itemPage,
+    locked,
+  ]);
+  useEffect(() => {
+    let active = true;
+    setCodeMatches([]);
+    if (!repo || locked || !code || screen !== "code") return;
+    void repo
+      .catalogue({ code: normalizeDigits(code), limit: 48 })
+      .then((result) => {
+        if (active) setCodeMatches(result.items);
+      })
+      .catch(() => {
+        if (active) setError("storageUnavailable");
+      });
+    return () => {
+      active = false;
+    };
+  }, [repo, code, screen, locked, state?.items]);
   const go = (next: Screen) => {
     setConfirmReprint(false);
     if (scanWriting.current) return;
@@ -1454,17 +1552,8 @@ function Till() {
     switch (screen) {
       case "sell":
       case "quick": {
-        const shown = state.items.filter(
-          (item) =>
-            item.active &&
-            (!category || item.category === category) &&
-            (!query ||
-              item.name
-                .toLocaleLowerCase(locale)
-                .includes(query.toLocaleLowerCase(locale)) ||
-              item.code === normalizeDigits(query) ||
-              item.barcode === query),
-        );
+        const shown = catalogueView?.items ?? [];
+        const shownCount = catalogueView?.total ?? 0;
         const columns =
           dimensions.width > 700 ? 4 : dimensions.width > 520 ? 3 : 2;
         return (
@@ -1505,16 +1594,18 @@ function Till() {
                     style={[styles.input, { flex: 1, margin: 0 }]}
                     returnKeyType="search"
                     onSubmitEditing={() => {
-                      if (query) {
-                        const exact = state.items.filter(
-                          (i) => i.active && i.code === normalizeDigits(query),
-                        );
-                        if (exact.length === 1) {
-                          void addItem(exact[0]!);
-                          setQuery("");
-                        } else if (exact.length > 1)
-                          setError("multipleMatches");
-                      }
+                      if (query)
+                        void run(async () => {
+                          const exact = await repo.catalogue({
+                            code: normalizeDigits(query),
+                            limit: 2,
+                          });
+                          if (exact.total === 1) {
+                            await repo.addItem(exact.items[0]!);
+                            setQuery("");
+                          } else if (exact.total > 1)
+                            throw Error("multipleMatches");
+                        });
                     }}
                   />
                   {iconButton("grid", t("code"), () => go("code"))}
@@ -1528,30 +1619,28 @@ function Till() {
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.categories}
                   >
-                    {["", ...new Set(state.items.map((i) => i.category))].map(
-                      (cat) => (
-                        <Pressable
-                          key={cat}
-                          onPress={() => setCategory(cat)}
-                          accessibilityRole="button"
-                          aria-selected={category === cat}
-                          accessibilityState={{ selected: category === cat }}
+                    {["", ...state.catalogue.categories].map((cat) => (
+                      <Pressable
+                        key={cat}
+                        onPress={() => setCategory(cat)}
+                        accessibilityRole="button"
+                        aria-selected={category === cat}
+                        accessibilityState={{ selected: category === cat }}
+                        style={[
+                          styles.chip,
+                          category === cat && styles.chipActive,
+                        ]}
+                      >
+                        <Text
                           style={[
-                            styles.chip,
-                            category === cat && styles.chipActive,
+                            styles.small,
+                            category === cat && { color: palette.accent },
                           ]}
                         >
-                          <Text
-                            style={[
-                              styles.small,
-                              category === cat && { color: palette.accent },
-                            ]}
-                          >
-                            {cat || t("all")}
-                          </Text>
-                        </Pressable>
-                      ),
-                    )}
+                          {cat || t("all")}
+                        </Text>
+                      </Pressable>
+                    ))}
                   </ScrollView>
                   {iconButton("refresh-cw", t("refresh"), () => {
                     if (!busy) void refreshList();
@@ -1562,11 +1651,17 @@ function Till() {
                   scrollEnabled={false}
                   key={columns}
                   numColumns={columns}
-                  data={shown.slice(itemPage * 48, (itemPage + 1) * 48)}
+                  data={shown}
                   keyExtractor={(item) => item.id}
                   columnWrapperStyle={{ gap: 8 }}
                   contentContainerStyle={{ gap: 8 }}
-                  ListEmptyComponent={help(t("noMatch"))}
+                  ListEmptyComponent={
+                    catalogueView ? (
+                      help(t("noMatch"))
+                    ) : (
+                      <ActivityIndicator color={palette.accent} />
+                    )
+                  }
                   renderItem={({ item }) => (
                     <Pressable
                       testID={"item-" + item.id}
@@ -1629,20 +1724,17 @@ function Till() {
                     </Pressable>
                   )}
                 />
-                {shown.length > 48 && (
+                {shownCount > 48 && (
                   <View style={styles.row}>
                     {iconButton("chevron-left", t("back"), () =>
                       setItemPage(Math.max(0, itemPage - 1)),
                     )}
                     <Text style={styles.small}>
-                      {itemPage + 1} / {Math.ceil(shown.length / 48)}
+                      {itemPage + 1} / {Math.ceil(shownCount / 48)}
                     </Text>
                     {iconButton("chevron-right", t("more"), () =>
                       setItemPage(
-                        Math.min(
-                          Math.ceil(shown.length / 48) - 1,
-                          itemPage + 1,
-                        ),
+                        Math.min(Math.ceil(shownCount / 48) - 1, itemPage + 1),
                       ),
                     )}
                   </View>
@@ -1678,9 +1770,7 @@ function Till() {
         );
       }
       case "code": {
-        const matches = state.items.filter(
-          (i) => i.active && i.code === normalizeDigits(code),
-        );
+        const matches = codeMatches;
         return (
           <>
             {back()}
@@ -2364,14 +2454,14 @@ function Till() {
             {heading(t("offlineData"))}
             <View style={styles.profileCard}>
               <View style={{ flex: 1 }}>
-                {row(t("catalogue"), String(state.items.length))}
+                {row(t("catalogue"), String(state.catalogue.count))}
                 {row(t("receipts"), String(state.sales.length))}
                 {row(
                   t("productImages"),
                   Object.keys(cachedImages).filter((id) => !failedImages[id])
                     .length +
                     " / " +
-                    state.items.filter((item) => item.image).length,
+                    state.catalogue.imageCount,
                 )}
                 {row(t("pending"), String(state.outbox.length))}
                 {diskUsage &&
@@ -2488,7 +2578,7 @@ function Till() {
               "database",
               t("offlineData"),
               "offlineData",
-              String(state.items.length) + " · " + t("items"),
+              String(state.catalogue.count) + " · " + t("items"),
             )}
             {directJobs.some(printNeedsAttention) &&
               menu(

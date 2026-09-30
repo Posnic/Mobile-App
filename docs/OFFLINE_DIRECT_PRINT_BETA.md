@@ -1,6 +1,6 @@
 # Independent offline counter beta
 
-30 September 2026. Android `0.3.0-beta.6`, matching Windows `1.8.5-beta.5`.
+30 September 2026. Android `0.3.0-beta.7`, matching Windows `1.8.5-beta.5`.
 
 ## Included
 
@@ -52,7 +52,7 @@ Do not clear app storage or uninstall while sales are waiting to synchronize. Th
 
 Software checks cover journal persistence, concurrent attempts, disk-write failure, restart uncertainty, explicit reprints, no dual Till delivery, localized raster source, protected cleanup, the 10,000-receipt boundary, server settings and existing sales/pairing flows. Native Kotlin compilation and Android release assembly are checked. Software tests cannot prove a particular printer's buffers, paper handling or Bluetooth firmware behaviour.
 
-The wider roadmap remains open: iOS/vendor adapters, fully indexed catalogue UI for very large datasets, cross-authority reconciliation, richer item selling options, and provider-verified electronic payments. Existing offline authorization remains 24 hours by default, configurable 1–72; it has not been silently extended. Existing cash/manual-UPI semantics and ACL remain in force.
+The wider roadmap remains open: iOS/vendor adapters, cross-authority reconciliation, richer item selling options, and provider-verified electronic payments. Existing offline authorization remains 24 hours by default, configurable 1–72; it has not been silently extended. Existing cash/manual-UPI semantics and ACL remain in force.
 
 Technical references: [Expo local modules](https://docs.expo.dev/modules/get-started/) and [Android Bluetooth connections](https://developer.android.com/develop/connectivity/bluetooth/connect-bluetooth-devices).
 
@@ -67,7 +67,7 @@ Technical references: [Expo local modules](https://docs.expo.dev/modules/get-sta
 
 Additional phone checks: interrupt a catalogue download and reconnect; change/delete an item at the Till and refresh; load pictures then disconnect/restart; deny USB permission, unplug/reconnect OTG and try a non-printer USB device; enable the drawer only after checking its printer specifications, then confirm a cash receipt opens it once and reprinting does not.
 
-Client catalogue assembly still retains the complete item array in memory. Network/page persistence is incremental, but this release does not claim a fully paged in-memory catalogue. Provider card authorization, cloud failover and physical hardware certification are separate release gates.
+Beta 7 replaces full-array catalogue browsing and activation with bounded local pages. Provider card authorization, cloud failover and physical hardware certification are separate release gates.
 
 Technical references: [Android USB host](https://developer.android.com/develop/connectivity/usb/host), [Expo persistent files](https://docs.expo.dev/versions/latest/sdk/filesystem/) and [Epson ESC p drawer pulse](https://download4.epson.biz/sec_pubs/pos/reference_en/escpos/esc_lp.html).
 
@@ -80,3 +80,14 @@ The authenticated phone queries up to 50 of its server-accepted receipts per pas
 This confirms receipt delivery, not completion of stock or every other collection. It does not enable automatic writes through a second, independent cloud ledger. The installed signed sync component and gateway must both include the new protocol; updating only the Android app cannot manufacture this capability. Community users retain the existing server-only flow.
 
 Pilot: make a mobile cash sale through the local Till, disconnect cloud access and confirm it remains shop-server accepted without a cloud label. Restore cloud sync; once the gateway acknowledgment is recorded, Sync now should show Received in cloud on that receipt. Disconnect again and restart: the recorded evidence remains available. Do not use an empty queue, network reachability or a batch count as a substitute for this test.
+
+
+## Beta 7 large-catalogue operation
+
+Android keeps a transactional SQLite index for barcode, item code and category. Product names are normalized for Unicode substring search; that search scans the local index, not decoded product objects. A visible page contains at most 48 products. Scanning and exact-code entry query the whole local catalogue independently of the current page. Browser preview uses an IndexedDB cursor with the same bounded result size.
+
+Paged-server downloads return persisted page references. Activation reads at most 256 items at a time, replacing catalogue records, index and offline grant in one transaction. A missing page, duplicate identifier or failed write rolls back the entire activation. The previous catalogue and held/paid price snapshots remain intact. Legacy servers retain their existing array bootstrap compatibility path. Identifier validation uses a compact set; product payloads are not assembled into a full array.
+
+Images stream through two transfers and the UI retains image data only for its visible page. Full catalogue/image counts remain separate from the visible product count. Search and page changes discard obsolete asynchronous results. No network is required to browse or scan the indexed catalogue.
+
+Test with more than 10,000 products: find and scan a product near the end of the catalogue, search a localized name, change categories/pages, restart offline, and refresh after deleting a product. Automated checks cover migration from the prior local schema, exact lookup beyond the first page, Unicode search, failed activation, duplicate pages, and the 10,017-item catalogue without reading every product into the session.
