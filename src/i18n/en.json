@@ -209,5 +209,13 @@
   "invalidScan": "Scan a product barcode. Payment, sign-in and card data are not accepted here.",
   "printWaiting": "Waiting for the Till",
   "printWorking": "Till is processing the print job",
-  "printReportedDone": "Till reported completion. Check the paper output."
+  "printReportedDone": "Till reported completion. Check the paper output.",
+  "directPrinter": "Bluetooth printer",
+  "pairedPrinters": "Paired devices",
+  "confirmPrinted": "Receipt printed",
+  "reprintConfirm": "Allow another copy",
+  "directPrinterHelp": "Pair in Android settings. ESC/POS Bluetooth printers only; test compatibility first.",
+  "printCheckPaper": "Check the paper before retrying. The receipt may already have printed.",
+  "offlineUntil": "Offline access expires",
+  "historyPolicy": "Receipt history: days / maximum records"
 }

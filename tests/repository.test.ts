@@ -270,7 +270,11 @@ test("manual recovery bypasses backoff and a restarted worker sends the durable 
       value: { ...entry, nextAttemptAt: Date.now() + 300000 },
     },
   ]);
-  const reopened = new Repository(storage, () => "next-cart");
+  const reopened = new Repository(
+    storage,
+    () => "next-cart",
+    () => 1000,
+  );
   const worker = new SyncWorker(reopened, () => ({
     upload: async (sent) => ({
       saleId: sent.id,

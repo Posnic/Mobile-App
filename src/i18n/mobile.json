@@ -176,7 +176,15 @@
     "invalidScan": "பொருளின் பார்கோடை ஸ்கேன் செய்யவும். பணம் செலுத்தல், உள்நுழைவு மற்றும் அட்டைத் தரவு இங்கு ஏற்கப்படாது.",
     "printWaiting": "டில் சாதனத்திற்காகக் காத்திருக்கிறது",
     "printWorking": "டில் அச்சுப் பணியைச் செயலாக்குகிறது",
-    "printReportedDone": "டில் பணி முடிந்ததாக அறிவித்தது. அச்சான தாளைச் சரிபார்க்கவும்."
+    "printReportedDone": "டில் பணி முடிந்ததாக அறிவித்தது. அச்சான தாளைச் சரிபார்க்கவும்.",
+    "directPrinter": "புளூடூத் அச்சுப்பொறி",
+    "pairedPrinters": "இணைக்கப்பட்ட சாதனங்கள்",
+    "confirmPrinted": "ரசீது அச்சிடப்பட்டது",
+    "reprintConfirm": "மற்றொரு நகலை அனுமதி",
+    "directPrinterHelp": "Android அமைப்புகளில் இணைக்கவும். ESC/POS புளூடூத் அச்சுப்பொறிகள் மட்டும்; முதலில் சோதிக்கவும்.",
+    "printCheckPaper": "மீண்டும் முயலும் முன் காகிதத்தைச் சரிபார்க்கவும். ரசீது ஏற்கனவே அச்சிடப்பட்டிருக்கலாம்.",
+    "offlineUntil": "ஆஃப்லைன் அணுகல் முடிவு",
+    "historyPolicy": "ரசீது வரலாறு: நாட்கள் / அதிகபட்ச பதிவுகள்"
   },
   "hi": {
     "name": "नाम",
@@ -353,7 +361,15 @@
     "invalidScan": "उत्पाद का बारकोड स्कैन करें। भुगतान, साइन-इन और कार्ड डेटा यहाँ स्वीकार नहीं हैं।",
     "printWaiting": "टिल की प्रतीक्षा में",
     "printWorking": "टिल प्रिंट कार्य संसाधित कर रहा है",
-    "printReportedDone": "टिल ने कार्य पूरा बताया। कागज़ पर प्रिंट जाँचें।"
+    "printReportedDone": "टिल ने कार्य पूरा बताया। कागज़ पर प्रिंट जाँचें।",
+    "directPrinter": "ब्लूटूथ प्रिंटर",
+    "pairedPrinters": "युग्मित डिवाइस",
+    "confirmPrinted": "रसीद प्रिंट हो गई",
+    "reprintConfirm": "एक और प्रति की अनुमति दें",
+    "directPrinterHelp": "Android सेटिंग में पेयर करें। केवल ESC/POS ब्लूटूथ प्रिंटर; पहले जाँच करें।",
+    "printCheckPaper": "दोबारा प्रयास से पहले कागज़ जाँचें। रसीद पहले ही छप चुकी हो सकती है।",
+    "offlineUntil": "ऑफ़लाइन पहुँच समाप्ति",
+    "historyPolicy": "रसीद इतिहास: दिन / अधिकतम रिकॉर्ड"
   },
   "ml": {
     "name": "പേര്",
@@ -530,7 +546,15 @@
     "invalidScan": "ഉൽപ്പന്ന ബാർകോഡ് സ്കാൻ ചെയ്യുക. പേയ്മെന്റ്, സൈൻ ഇൻ, കാർഡ് വിവരങ്ങൾ ഇവിടെ സ്വീകരിക്കില്ല.",
     "printWaiting": "ടില്ലിനായി കാത്തിരിക്കുന്നു",
     "printWorking": "ടിൽ പ്രിന്റ് ജോലി പ്രോസസ്സ് ചെയ്യുന്നു",
-    "printReportedDone": "ടിൽ പൂർത്തിയായെന്ന് അറിയിച്ചു. പേപ്പർ പ്രിന്റ് പരിശോധിക്കുക."
+    "printReportedDone": "ടിൽ പൂർത്തിയായെന്ന് അറിയിച്ചു. പേപ്പർ പ്രിന്റ് പരിശോധിക്കുക.",
+    "directPrinter": "ബ്ലൂടൂത്ത് പ്രിന്റർ",
+    "pairedPrinters": "ജോടിയാക്കിയ ഉപകരണങ്ങൾ",
+    "confirmPrinted": "രസീത് പ്രിന്റ് ചെയ്തു",
+    "reprintConfirm": "മറ്റൊരു പകർപ്പ് അനുവദിക്കുക",
+    "directPrinterHelp": "Android ക്രമീകരണങ്ങളിൽ ജോടിയാക്കുക. ESC/POS ബ്ലൂടൂത്ത് പ്രിന്ററുകൾ മാത്രം; ആദ്യം പരിശോധിക്കുക.",
+    "printCheckPaper": "വീണ്ടും ശ്രമിക്കുന്നതിന് മുമ്പ് പേപ്പർ പരിശോധിക്കുക. രസീത് ഇതിനകം പ്രിന്റ് ചെയ്തിരിക്കാം.",
+    "offlineUntil": "ഓഫ്‌ലൈൻ പ്രവേശനം അവസാനിക്കുന്നത്",
+    "historyPolicy": "രസീത് ചരിത്രം: ദിവസങ്ങൾ / പരമാവധി രേഖകൾ"
   },
   "kn": {
     "name": "ಹೆಸರು",
@@ -707,7 +731,15 @@
     "invalidScan": "ಉತ್ಪನ್ನ ಬಾರ್‌ಕೋಡ್ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ. ಪಾವತಿ, ಸೈನ್ ಇನ್ ಮತ್ತು ಕಾರ್ಡ್ ಮಾಹಿತಿ ಇಲ್ಲಿ ಸ್ವೀಕರಿಸಲಾಗುವುದಿಲ್ಲ.",
     "printWaiting": "ಟಿಲ್‌ಗಾಗಿ ಕಾಯುತ್ತಿದೆ",
     "printWorking": "ಟಿಲ್ ಮುದ್ರಣ ಕಾರ್ಯ ನಡೆಸುತ್ತಿದೆ",
-    "printReportedDone": "ಟಿಲ್ ಪೂರ್ಣಗೊಂಡಿದೆ ಎಂದು ತಿಳಿಸಿದೆ. ಕಾಗದದ ಮುದ್ರಣ ಪರಿಶೀಲಿಸಿ."
+    "printReportedDone": "ಟಿಲ್ ಪೂರ್ಣಗೊಂಡಿದೆ ಎಂದು ತಿಳಿಸಿದೆ. ಕಾಗದದ ಮುದ್ರಣ ಪರಿಶೀಲಿಸಿ.",
+    "directPrinter": "ಬ್ಲೂಟೂತ್ ಪ್ರಿಂಟರ್",
+    "pairedPrinters": "ಜೋಡಿಸಿದ ಸಾಧನಗಳು",
+    "confirmPrinted": "ರಸೀದಿ ಮುದ್ರಿಸಲಾಗಿದೆ",
+    "reprintConfirm": "ಮತ್ತೊಂದು ಪ್ರತಿಗೆ ಅನುಮತಿಸಿ",
+    "directPrinterHelp": "Android ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಜೋಡಿಸಿ. ESC/POS ಬ್ಲೂಟೂತ್ ಪ್ರಿಂಟರ್‌ಗಳು ಮಾತ್ರ; ಮೊದಲು ಪರೀಕ್ಷಿಸಿ.",
+    "printCheckPaper": "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸುವ ಮೊದಲು ಕಾಗದ ಪರಿಶೀಲಿಸಿ. ರಸೀದಿ ಈಗಾಗಲೇ ಮುದ್ರಿತವಾಗಿರಬಹುದು.",
+    "offlineUntil": "ಆಫ್‌ಲೈನ್ ಪ್ರವೇಶ ಮುಕ್ತಾಯ",
+    "historyPolicy": "ರಸೀದಿ ಇತಿಹಾಸ: ದಿನಗಳು / ಗರಿಷ್ಠ ದಾಖಲೆಗಳು"
   },
   "te": {
     "name": "పేరు",
@@ -884,7 +916,15 @@
     "invalidScan": "ఉత్పత్తి బార్‌కోడ్ స్కాన్ చేయండి. చెల్లింపు, సైన్ ఇన్, కార్డ్ డేటా ఇక్కడ అనుమతించబడవు.",
     "printWaiting": "టిల్ కోసం వేచి ఉంది",
     "printWorking": "టిల్ ప్రింట్ పనిని ప్రాసెస్ చేస్తోంది",
-    "printReportedDone": "టిల్ పని పూర్తయిందని తెలిపింది. కాగితంపై ప్రింట్ తనిఖీ చేయండి."
+    "printReportedDone": "టిల్ పని పూర్తయిందని తెలిపింది. కాగితంపై ప్రింట్ తనిఖీ చేయండి.",
+    "directPrinter": "బ్లూటూత్ ప్రింటర్",
+    "pairedPrinters": "జత చేసిన పరికరాలు",
+    "confirmPrinted": "రసీదు ముద్రించబడింది",
+    "reprintConfirm": "మరో ప్రతిని అనుమతించు",
+    "directPrinterHelp": "Android సెట్టింగ్‌లలో జత చేయండి. ESC/POS బ్లూటూత్ ప్రింటర్‌లు మాత్రమే; ముందు పరీక్షించండి.",
+    "printCheckPaper": "మళ్లీ ప్రయత్నించే ముందు కాగితం చూడండి. రసీదు ఇప్పటికే ముద్రితమై ఉండవచ్చు.",
+    "offlineUntil": "ఆఫ్‌లైన్ యాక్సెస్ గడువు",
+    "historyPolicy": "రసీదు చరిత్ర: రోజులు / గరిష్ట రికార్డులు"
   },
   "si": {
     "name": "නම",
@@ -1061,7 +1101,15 @@
     "invalidScan": "භාණ්ඩයේ තීරු කේතය ස්කෑන් කරන්න. ගෙවීම්, පිවිසුම් සහ කාඩ් දත්ත මෙහි පිළිගන්නේ නැත.",
     "printWaiting": "ටිල් සඳහා රැඳී සිටී",
     "printWorking": "ටිල් මුද්‍රණ කාර්යය සකසයි",
-    "printReportedDone": "ටිල් කාර්යය අවසන් බව දැන්වීය. මුද්‍රිත කඩදාසිය පරීක්ෂා කරන්න."
+    "printReportedDone": "ටිල් කාර්යය අවසන් බව දැන්වීය. මුද්‍රිත කඩදාසිය පරීක්ෂා කරන්න.",
+    "directPrinter": "බ්ලූටූත් මුද්‍රකය",
+    "pairedPrinters": "යුගල කළ උපාංග",
+    "confirmPrinted": "රිසිට්පත මුද්‍රණය විය",
+    "reprintConfirm": "තවත් පිටපතකට ඉඩ දෙන්න",
+    "directPrinterHelp": "Android සැකසුම් තුළ යුගල කරන්න. ESC/POS බ්ලූටූත් මුද්‍රක පමණි; පළමුව පරීක්ෂා කරන්න.",
+    "printCheckPaper": "නැවත උත්සාහ කිරීමට පෙර කඩදාසිය බලන්න. රිසිට්පත දැනටමත් මුද්‍රණය වී තිබිය හැක.",
+    "offlineUntil": "නොබැඳි ප්‍රවේශය අවසන් වේ",
+    "historyPolicy": "රිසිට්පත් ඉතිහාසය: දින / උපරිම වාර්තා"
   },
   "ne": {
     "name": "नाम",
@@ -1238,7 +1286,15 @@
     "invalidScan": "सामानको बारकोड स्क्यान गर्नुहोस्। भुक्तानी, साइन इन र कार्ड डेटा यहाँ स्वीकार हुँदैन।",
     "printWaiting": "टिलको प्रतीक्षामा",
     "printWorking": "टिलले प्रिन्ट कार्य गर्दैछ",
-    "printReportedDone": "टिलले पूरा भएको जनायो। कागजको प्रिन्ट जाँच्नुहोस्।"
+    "printReportedDone": "टिलले पूरा भएको जनायो। कागजको प्रिन्ट जाँच्नुहोस्।",
+    "directPrinter": "ब्लुटुथ प्रिन्टर",
+    "pairedPrinters": "जोडिएका उपकरणहरू",
+    "confirmPrinted": "रसिद छापियो",
+    "reprintConfirm": "अर्को प्रतिलाई अनुमति दिनुहोस्",
+    "directPrinterHelp": "Android सेटिङमा जोड्नुहोस्। ESC/POS ब्लुटुथ प्रिन्टर मात्र; पहिले परीक्षण गर्नुहोस्।",
+    "printCheckPaper": "फेरि प्रयास गर्नुअघि कागज जाँच्नुहोस्। रसिद पहिले नै छापिएको हुन सक्छ।",
+    "offlineUntil": "अफलाइन पहुँच समाप्ति",
+    "historyPolicy": "रसिद इतिहास: दिन / अधिकतम रेकर्ड"
   },
   "ar": {
     "name": "الاسم",
@@ -1416,7 +1472,15 @@
     "invalidScan": "امسح باركود منتج. لا تُقبل بيانات الدفع أو تسجيل الدخول أو البطاقات هنا.",
     "printWaiting": "بانتظار جهاز نقطة البيع",
     "printWorking": "جهاز نقطة البيع يعالج مهمة الطباعة",
-    "printReportedDone": "أبلغ جهاز نقطة البيع عن الاكتمال. تحقق من الورق المطبوع."
+    "printReportedDone": "أبلغ جهاز نقطة البيع عن الاكتمال. تحقق من الورق المطبوع.",
+    "directPrinter": "طابعة بلوتوث",
+    "pairedPrinters": "الأجهزة المقترنة",
+    "confirmPrinted": "تمت طباعة الإيصال",
+    "reprintConfirm": "السماح بنسخة أخرى",
+    "directPrinterHelp": "اقترن من إعدادات Android. طابعات بلوتوث ESC/POS فقط؛ اختبر التوافق أولاً.",
+    "printCheckPaper": "تحقق من الورق قبل إعادة المحاولة. ربما تمت طباعة الإيصال بالفعل.",
+    "offlineUntil": "انتهاء الوصول دون اتصال",
+    "historyPolicy": "سجل الإيصالات: الأيام / الحد الأقصى للسجلات"
   },
   "fr": {
     "name": "Nom",
@@ -1593,7 +1657,15 @@
     "invalidScan": "Scannez un code-barres produit. Les données de paiement, de connexion et de carte sont refusées ici.",
     "printWaiting": "En attente de la caisse",
     "printWorking": "La caisse traite l’impression",
-    "printReportedDone": "La caisse a signalé la fin. Vérifiez le papier imprimé."
+    "printReportedDone": "La caisse a signalé la fin. Vérifiez le papier imprimé.",
+    "directPrinter": "Imprimante Bluetooth",
+    "pairedPrinters": "Appareils associés",
+    "confirmPrinted": "Reçu imprimé",
+    "reprintConfirm": "Autoriser une autre copie",
+    "directPrinterHelp": "Associez dans les réglages Android. Imprimantes Bluetooth ESC/POS uniquement ; testez la compatibilité.",
+    "printCheckPaper": "Vérifiez le papier avant de réessayer. Le reçu est peut-être déjà imprimé.",
+    "offlineUntil": "Expiration de l’accès hors ligne",
+    "historyPolicy": "Historique : jours / nombre maximal de reçus"
   },
   "es": {
     "name": "Nombre",
@@ -1770,7 +1842,15 @@
     "invalidScan": "Escanee un código de producto. Aquí no se aceptan datos de pago, acceso ni tarjetas.",
     "printWaiting": "Esperando a la caja",
     "printWorking": "La caja está procesando la impresión",
-    "printReportedDone": "La caja informó que terminó. Compruebe el papel impreso."
+    "printReportedDone": "La caja informó que terminó. Compruebe el papel impreso.",
+    "directPrinter": "Impresora Bluetooth",
+    "pairedPrinters": "Dispositivos vinculados",
+    "confirmPrinted": "Recibo impreso",
+    "reprintConfirm": "Permitir otra copia",
+    "directPrinterHelp": "Vincule en ajustes de Android. Solo impresoras Bluetooth ESC/POS; pruebe la compatibilidad.",
+    "printCheckPaper": "Revise el papel antes de reintentar. El recibo podría haberse impreso.",
+    "offlineUntil": "Caducidad del acceso sin conexión",
+    "historyPolicy": "Historial: días / máximo de recibos"
   },
   "pt": {
     "name": "Nome",
@@ -1947,7 +2027,15 @@
     "invalidScan": "Leia um código de produto. Dados de pagamento, início de sessão e cartões não são aceites aqui.",
     "printWaiting": "A aguardar a caixa",
     "printWorking": "A caixa está a processar a impressão",
-    "printReportedDone": "A caixa comunicou a conclusão. Verifique o papel impresso."
+    "printReportedDone": "A caixa comunicou a conclusão. Verifique o papel impresso.",
+    "directPrinter": "Impressora Bluetooth",
+    "pairedPrinters": "Dispositivos emparelhados",
+    "confirmPrinted": "Recibo impresso",
+    "reprintConfirm": "Permitir outra cópia",
+    "directPrinterHelp": "Emparelhe nas definições Android. Apenas impressoras Bluetooth ESC/POS; teste a compatibilidade.",
+    "printCheckPaper": "Verifique o papel antes de tentar novamente. O recibo pode já ter sido impresso.",
+    "offlineUntil": "Validade do acesso offline",
+    "historyPolicy": "Histórico: dias / máximo de recibos"
   },
   "id": {
     "name": "Nama",
@@ -2124,7 +2212,15 @@
     "invalidScan": "Pindai kode batang produk. Data pembayaran, masuk akun, dan kartu tidak diterima di sini.",
     "printWaiting": "Menunggu kasir",
     "printWorking": "Kasir sedang memproses cetakan",
-    "printReportedDone": "Kasir melaporkan selesai. Periksa hasil pada kertas."
+    "printReportedDone": "Kasir melaporkan selesai. Periksa hasil pada kertas.",
+    "directPrinter": "Printer Bluetooth",
+    "pairedPrinters": "Perangkat tersanding",
+    "confirmPrinted": "Struk sudah dicetak",
+    "reprintConfirm": "Izinkan salinan lain",
+    "directPrinterHelp": "Sandingkan di setelan Android. Hanya printer Bluetooth ESC/POS; uji kompatibilitas terlebih dahulu.",
+    "printCheckPaper": "Periksa kertas sebelum mencoba lagi. Struk mungkin sudah tercetak.",
+    "offlineUntil": "Akses offline berakhir",
+    "historyPolicy": "Riwayat struk: hari / jumlah maksimum"
   },
   "th": {
     "name": "ชื่อ",
@@ -2301,7 +2397,15 @@
     "invalidScan": "สแกนบาร์โค้ดสินค้า ไม่รับข้อมูลการชำระเงิน การเข้าสู่ระบบ หรือบัตรที่นี่",
     "printWaiting": "กำลังรอเครื่องขาย",
     "printWorking": "เครื่องขายกำลังประมวลผลงานพิมพ์",
-    "printReportedDone": "เครื่องขายแจ้งว่าเสร็จแล้ว โปรดตรวจสอบกระดาษที่พิมพ์"
+    "printReportedDone": "เครื่องขายแจ้งว่าเสร็จแล้ว โปรดตรวจสอบกระดาษที่พิมพ์",
+    "directPrinter": "เครื่องพิมพ์บลูทูธ",
+    "pairedPrinters": "อุปกรณ์ที่จับคู่",
+    "confirmPrinted": "พิมพ์ใบเสร็จแล้ว",
+    "reprintConfirm": "อนุญาตอีกหนึ่งสำเนา",
+    "directPrinterHelp": "จับคู่ในการตั้งค่า Android รองรับเฉพาะเครื่องพิมพ์บลูทูธ ESC/POS โปรดทดสอบก่อน",
+    "printCheckPaper": "ตรวจสอบกระดาษก่อนลองอีกครั้ง ใบเสร็จอาจพิมพ์ไปแล้ว",
+    "offlineUntil": "สิทธิ์ออฟไลน์หมดอายุ",
+    "historyPolicy": "ประวัติใบเสร็จ: วัน / จำนวนสูงสุด"
   },
   "de": {
     "name": "Name",
@@ -2478,7 +2582,15 @@
     "invalidScan": "Scannen Sie einen Produktbarcode. Zahlungs-, Anmelde- und Kartendaten werden hier nicht akzeptiert.",
     "printWaiting": "Warten auf die Kasse",
     "printWorking": "Die Kasse verarbeitet den Druckauftrag",
-    "printReportedDone": "Die Kasse meldet Abschluss. Prüfen Sie den Papierausdruck."
+    "printReportedDone": "Die Kasse meldet Abschluss. Prüfen Sie den Papierausdruck.",
+    "directPrinter": "Bluetooth-Drucker",
+    "pairedPrinters": "Gekoppelte Geräte",
+    "confirmPrinted": "Beleg gedruckt",
+    "reprintConfirm": "Weitere Kopie erlauben",
+    "directPrinterHelp": "In Android-Einstellungen koppeln. Nur ESC/POS-Bluetooth-Drucker; Kompatibilität zuerst testen.",
+    "printCheckPaper": "Vor erneutem Versuch das Papier prüfen. Der Beleg wurde möglicherweise bereits gedruckt.",
+    "offlineUntil": "Offline-Zugriff läuft ab",
+    "historyPolicy": "Belegverlauf: Tage / maximale Anzahl"
   },
   "sw": {
     "name": "Jina",
@@ -2655,7 +2767,15 @@
     "invalidScan": "Changanua msimbopau wa bidhaa. Data za malipo, kuingia na kadi hazikubaliki hapa.",
     "printWaiting": "Inasubiri mashine ya mauzo",
     "printWorking": "Mashine ya mauzo inashughulikia uchapishaji",
-    "printReportedDone": "Mashine imeripoti kukamilika. Kagua karatasi iliyochapishwa."
+    "printReportedDone": "Mashine imeripoti kukamilika. Kagua karatasi iliyochapishwa.",
+    "directPrinter": "Printa ya Bluetooth",
+    "pairedPrinters": "Vifaa vilivyooanishwa",
+    "confirmPrinted": "Risiti imechapishwa",
+    "reprintConfirm": "Ruhusu nakala nyingine",
+    "directPrinterHelp": "Oanisha katika mipangilio ya Android. Printa za Bluetooth ESC/POS pekee; jaribu kwanza.",
+    "printCheckPaper": "Angalia karatasi kabla ya kujaribu tena. Risiti inaweza kuwa imechapishwa tayari.",
+    "offlineUntil": "Ufikiaji bila mtandao unaisha",
+    "historyPolicy": "Historia ya risiti: siku / idadi ya juu"
   },
   "nl": {
     "name": "Naam",
@@ -2832,7 +2952,15 @@
     "invalidScan": "Scan een productbarcode. Betaal-, aanmeld- en kaartgegevens worden hier niet geaccepteerd.",
     "printWaiting": "Wachten op de kassa",
     "printWorking": "De kassa verwerkt de afdruktaak",
-    "printReportedDone": "De kassa meldt voltooiing. Controleer de papieren afdruk."
+    "printReportedDone": "De kassa meldt voltooiing. Controleer de papieren afdruk.",
+    "directPrinter": "Bluetooth-printer",
+    "pairedPrinters": "Gekoppelde apparaten",
+    "confirmPrinted": "Bon afgedrukt",
+    "reprintConfirm": "Nog een kopie toestaan",
+    "directPrinterHelp": "Koppel via Android-instellingen. Alleen ESC/POS-Bluetooth-printers; test eerst de compatibiliteit.",
+    "printCheckPaper": "Controleer het papier voordat u opnieuw probeert. De bon is mogelijk al afgedrukt.",
+    "offlineUntil": "Offline toegang verloopt",
+    "historyPolicy": "Bongeschiedenis: dagen / maximaal aantal"
   },
   "it": {
     "name": "Nome",
@@ -3009,6 +3137,14 @@
     "invalidScan": "Scansiona un codice prodotto. Qui non sono accettati dati di pagamento, accesso o carte.",
     "printWaiting": "In attesa della cassa",
     "printWorking": "La cassa sta elaborando la stampa",
-    "printReportedDone": "La cassa ha segnalato il completamento. Controlla la stampa su carta."
+    "printReportedDone": "La cassa ha segnalato il completamento. Controlla la stampa su carta.",
+    "directPrinter": "Stampante Bluetooth",
+    "pairedPrinters": "Dispositivi associati",
+    "confirmPrinted": "Ricevuta stampata",
+    "reprintConfirm": "Consenti un’altra copia",
+    "directPrinterHelp": "Associa nelle impostazioni Android. Solo stampanti Bluetooth ESC/POS; verifica prima la compatibilità.",
+    "printCheckPaper": "Controlla la carta prima di riprovare. La ricevuta potrebbe essere già stampata.",
+    "offlineUntil": "Scadenza accesso offline",
+    "historyPolicy": "Storico ricevute: giorni / numero massimo"
   }
 }

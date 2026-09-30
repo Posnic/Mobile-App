@@ -97,5 +97,6 @@ export class SyncWorker {
         break;
       }
     }
+    await this.repository.pruneReceipts();
   }
 }

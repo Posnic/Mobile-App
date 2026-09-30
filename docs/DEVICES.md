@@ -26,8 +26,9 @@ details to inspect its job state. This requires the matched API's `printStatus`
 capability. Completion is reported by the Till and is not proof of physical
 paper delivery. A status read never creates another print request.
 
-Direct Bluetooth/USB printers, cash-drawer commands, scales and card-terminal
-providers are not implemented by this milestone. Software tests and native bundle
+Android Bluetooth Classic ESC/POS direct printing is added in the
+[offline beta](OFFLINE_DIRECT_PRINT_BETA.md). USB/iOS direct printers, cash-drawer commands, scales and card-terminal
+providers remain unimplemented. Software tests and native bundle
 exports do not certify a scanner or printer model. Physical Android/iPhone and
 Till tests are required before a pilot release.
 

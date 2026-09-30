@@ -52,6 +52,13 @@ import { discoverServers, type DiscoveredServer } from "./services/discovery";
 import { wifiAddress } from "./platform/wifi";
 import * as Network from "expo-network";
 import { printSale, printTest } from "./platform/printing";
+import {
+  directPrinterAvailable,
+  pairedPrinters,
+  printDirect,
+  testDirect,
+} from "./platform/directPrinter";
+import type { DirectPrintJob } from "./domain/types";
 import { vault } from "./platform/vault";
 import { GestureScroll } from "./components/GestureScroll";
 import { adjacentRecord } from "./domain/gestures";
@@ -94,6 +101,11 @@ export default function App() {
 }
 
 function Till() {
+  const [directJobs, setDirectJobs] = useState<DirectPrintJob[]>([]);
+  const [printers, setPrinters] = useState<{ address: string; name: string }[]>(
+    [],
+  );
+  const [confirmReprint, setConfirmReprint] = useState(false);
   const scannerInput = useRef<TextInput>(null);
   const scannerValue = useRef("");
   const scanWriting = useRef(0);
@@ -200,6 +212,7 @@ function Till() {
     [selectedSale, setLastSale] = useState<Sale | null>(null);
   const lastSale =
     state?.sales.find((sale) => sale.id === selectedSale?.id) ?? selectedSale;
+  useEffect(() => setConfirmReprint(false), [selectedSale?.id]);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const scannerHandled = useRef(false),
     actionLock = useRef(false);
@@ -212,10 +225,14 @@ function Till() {
   const sum = totals(state?.cart.lines ?? []);
   const account = shop ? selectedAccount(shop, accountId) : null;
   const refresh = useCallback(async () => {
-    if (repo) setState(await repo.load());
+    if (repo) {
+      setState(await repo.load());
+      setDirectJobs(await repo.directPrintJobs());
+    }
   }, [repo]);
   useEffect(() => setItemPage(0), [query, category]);
   const go = (next: Screen) => {
+    setConfirmReprint(false);
     if (scanWriting.current) return;
     setError("");
     setNotice("");
@@ -258,6 +275,9 @@ function Till() {
       stage = "STARTUP-DB";
       const storage = await openStorage();
       const repository = new Repository(storage, uuid);
+      await repository.recoverDirectPrints();
+      await repository.pruneReceipts();
+      setDirectJobs(await repository.directPrintJobs());
       stage = "STARTUP-SETTINGS";
       if (!(await storage.get("settings")))
         await repository.settings({
@@ -593,6 +613,15 @@ function Till() {
           await printSale(sale, shop, state.settings, t);
         } catch {
           setNotice("printUnknown");
+        }
+      }
+      if (state.settings.autoPrint && state.settings.printer === "bluetooth") {
+        try {
+          await printDirect(repo, sale, shop.name, state.settings.locale, t);
+        } catch {
+          setNotice("printUnknown");
+        } finally {
+          setDirectJobs(await repo.directPrintJobs());
         }
       }
       void syncNow(true);
@@ -1805,6 +1834,34 @@ function Till() {
                 <Text selectable style={styles.body} testID="receipt-number">
                   {lastSale.receipt}
                 </Text>
+                {directJobs.some((j) => j.saleId === lastSale.id) && (
+                  <>
+                    {help(t("printCheckPaper"))}
+                    {button(
+                      t("confirmPrinted"),
+                      () =>
+                        void run(async () => {
+                          await repo.completeDirectPrint(
+                            lastSale.id,
+                            "confirmed",
+                          );
+                          setDirectJobs(await repo.directPrintJobs());
+                        }),
+                      false,
+                      shop.permissions.receiptPrint !== true,
+                    )}
+                    <View style={styles.row}>
+                      <Text style={[styles.body, { flex: 1 }]}>
+                        {t("reprintConfirm")}
+                      </Text>
+                      <Switch
+                        accessibilityLabel={t("reprintConfirm")}
+                        value={confirmReprint}
+                        onValueChange={setConfirmReprint}
+                      />
+                    </View>
+                  </>
+                )}
                 {receiptJob?.saleId === lastSale.id && (
                   <Text style={styles.small}>
                     {t(receiptJobMessage[receiptJob.state])}
@@ -1879,6 +1936,21 @@ function Till() {
                         await repo.queueTillPrint(lastSale.id);
                         setNotice("printQueued");
                         void syncNow(true);
+                      } else if (state.settings.printer === "bluetooth") {
+                        try {
+                          await printDirect(
+                            repo,
+                            lastSale,
+                            shop.name,
+                            state.settings.locale,
+                            t,
+                            confirmReprint,
+                          );
+                          setNotice("printCheckPaper");
+                        } finally {
+                          setConfirmReprint(false);
+                          setDirectJobs(await repo.directPrintJobs());
+                        }
                       } else {
                         await printSale(lastSale, shop, state.settings, t);
                         setNotice("printed");
@@ -2075,6 +2147,25 @@ function Till() {
                 : (shop.baseUrl ?? ""),
             )}
             {row(t("catalogue"), String(state.items.length))}
+            {row(t("receipts"), String(state.sales.length))}
+            {row(
+              t("directPrinter"),
+              String(directJobs.filter((j) => j.state !== "confirmed").length) +
+                " · " +
+                t("review"),
+            )}
+            {help(
+              t("offlineUntil") +
+                ": " +
+                new Date(shop.offlineUntil).toLocaleString(locale),
+            )}
+            {help(
+              t("historyPolicy") +
+                ": " +
+                (shop.historyPolicy?.days ?? 90) +
+                " / " +
+                (shop.historyPolicy?.maxReceipts ?? 10000),
+            )}
             {row(
               t("pending"),
               String(state.outbox.filter((e) => e.state === "pending").length),
@@ -2109,7 +2200,13 @@ function Till() {
           <>
             {back("more")}
             {heading(t("printer"))}
-            {(["system", "till"] as const).map((value) => (
+            {(
+              [
+                "system",
+                "till",
+                ...(directPrinterAvailable ? ["bluetooth" as const] : []),
+              ] as const
+            ).map((value) => (
               <Pressable
                 key={value}
                 accessibilityRole="radio"
@@ -2133,7 +2230,13 @@ function Till() {
               >
                 <View style={{ flex: 1 }}>
                   <Text style={styles.body}>
-                    {t(value === "system" ? "systemPrinter" : "tillPrinter")}
+                    {t(
+                      value === "bluetooth"
+                        ? "directPrinter"
+                        : value === "system"
+                          ? "systemPrinter"
+                          : "tillPrinter",
+                    )}
                   </Text>
                   {value === "till" && !shop.capabilities.tillPrint && (
                     <Text style={styles.small}>{t("unavailable")}</Text>
@@ -2142,6 +2245,57 @@ function Till() {
                 {state.settings.printer === value ? icon("check") : null}
               </Pressable>
             ))}
+            {state.settings.printer === "bluetooth" && (
+              <>
+                {help(t("directPrinterHelp"))}
+                {state.settings.directPrinter &&
+                  message(state.settings.directPrinter.name)}
+                {button(
+                  t("pairedPrinters"),
+                  () =>
+                    void run(async () => setPrinters(await pairedPrinters())),
+                )}
+                {printers.map((printer) => (
+                  <View key={printer.address}>
+                    {button(
+                      printer.name,
+                      () =>
+                        void run(() =>
+                          repo.settings({
+                            ...state.settings,
+                            directPrinter: {
+                              ...printer,
+                              width: state.settings.directPrinter?.width ?? 384,
+                            },
+                          }),
+                        ),
+                    )}
+                  </View>
+                ))}
+                <View style={styles.row}>
+                  {[384, 576].map((width) => (
+                    <View key={width} style={{ flex: 1 }}>
+                      {button(
+                        width === 384 ? "58 mm" : "80 mm",
+                        () =>
+                          void run(async () => {
+                            if (!state.settings.directPrinter)
+                              throw new Error("deviceUnavailable");
+                            await repo.settings({
+                              ...state.settings,
+                              directPrinter: {
+                                ...state.settings.directPrinter,
+                                width: width as 384 | 576,
+                              },
+                            });
+                          }),
+                        state.settings.directPrinter?.width === width,
+                      )}
+                    </View>
+                  ))}
+                </View>
+              </>
+            )}
             {help(t("printSystemHelp"))}
             <View style={styles.row}>
               <Text style={[styles.body, { flex: 1 }]}>{t("autoPrint")}</Text>
@@ -2159,7 +2313,13 @@ function Till() {
               t("testPrint"),
               () =>
                 void run(async () => {
-                  await printTest(shop, state.settings, t);
+                  if (state.settings.printer === "bluetooth") {
+                    await testDirect(
+                      state.settings,
+                      shop.name + "\n" + t("testPrint"),
+                    );
+                    setNotice("printCheckPaper");
+                  } else await printTest(shop, state.settings, t);
                 }),
               false,
               shop.permissions.receiptPrint !== true,

@@ -14,6 +14,8 @@ import type {
 import { quickCode, totals } from "../domain/money";
 import { trainingItems, trainingShop } from "./training";
 import { resolveProductScan } from "../domain/scanning";
+import type { DirectPrintJob } from "../domain/types";
+import { receiptsToPrune } from "../domain/retention";
 
 export class Repository {
   private tail: Promise<unknown> = Promise.resolve();
@@ -104,7 +106,7 @@ export class Repository {
       const changes: Change[] = ["shop", "cart", "receipt-sequence"].map(
         (key) => ({ key, value: null }),
       );
-      for (const prefix of ["item:", "sale:", "held:", "customer:"])
+      for (const prefix of ["item:", "sale:", "held:", "customer:", "print:"])
         for (const row of await this.store.list<{ id: string }>(prefix))
           changes.push({ key: prefix + row.id, value: null });
       await this.store.batch(changes);
@@ -113,6 +115,12 @@ export class Repository {
   }
   async signOut() {
     return this.serial(async () => {
+      if (
+        (await this.store.list<DirectPrintJob>("print:")).some(
+          (j) => j.state !== "confirmed",
+        )
+      )
+        throw new Error("printCheckPaper");
       const sales = await this.store.list<Sale>("sale:");
       const cart = await this.store.get<Cart>("cart");
       if (
@@ -135,6 +143,13 @@ export class Repository {
           key: `archive:${shop?.id}:${shop?.staffId}:${sale.id}`,
           value: sale,
         });
+      for (const job of await this.store.list<DirectPrintJob>("print:")) {
+        changes.push({
+          key: `print-audit:${shop?.id}:${shop?.staffId}:${job.id}`,
+          value: job,
+        });
+        changes.push({ key: "print:" + job.id, value: null });
+      }
       for (const prefix of ["item:", "sale:", "held:", "customer:"])
         for (const row of await this.store.list<{ id: string }>(prefix))
           changes.push({ key: prefix + row.id, value: null });
@@ -421,6 +436,24 @@ export class Repository {
         { key: "receipt-sequence", value: sequence },
         { key: "cart", value: this.newCart() },
       ];
+      if (
+        printSettings?.autoPrint &&
+        printSettings.printer === "bluetooth" &&
+        printSettings.directPrinter &&
+        shop.permissions.receiptPrint
+      ) {
+        writes.push({
+          key: "print:" + sale.id,
+          value: {
+            id: sale.id,
+            saleId: sale.id,
+            printer: printSettings.directPrinter,
+            state: "queued",
+            attempts: 0,
+            updatedAt: sale.createdAt,
+          } satisfies DirectPrintJob,
+        });
+      }
       if (!sale.training)
         writes.push({
           key: "outbox:" + sale.id,
@@ -444,6 +477,113 @@ export class Repository {
       this.store.batch([{ key: "settings", value: settings }]),
     );
   }
+  async directPrintJobs(): Promise<DirectPrintJob[]> {
+    await this.tail;
+    return this.store.list<DirectPrintJob>("print:");
+  }
+  async prepareDirectPrint(
+    saleId: string,
+    reprint = false,
+  ): Promise<DirectPrintJob> {
+    return this.serial(async () => {
+      const shop = await this.authorized("receiptPrint");
+      const sale = await this.store.get<Sale>("sale:" + saleId);
+      const settings = await this.store.get<Settings>("settings");
+      if (
+        !sale ||
+        sale.shopId !== shop.id ||
+        sale.branchId !== shop.branchId ||
+        sale.staffId !== shop.staffId ||
+        !settings?.directPrinter ||
+        sale.tillPrint
+      )
+        throw new Error("deviceUnavailable");
+      const prior = await this.store.get<DirectPrintJob>("print:" + saleId);
+      if (prior && !reprint && !["queued", "failed"].includes(prior.state))
+        throw new Error("printCheckPaper");
+      if (prior?.state === "sending") throw new Error("printCheckPaper");
+      const job: DirectPrintJob = {
+        id: saleId,
+        saleId,
+        printer: prior && !reprint ? prior.printer : settings.directPrinter,
+        state: "sending",
+        attempts: (prior?.attempts ?? 0) + 1,
+        updatedAt: new Date(this.now()).toISOString(),
+      };
+      await this.store.batch([
+        ...(prior
+          ? [
+              {
+                key: `print-audit:${saleId}:${prior.attempts}:${this.uuid()}`,
+                value: prior,
+              },
+            ]
+          : []),
+        { key: "print:" + saleId, value: job },
+      ]);
+      return job;
+    });
+  }
+  async completeDirectPrint(
+    saleId: string,
+    state: "submitted" | "unknown" | "failed" | "confirmed",
+  ) {
+    return this.serial(async () => {
+      const shop = await this.authorized("receiptPrint");
+      const sale = await this.store.get<Sale>("sale:" + saleId);
+      if (
+        !sale ||
+        sale.shopId !== shop.id ||
+        sale.branchId !== shop.branchId ||
+        sale.staffId !== shop.staffId
+      )
+        throw new Error("permissionDenied");
+      const job = await this.store.get<DirectPrintJob>("print:" + saleId);
+      if (!job) throw new Error("deviceUnavailable");
+      await this.store.batch([
+        {
+          key: "print:" + saleId,
+          value: {
+            ...job,
+            state,
+            updatedAt: new Date(this.now()).toISOString(),
+          },
+        },
+      ]);
+    });
+  }
+  async recoverDirectPrints() {
+    return this.serial(async () => {
+      const jobs = await this.store.list<DirectPrintJob>("print:");
+      await this.store.batch(
+        jobs
+          .filter((j) => j.state === "sending")
+          .map((j) => ({
+            key: "print:" + j.id,
+            value: { ...j, state: "unknown" },
+          })),
+      );
+    });
+  }
+  async pruneReceipts() {
+    return this.serial(async () => {
+      const shop = await this.store.get<Shop>("shop");
+      if (!shop) return;
+      const ids = receiptsToPrune(
+        await this.store.list<Sale>("sale:"),
+        await this.store.list<Outbox>("outbox:"),
+        await this.store.list<DirectPrintJob>("print:"),
+        shop.historyPolicy,
+        this.now(),
+      );
+      await this.store.batch(
+        ids.flatMap((id) => [
+          { key: "sale:" + id, value: null },
+          { key: "print:" + id, value: null },
+        ]),
+      );
+    });
+  }
   async acknowledge(id: string, serverId: string) {
     return this.serial(async () => {
       const sale = await this.store.get<Sale>("sale:" + id);
@@ -459,6 +599,8 @@ export class Repository {
       if (!queued) await this.authorized("receiptPrint");
       const sale = await this.store.get<Sale>("sale:" + id);
       if (!sale || sale.training) throw new Error("deviceUnavailable");
+      if (await this.store.get("print:" + id))
+        throw new Error("printCheckPaper");
       if (sale.tillPrint === "queued" && !queued) return;
       await this.store.batch([
         {

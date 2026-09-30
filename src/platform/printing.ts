@@ -11,6 +11,7 @@ export async function printTest(
   t: (key: string) => string,
 ): Promise<void> {
   requirePermission(shop, "receiptPrint");
+  if (settings.printer === "bluetooth") throw new Error("deviceUnavailable");
   if (settings.printer === "system") {
     await Print.printAsync({
       html: `<!doctype html><html lang="${settings.locale}" dir="${settings.locale === "ar" ? "rtl" : "ltr"}"><meta charset="utf-8"><body><h1>${escapeHtml(shop.name)}</h1><h2>${escapeHtml(t("testReceipt"))}</h2><p>0123456789</p><p>✓ • ───────────────</p></body></html>`,
@@ -32,6 +33,7 @@ export async function printSale(
   t: (key: string) => string,
 ): Promise<void> {
   requirePermission(shop, "receiptPrint");
+  if (settings.printer === "bluetooth") throw new Error("deviceUnavailable");
   if (
     sale.shopId !== shop.id ||
     sale.branchId !== shop.branchId ||

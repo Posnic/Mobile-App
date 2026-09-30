@@ -75,6 +75,7 @@ export interface Shop {
   connection?: { idempotencyScope: string; local?: string; remote?: string };
   snapshotVersion: string;
   offlineUntil: string;
+  historyPolicy?: { days: number; maxReceipts: number };
   quickTaxBps: number;
   quickTaxInclusive: boolean;
   permissions: {
@@ -136,8 +137,18 @@ export interface Outbox {
 }
 export interface Settings {
   locale: Locale;
-  printer: "system" | "till";
+  printer: "system" | "till" | "bluetooth";
+  directPrinter?: { address: string; name: string; width: 384 | 576 };
   autoPrint: boolean;
+}
+export interface DirectPrintJob {
+  id: string;
+  saleId: string;
+  printer: NonNullable<Settings["directPrinter"]>;
+  state:
+    "queued" | "sending" | "submitted" | "unknown" | "failed" | "confirmed";
+  attempts: number;
+  updatedAt: string;
 }
 export interface SessionData {
   shop: Shop | null;

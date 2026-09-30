@@ -210,6 +210,12 @@ export const bootstrap = z.object({
     staffName: z.string(),
     snapshotVersion: z.string().min(1),
     offlineUntil: z.string().datetime(),
+    historyPolicy: z
+      .object({
+        days: z.number().int().min(1).max(365),
+        maxReceipts: z.number().int().min(100).max(100000),
+      })
+      .optional(),
     connection: z
       .object({
         idempotencyScope: z.string().min(1),
