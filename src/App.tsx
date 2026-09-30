@@ -1931,6 +1931,17 @@ function Till() {
                 <Text selectable style={styles.body} testID="receipt-number">
                   {lastSale.receipt}
                 </Text>
+                {lastSale.cloudReceivedAt &&
+                  help(
+                    t("cloudReceived") +
+                      " · " +
+                      new Date(lastSale.cloudReceivedAt).toLocaleString(locale),
+                  )}
+                {!lastSale.training &&
+                  lastSale.sync === "synced" &&
+                  shop.capabilities.cloudDelivery &&
+                  !lastSale.cloudReceivedAt &&
+                  help(t("cloudWaiting"))}
                 {directJobs.some((j) => j.saleId === lastSale.id) && (
                   <>
                     {help(
@@ -2460,7 +2471,19 @@ function Till() {
                   .length,
               ),
             )}
-            {help(t("serverAcceptance"))}
+            {shop.capabilities.cloudDelivery ? (
+              <>
+                {row(
+                  t("cloudReceived"),
+                  String(
+                    state.sales.filter((sale) => sale.cloudReceivedAt).length,
+                  ),
+                )}
+                {help(t("cloudReceiptHelp"))}
+              </>
+            ) : (
+              help(t("serverAcceptance"))
+            )}
             {menu(
               "database",
               t("offlineData"),

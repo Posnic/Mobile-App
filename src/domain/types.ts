@@ -96,6 +96,7 @@ export interface Shop {
     devicePairing: boolean;
     tillPrint: boolean;
     printStatus?: boolean;
+    cloudDelivery?: boolean;
     terminal: boolean;
   };
 }
@@ -124,6 +125,7 @@ export interface Sale {
   training: boolean;
   sync: "pending" | "synced" | "review";
   serverId?: string;
+  cloudReceivedAt?: string;
 }
 export interface Outbox {
   id: string;

@@ -1,6 +1,6 @@
 # Independent offline counter beta
 
-30 September 2026. Android `0.3.0-beta.5`, matching Windows `1.8.5-beta.4`.
+30 September 2026. Android `0.3.0-beta.6`, matching Windows `1.8.5-beta.5`.
 
 ## Included
 
@@ -15,7 +15,7 @@
 - More → Offline data is a dedicated screen showing item count, local receipt count, protected pending sales, catalogue refresh time, offline-grant expiry and received history policy. Connection & sync shows server-accepted and pending/review counts with receipt drill-down and a separate printer-attention list. Refresh gestures apply to these data screens. New mobile text is supplied in all 18 bundled locales; language review remains welcome.
 
 - Receipts → Find an older receipt searches the signed-in cashier’s mobile receipts on the paired shop server. Searches are literal and paginated, 50 results at a time, newest first. Server receipt details are read-only; they do not enqueue another upload or print. Other cashiers and branches are excluded even when client parameters are altered. This does not expose all desktop sales.
-- The app explicitly distinguishes server acceptance from cloud confirmation. The current server does not report downstream cloud acknowledgment, so the app never fabricates that status.
+- The app explicitly distinguishes server acceptance from cloud confirmation. The app reports cloud receipt delivery only when the signed sync component has stored an explicit matching gateway acknowledgment. Community installations and older components keep the server-only status.
 
 ## Test on a phone
 
@@ -44,7 +44,7 @@
 | Offline data | More → Offline data |
 | Desktop settings | Mobile POS module: retention, offline access and printer route guidance |
 
-Storage values are measured from the native database, WAL and image directory (browser preview uses its origin storage estimate). Product image counts include successfully cached images. Cloud confirmations remain unavailable until explicit downstream acknowledgment is implemented. The desktop printing policy uses the existing receipt Till assignment; no setting was added to a Features card.
+Storage values are measured from the native database, WAL and image directory (browser preview uses its origin storage estimate). Product image counts include successfully cached images. Cloud receipt confirmation is shown only when the installed sync component and gateway support protocol 1 and return matching evidence. The desktop printing policy uses the existing receipt Till assignment; no setting was added to a Features card.
 
 Do not clear app storage or uninstall while sales are waiting to synchronize. This beta's APK uses the existing development signing certificate; Windows package is unsigned. These are pilot artifacts, not store releases or printer certification.
 
@@ -52,7 +52,7 @@ Do not clear app storage or uninstall while sales are waiting to synchronize. Th
 
 Software checks cover journal persistence, concurrent attempts, disk-write failure, restart uncertainty, explicit reprints, no dual Till delivery, localized raster source, protected cleanup, the 10,000-receipt boundary, server settings and existing sales/pairing flows. Native Kotlin compilation and Android release assembly are checked. Software tests cannot prove a particular printer's buffers, paper handling or Bluetooth firmware behaviour.
 
-The wider roadmap remains open: iOS/vendor adapters, fully indexed catalogue UI for very large datasets, cloud delivery acknowledgments and cross-authority reconciliation, richer item selling options, and provider-verified electronic payments. Existing offline authorization remains 24 hours by default, configurable 1–72; it has not been silently extended. Existing cash/manual-UPI semantics and ACL remain in force.
+The wider roadmap remains open: iOS/vendor adapters, fully indexed catalogue UI for very large datasets, cross-authority reconciliation, richer item selling options, and provider-verified electronic payments. Existing offline authorization remains 24 hours by default, configurable 1–72; it has not been silently extended. Existing cash/manual-UPI semantics and ACL remain in force.
 
 Technical references: [Expo local modules](https://docs.expo.dev/modules/get-started/) and [Android Bluetooth connections](https://developer.android.com/develop/connectivity/bluetooth/connect-bluetooth-devices).
 
@@ -70,3 +70,13 @@ Additional phone checks: interrupt a catalogue download and reconnect; change/de
 Client catalogue assembly still retains the complete item array in memory. Network/page persistence is incremental, but this release does not claim a fully paged in-memory catalogue. Provider card authorization, cloud failover and physical hardware certification are separate release gates.
 
 Technical references: [Android USB host](https://developer.android.com/develop/connectivity/usb/host), [Expo persistent files](https://docs.expo.dev/versions/latest/sdk/filesystem/) and [Epson ESC p drawer pulse](https://download4.epson.biz/sec_pubs/pos/reference_en/escpos/esc_lp.html).
+
+## Cloud receipt evidence (beta 6)
+
+The gateway returns a mobile receipt acknowledgment only after a matching mobile sale write succeeds with majority/journal acknowledgment. A skipped or rejected write does not produce proof. The local signed sync component records the transaction ID, server receipt ID, branch, gateway authority and receipt time before advancing its checkpoint or clearing its priority marker. An absent outbox marker is never interpreted as confirmation.
+
+The authenticated phone queries up to 50 of its server-accepted receipts per pass, rotating through unresolved entries. The POS filters by license, branch, staff and issuing device, then matches the exact transaction, server receipt and sync authority. Only that evidence adds the Received in cloud label. Failed status reads never repeat a sale or clear its accepted status. Images, printing and cash selling remain independent.
+
+This confirms receipt delivery, not completion of stock or every other collection. It does not enable automatic writes through a second, independent cloud ledger. The installed signed sync component and gateway must both include the new protocol; updating only the Android app cannot manufacture this capability. Community users retain the existing server-only flow.
+
+Pilot: make a mobile cash sale through the local Till, disconnect cloud access and confirm it remains shop-server accepted without a cloud label. Restore cloud sync; once the gateway acknowledgment is recorded, Sync now should show Received in cloud on that receipt. Disconnect again and restart: the recorded evidence remains available. Do not use an empty queue, network reachability or a batch count as a substitute for this test.

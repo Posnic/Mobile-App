@@ -38,6 +38,41 @@ function setup() {
   );
   return { storage, repo };
 }
+
+test("cloud confirmation is separate from local acceptance and cannot acknowledge an unuploaded or foreign receipt", async () => {
+  const { repo } = setup();
+  await repo.pair(
+    {
+      ...trainingShop,
+      mode: "live",
+      baseUrl: "https://shop.example/api",
+      capabilities: { ...trainingShop.capabilities, saleSync: true },
+    },
+    trainingItems,
+  );
+  await repo.addItem(trainingItems[0]!);
+  const sale = await repo.checkout((await repo.load()).cart.id, {
+    method: "cash",
+    received: 5000,
+    change: 0,
+  });
+  const proof = {
+    id: sale.id,
+    serverId: "server-one",
+    receivedAt: new Date().toISOString(),
+  };
+  await assert.rejects(repo.confirmCloud([proof]), /invalidServer/);
+  assert.equal((await repo.load()).outbox.length, 1);
+  await repo.acknowledge(sale.id, proof.serverId);
+  assert.equal((await repo.load()).sales[0]!.cloudReceivedAt, undefined);
+  await assert.rejects(
+    repo.confirmCloud([{ ...proof, serverId: "other" }]),
+    /invalidServer/,
+  );
+  await repo.confirmCloud([proof]);
+  assert.equal((await repo.load()).sales[0]!.cloudReceivedAt, proof.receivedAt);
+  assert.equal((await repo.load()).outbox.length, 0);
+});
 test("checkout survives repository recreation and repeated checkout returns same receipt", async () => {
   const { repo, storage } = setup();
   await repo.startTraining();

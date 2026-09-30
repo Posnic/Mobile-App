@@ -231,5 +231,8 @@
   "drawerPin": "Connector pin",
   "appStorage": "App storage",
   "freeStorage": "Available storage",
-  "storageLow": "Storage is low. Image downloads pause to leave room for sales. Free space on the phone; do not clear this app’s data while sales are waiting to sync."
+  "storageLow": "Storage is low. Image downloads pause to leave room for sales. Free space on the phone; do not clear this app’s data while sales are waiting to sync.",
+  "cloudReceived": "Received in cloud",
+  "cloudWaiting": "Waiting for cloud receipt",
+  "cloudReceiptHelp": "Confirmed by the cloud gateway for this receipt. Stock and other shop data synchronize separately."
 }

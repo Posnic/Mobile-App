@@ -105,7 +105,7 @@ export class PosnicApi {
     return { shop, items: data.items, token: result.token };
   }
   async upload(sale: Sale) {
-    const { tillPrint: _print, ...payload } = sale;
+    const { tillPrint: _print, cloudReceivedAt: _cloud, ...payload } = sale;
     const response = z
       .object({
         saleId: z.string(),
@@ -134,6 +134,45 @@ export class PosnicApi {
       shop: { ...data.shop, mode: "live", baseUrl: this.base },
       items: data.items,
     };
+  }
+  async delivery(shop: Shop, sales: Sale[]) {
+    const response = z
+      .object({
+        shopId: z.string(),
+        branchId: z.string(),
+        staffId: z.string(),
+        available: z.boolean(),
+        receipts: z
+          .array(
+            z.object({
+              id: z.string(),
+              serverId: z.string(),
+              receivedAt: z.iso.datetime(),
+            }),
+          )
+          .max(50),
+      })
+      .parse(
+        await this.request(
+          "/mobile/v1/delivery-status",
+          { ids: sales.map((sale) => sale.id) },
+          await credentials.get(),
+        ),
+      );
+    if (
+      response.shopId !== shop.id ||
+      response.branchId !== shop.branchId ||
+      response.staffId !== shop.staffId ||
+      (!response.available && response.receipts.length > 0) ||
+      response.receipts.some(
+        (proof) =>
+          !sales.some(
+            (sale) => sale.id === proof.id && sale.serverId === proof.serverId,
+          ),
+      )
+    )
+      throw new ApiError("invalidServer", 409);
+    return response.receipts;
   }
   private async readCatalogue(token: string | null) {
     const raw = await this.request(
@@ -300,6 +339,7 @@ export const bootstrap = z.object({
       devicePairing: z.boolean(),
       tillPrint: z.boolean(),
       printStatus: z.boolean().default(false),
+      cloudDelivery: z.boolean().default(false),
       terminal: z.boolean(),
     }),
   }),

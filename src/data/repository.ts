@@ -655,6 +655,34 @@ export class Repository {
       ]);
     });
   }
+  async confirmCloud(
+    proofs: { id: string; serverId: string; receivedAt: string }[],
+  ) {
+    return this.serial(async () => {
+      const shop = await this.store.get<Shop>("shop");
+      const writes: Change[] = [];
+      for (const proof of proofs) {
+        const sale = await this.store.get<Sale>("sale:" + proof.id);
+        if (
+          !shop ||
+          !sale ||
+          sale.training ||
+          sale.sync !== "synced" ||
+          sale.shopId !== shop.id ||
+          sale.branchId !== shop.branchId ||
+          sale.staffId !== shop.staffId ||
+          sale.serverId !== proof.serverId ||
+          !Number.isFinite(Date.parse(proof.receivedAt))
+        )
+          throw Error("invalidServer");
+        writes.push({
+          key: "sale:" + sale.id,
+          value: { ...sale, cloudReceivedAt: proof.receivedAt },
+        });
+      }
+      await this.store.batch(writes);
+    });
+  }
   async retry(entry: Outbox, message: string, review = false) {
     return this.serial(async () => {
       const attempts = entry.attempts + 1;

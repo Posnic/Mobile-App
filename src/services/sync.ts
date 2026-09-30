@@ -6,6 +6,7 @@ import type { Shop } from "../domain/types";
 export class SyncWorker {
   lastError: string | null = null;
   private flight: Promise<void> | null = null;
+  private deliveryOffset = 0;
   constructor(
     private repository: Repository,
     private api: (
@@ -86,6 +87,33 @@ export class SyncWorker {
       }
     }
     const updated = await this.repository.load();
+    if (updated.shop?.capabilities.cloudDelivery) {
+      const candidates = updated.sales.filter(
+        (sale) =>
+          !sale.training &&
+          sale.sync === "synced" &&
+          sale.serverId &&
+          !sale.cloudReceivedAt,
+      );
+      const offset = this.deliveryOffset % Math.max(1, candidates.length);
+      const waiting = [
+        ...candidates.slice(offset),
+        ...candidates.slice(0, offset),
+      ].slice(0, 50);
+      this.deliveryOffset =
+        (offset + waiting.length) % Math.max(1, candidates.length);
+      if (waiting.length)
+        try {
+          const proof = await new PosnicApi(updated.shop.baseUrl!).delivery(
+            updated.shop,
+            waiting,
+          );
+          await this.repository.confirmCloud(proof);
+        } catch {
+          // Delivery evidence is independent of sale acceptance. Never resubmit a
+          // paid sale or erase an acknowledgment because this read is unavailable.
+        }
+    }
     for (const sale of updated.sales) {
       if (sale.tillPrint !== "pending" || sale.sync !== "synced") continue;
       try {
