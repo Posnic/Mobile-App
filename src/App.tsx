@@ -64,6 +64,7 @@ type Screen =
   | "sell"
   | "quick"
   | "cart"
+  | "payment"
   | "cash"
   | "upi"
   | "done"
@@ -96,7 +97,6 @@ function Till() {
   const scannerInput = useRef<TextInput>(null);
   const scannerValue = useRef("");
   const scanWriting = useRef(0);
-  const [scanValue, setScanValue] = useState("");
   const [scanResult, setScanResult] = useState("");
   const [scannerFocused, setScannerFocused] = useState(false);
   const [receiptJob, setReceiptJob] = useState<{
@@ -107,6 +107,10 @@ function Till() {
   const [receiptDetails, setReceiptDetails] = useState(false);
   const receiptOrder = useRef<string[]>([]);
   const [localSetup, setLocalSetup] = useState(false);
+  const [localMethod, setLocalMethod] = useState<
+    "menu" | "address" | "wifi" | "pair"
+  >("menu");
+  const [receiptQuery, setReceiptQuery] = useState("");
   const [authorizationCode, setAuthorizationCode] = useState("");
   const accountRequest = useRef<AbortController | null>(null);
   const itemQueue = useRef<Item[]>([]);
@@ -116,14 +120,14 @@ function Till() {
     dimensions = useWindowDimensions();
   const palette = useMemo(
     () => ({
-      paper: dark ? "#172331" : "#ffffff",
-      ink: dark ? "#EDF3FA" : "#1D2D40",
-      muted: dark ? "#ABBDCF" : "#596C82",
-      line: dark ? "#304256" : "#DFE7F0",
-      wash: dark ? "#101A26" : "#F3F6FA",
-      accent: dark ? "#91BEF0" : "#2969AD",
-      onAccent: dark ? "#102237" : "#ffffff",
-      soft: dark ? "#243C57" : "#E8F1FC",
+      paper: dark ? "#182D28" : "#ffffff",
+      ink: dark ? "#EDF5EF" : "#193C39",
+      muted: dark ? "#A7BEB2" : "#596F64",
+      line: dark ? "#344C41" : "#E1E8E0",
+      wash: dark ? "#10231D" : "#FFFEFA",
+      accent: dark ? "#9CD8BC" : "#176C5C",
+      onAccent: dark ? "#102D23" : "#ffffff",
+      soft: dark ? "#29483B" : "#EAF3EE",
       danger: dark ? "#FFB5B5" : "#B32F3D",
     }),
     [dark],
@@ -142,7 +146,7 @@ function Till() {
         scans?.cancel();
         scannerInput.current?.blur();
         scannerValue.current = "";
-        setScanValue("");
+        scannerInput.current?.clear();
       }
     });
     return () => {
@@ -216,7 +220,7 @@ function Till() {
     setError("");
     setNotice("");
     scannerValue.current = "";
-    setScanValue("");
+    scannerInput.current?.clear();
     setScanResult("");
     if (next === "scanner") scannerHandled.current = false;
     if (next === "cash") setCash("");
@@ -321,21 +325,30 @@ function Till() {
       ? "devices"
       : screen === "done" && receiptDetails
         ? "receipts"
-        : ["cash", "upi", "customer"].includes(screen)
-          ? "cart"
-          : [
-                "language",
-                "printer",
-                "devices",
-                "connection",
-                "item",
-                "leaveTraining",
-                "pin",
-              ].includes(screen) && shop
-            ? "more"
-            : "sell";
+        : ["cash", "upi"].includes(screen)
+          ? "payment"
+          : ["payment", "customer"].includes(screen)
+            ? "cart"
+            : [
+                  "language",
+                  "printer",
+                  "devices",
+                  "connection",
+                  "item",
+                  "leaveTraining",
+                  "pin",
+                ].includes(screen) && shop
+              ? "more"
+              : "sell";
   const navigateBack = () => {
     if (busy || actionLock.current) return true;
+    if (!shop && localSetup && screen !== "scanner" && screen !== "language") {
+      if (localMethod !== "menu") {
+        discovery.current?.abort();
+        setLocalMethod("menu");
+      } else setLocalSetup(false);
+      return true;
+    }
     if (locked || screen === "sell") return false;
     go(backTarget);
     return true;
@@ -388,6 +401,8 @@ function Till() {
   function acceptServer(value: string) {
     const details = parseServerInput(value);
     setServer(details.address);
+    setLocalSetup(true);
+    setLocalMethod("address");
     if (details.code) {
       setPairCode(details.code);
       setPairing(true);
@@ -434,7 +449,7 @@ function Till() {
   const lock = () => {
     scans?.cancel();
     scannerValue.current = "";
-    setScanValue("");
+    scannerInput.current?.clear();
     accountRequest.current?.abort();
     discovery.current?.abort();
     unlockAttempt.current++;
@@ -690,6 +705,35 @@ function Till() {
       {iconButton("arrow-left", t("back"), () => go(target))}
     </View>
   );
+  const actionRow = (
+    glyph: IconName,
+    label: string,
+    detail: string,
+    onPress: () => void,
+    disabled = false,
+    testID?: string,
+  ) => (
+    <Pressable
+      testID={testID}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityHint={detail}
+      disabled={busy || disabled}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.menu,
+        disabled && styles.disabled,
+        pressed && styles.pressed,
+      ]}
+    >
+      <View style={styles.menuIcon}>{icon(glyph)}</View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={styles.menuTitle}>{label}</Text>
+        {!!detail && <Text style={styles.small}>{detail}</Text>}
+      </View>
+      {icon("chevron-right", 17)}
+    </Pressable>
+  );
   const menu = (
     glyph: IconName,
     label: string,
@@ -704,8 +748,8 @@ function Till() {
       onPress={() => go(target)}
       style={styles.menu}
     >
-      {icon(glyph)}
-      <View style={{ flex: 1 }}>
+      <View style={styles.menuIcon}>{icon(glyph)}</View>
+      <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={styles.body}>{label}</Text>
         {detail && <Text style={styles.small}>{detail}</Text>}
       </View>
@@ -808,10 +852,12 @@ function Till() {
     if (locked)
       return (
         <>
-          {heading(t(recovering ? "passwordRecovery" : "unlock"))}
+          <View style={styles.center}>
+            {heading(t(recovering ? "passwordRecovery" : "unlock"))}
+          </View>
           <View
             style={{
-              alignSelf: "flex-start",
+              alignSelf: "center",
               backgroundColor: palette.soft,
               borderRadius: 16,
               padding: 14,
@@ -883,6 +929,7 @@ function Till() {
                   setPin(normalizeDigits(value).replace(/\D/g, "").slice(0, 6)),
                 { numeric: true, secret: true },
               )}
+              {keypad(pin, setPin, false)}
               {button(
                 t("unlock"),
                 () => void unlockSession(),
@@ -935,7 +982,26 @@ function Till() {
       return (
         <>
           <View style={styles.intro}>
-            <View style={styles.introIcon}>{icon("shopping-bag", 26)}</View>
+            {!localSetup && (
+              <View
+                style={styles.welcomeArt}
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+              >
+                <View style={styles.welcomeReceipt}>
+                  <Feather
+                    name="shopping-bag"
+                    size={32}
+                    color={palette.accent}
+                  />
+                  <View style={styles.receiptRule} />
+                  <View style={[styles.receiptRule, { width: 58 }]} />
+                  <View style={styles.welcomeCheck}>
+                    <Feather name="check" size={22} color={palette.onAccent} />
+                  </View>
+                </View>
+              </View>
+            )}
             {heading(t("welcome"))}
             {help(t("connectHelp"))}
           </View>
@@ -1014,107 +1080,151 @@ function Till() {
                   <Text style={styles.fieldLabel}>{t("selfHosted")}</Text>
                 </View>
                 {help(t("selfHostedHelp"))}
-                {button(t("connectLocalShop"), () => setLocalSetup(true))}
+                {button(t("connectLocalShop"), () => {
+                  setLocalMethod("menu");
+                  setLocalSetup(true);
+                })}
               </View>
             </View>
           ) : (
             <View style={styles.setupCard}>
               {button(t("backToAccount"), () => setLocalSetup(false))}
-              <Text style={styles.fieldLabel}>{t("server")}</Text>
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
-              >
-                <TextInput
-                  accessibilityLabel={t("server")}
-                  testID="server-input"
-                  value={server}
-                  onChangeText={(value) => {
-                    setServer(value);
-                    try {
-                      const details = parseServerInput(value);
-                      if (details.code) {
-                        setPairing(true);
-                        setPairCode(details.code);
-                      }
-                    } catch {}
-                  }}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  placeholder={t("serverPlaceholder")}
-                  placeholderTextColor={palette.muted}
-                  style={[styles.input, { flex: 1, minWidth: 0 }]}
-                />
-              </View>
-              <View style={styles.connectionTools}>
-                {iconButton(
-                  searching ? "x" : "wifi",
-                  t(searching ? "stopSearch" : "searchWifi"),
-                  () => void searchWifi(),
-                )}
-                {iconButton("maximize", t("shopQr"), () => {
-                  discovery.current?.abort();
-                  go("scanner");
-                })}
-                {iconButton("key", t("pairCode"), () =>
-                  setPairing((value) => !value),
-                )}
-              </View>
-              {help(t("wifiFirst"))}
-              {searching && (
-                <Text accessibilityLiveRegion="polite" style={styles.small}>
-                  {t("searchingWifi")} {searchProgress}%
-                </Text>
-              )}
-              {foundServers.map((hit) => (
-                <View key={hit.address}>
-                  {button(
-                    hit.address +
-                      (hit.compatible ? "" : " · " + t("serverUpgrade")),
-                    () => acceptServer(hit.address),
-                    false,
-                    !hit.compatible,
-                  )}
-                </View>
-              ))}
-              {pairing ? (
+              {localMethod === "menu" ? (
                 <>
-                  {field(t("pairCode"), pairCode, setPairCode)}
-                  {help(t("pairHelp"))}
+                  {help(t("wifiHelp"))}
+                  {actionRow("wifi", t("searchWifi"), t("wifiRequired"), () => {
+                    setLocalMethod("wifi");
+                    void searchWifi();
+                  })}
+                  {actionRow("maximize", t("shopQr"), t("pairHelp"), () =>
+                    go("scanner"),
+                  )}
+                  {actionRow("key", t("pairCode"), t("pairHelp"), () => {
+                    setPairing(true);
+                    setLocalMethod("pair");
+                  })}
+                  {actionRow(
+                    "globe",
+                    t("server"),
+                    t("addressHelp"),
+                    () => {
+                      setPairing(false);
+                      setLocalMethod("address");
+                    },
+                    false,
+                    "manual-server",
+                  )}
                 </>
               ) : (
                 <>
-                  {field(t("username"), username, setUsername)}
-                  {field(t("password"), password, setPassword, {
-                    secret: true,
+                  {button(t("back"), () => {
+                    discovery.current?.abort();
+                    setLocalMethod("menu");
                   })}
-                  {help(t("rememberHelp"))}
+                  <Text style={styles.fieldLabel}>{t("server")}</Text>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <TextInput
+                      accessibilityLabel={t("server")}
+                      testID="server-input"
+                      value={server}
+                      onChangeText={(value) => {
+                        setServer(value);
+                        try {
+                          const details = parseServerInput(value);
+                          if (details.code) {
+                            setPairing(true);
+                            setPairCode(details.code);
+                          }
+                        } catch {}
+                      }}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      placeholder={t("serverPlaceholder")}
+                      placeholderTextColor={palette.muted}
+                      style={[styles.input, { flex: 1, minWidth: 0 }]}
+                    />
+                  </View>
+                  <View style={styles.connectionTools}>
+                    {iconButton(
+                      searching ? "x" : "wifi",
+                      t(searching ? "stopSearch" : "searchWifi"),
+                      () => void searchWifi(),
+                    )}
+                    {iconButton("maximize", t("shopQr"), () => {
+                      discovery.current?.abort();
+                      go("scanner");
+                    })}
+                    {iconButton("key", t("pairCode"), () =>
+                      setPairing((value) => !value),
+                    )}
+                  </View>
+                  {help(t("wifiFirst"))}
+                  {searching && (
+                    <Text accessibilityLiveRegion="polite" style={styles.small}>
+                      {t("searchingWifi")} {searchProgress}%
+                    </Text>
+                  )}
+                  {foundServers.map((hit) => (
+                    <View key={hit.address}>
+                      {button(
+                        hit.address +
+                          (hit.compatible ? "" : " · " + t("serverUpgrade")),
+                        () => acceptServer(hit.address),
+                        false,
+                        !hit.compatible,
+                      )}
+                    </View>
+                  ))}
+                  {pairing ? (
+                    <>
+                      {field(t("pairCode"), pairCode, setPairCode)}
+                      {help(t("pairHelp"))}
+                    </>
+                  ) : (
+                    <>
+                      {field(t("username"), username, setUsername)}
+                      {field(t("password"), password, setPassword, {
+                        secret: true,
+                      })}
+                      {help(t("rememberHelp"))}
+                    </>
+                  )}
+                  {button(
+                    t(pairing ? "pair" : "signIn"),
+                    () =>
+                      void run(async () => {
+                        const details = parseServerInput(server);
+                        const data = await new PosnicApi(
+                          details.address,
+                        ).connect(
+                          username,
+                          password,
+                          details.code ||
+                            (pairing ? pairCode.trim() : undefined),
+                        );
+                        await repo.pair(data.shop, data.items);
+                        await vault.remember({
+                          token: data.token,
+                          username: pairing ? data.shop.staffName : username,
+                          password: pairing ? "" : password,
+                          server: details.address,
+                        });
+                        setPairCode("");
+                        setPin("");
+                        setPinConfirm("");
+                        go("pin");
+                      }),
+                    true,
+                    !server ||
+                      (pairing ? !pairCode.trim() : !username || !password),
+                  )}
                 </>
-              )}
-              {button(
-                t(pairing ? "pair" : "signIn"),
-                () =>
-                  void run(async () => {
-                    const details = parseServerInput(server);
-                    const data = await new PosnicApi(details.address).connect(
-                      username,
-                      password,
-                      details.code || (pairing ? pairCode.trim() : undefined),
-                    );
-                    await repo.pair(data.shop, data.items);
-                    await vault.remember({
-                      token: data.token,
-                      username: pairing ? data.shop.staffName : username,
-                      password: pairing ? "" : password,
-                      server: details.address,
-                    });
-                    setPairCode("");
-                    setPin("");
-                    setPinConfirm("");
-                    go("pin");
-                  }),
-                true,
-                !server ||
-                  (pairing ? !pairCode.trim() : !username || !password),
               )}
             </View>
           )}
@@ -1236,7 +1346,7 @@ function Till() {
               item.barcode === query),
         );
         const columns =
-          dimensions.width < 365 ? 2 : dimensions.width > 700 ? 4 : 3;
+          dimensions.width > 700 ? 4 : dimensions.width > 520 ? 3 : 2;
         return (
           <>
             <View style={styles.segments}>
@@ -1494,17 +1604,11 @@ function Till() {
               )}
             {cartView()}
             {button(
-              t("cash") + " · " + money(sum.total),
-              () => go("cash"),
+              t("charge") + " · " + money(sum.total),
+              () => go("payment"),
               true,
               !state.cart.lines.length || sum.total <= 0,
-            )}
-            {button(
-              t("upi"),
-              () => go("upi"),
-              false,
-              !state.cart.lines.length ||
-                !shop.upiAccounts.some((a) => a.active),
+              "take-payment",
             )}
             {button(
               t("hold"),
@@ -1518,10 +1622,43 @@ function Till() {
             )}
           </>
         );
-      case "cash":
+      case "payment":
         return (
           <>
             {back("cart")}
+            <View style={styles.center}>
+              {heading(t("charge"))}
+              <Text style={styles.amount}>{money(sum.total)}</Text>
+              <Text style={styles.small}>
+                {state.cart.lines.length} {t("items")}
+              </Text>
+            </View>
+            {actionRow(
+              "dollar-sign",
+              t("cash") + " · " + money(sum.total),
+              t("cashReceived"),
+              () => go("cash"),
+              !state.cart.lines.length || sum.total <= 0,
+            )}
+            {actionRow(
+              "maximize",
+              t("upi"),
+              t("manualPayment"),
+              () => go("upi"),
+              !state.cart.lines.length ||
+                !shop.permissions.manualUpi ||
+                !shop.upiAccounts.some((a) => a.active),
+            )}
+            <View style={styles.message}>
+              <Text style={styles.fieldLabel}>{t("paymentDevices")}</Text>
+              <Text style={styles.small}>{t("unavailable")}</Text>
+            </View>
+          </>
+        );
+      case "cash":
+        return (
+          <>
+            {back("payment")}
             <Text style={styles.amount}>{money(sum.total)}</Text>
             {field(t("cashReceived"), cash, setCash, {
               numeric: true,
@@ -1571,7 +1708,7 @@ function Till() {
         }
         return (
           <>
-            {back("cart")}
+            {back("payment")}
             <Text style={styles.amount}>{money(sum.total)}</Text>
             {!account ? (
               message(t("noUpi"))
@@ -1654,7 +1791,7 @@ function Till() {
             {lastSale ? (
               <>
                 <View style={styles.success}>{icon("check", 36)}</View>
-                {heading(t("saved"))}
+                <View style={styles.center}>{heading(t("saved"))}</View>
                 <Text style={styles.amount}>{money(lastSale.total)}</Text>
                 {message(
                   t(
@@ -1798,43 +1935,67 @@ function Till() {
       case "receipts":
         return (
           <>
-            {heading(t("receipts"))}
-            {button(
-              t("refresh"),
-              () => void refreshList(),
-              false,
-              syncing || busy,
+            <View style={styles.sectionHeader}>
+              {heading(t("receipts"))}
+              {iconButton(
+                "refresh-cw",
+                t("refresh"),
+                () => void refreshList(),
+                syncing || busy,
+              )}
+            </View>
+            {field(
+              t("receipts") + " · " + t("customer"),
+              receiptQuery,
+              setReceiptQuery,
+              {
+                testID: "receipt-search",
+              },
             )}
             {!state.sales.length && help(t("noReceipts"))}
-            {state.sales.map((sale) => (
-              <Pressable
-                key={sale.id}
-                style={[
-                  styles.menu,
-                  sale.sync === "pending" && {
-                    backgroundColor: palette.wash,
-                    borderRadius: 12,
-                    paddingHorizontal: 12,
-                  },
-                ]}
-                onPress={() => {
-                  receiptOrder.current = state.sales.map((s) => s.id);
-                  setReceiptDetails(true);
-                  setLastSale(sale);
-                  go("done");
-                }}
-              >
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.body}>{sale.receipt}</Text>
-                  <Text style={styles.small}>
-                    {t(sale.training ? "training" : sale.sync)} ·{" "}
-                    {t(sale.payment.method)}
-                  </Text>
-                </View>
-                <Text style={styles.value}>{money(sale.total)}</Text>
-                {icon("chevron-right")}
-              </Pressable>
-            ))}
+            {state.sales
+              .filter(
+                (sale) =>
+                  !receiptQuery ||
+                  (sale.receipt + " " + (sale.cart.customer?.name || ""))
+                    .toLocaleLowerCase(locale)
+                    .includes(receiptQuery.toLocaleLowerCase(locale)),
+              )
+              .map((sale) => (
+                <Pressable
+                  key={sale.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={sale.receipt}
+                  style={[
+                    styles.menu,
+                    sale.sync === "pending" && {
+                      backgroundColor: palette.wash,
+                      borderRadius: 12,
+                      paddingHorizontal: 12,
+                    },
+                  ]}
+                  onPress={() => {
+                    receiptOrder.current = state.sales.map((s) => s.id);
+                    setReceiptDetails(true);
+                    setLastSale(sale);
+                    go("done");
+                  }}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.body}>{sale.receipt}</Text>
+                    <Text style={styles.small}>
+                      {new Date(sale.createdAt).toLocaleTimeString(locale, {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}{" "}
+                      · {t(sale.training ? "training" : sale.sync)} ·{" "}
+                      {t(sale.payment.method)}
+                    </Text>
+                  </View>
+                  <Text style={styles.value}>{money(sale.total)}</Text>
+                  {icon("chevron-right")}
+                </Pressable>
+              ))}
           </>
         );
       case "customer":
@@ -2050,9 +2211,21 @@ function Till() {
             {heading(t("devices"))}
             {help(t("deviceSetupHelp"))}
             {deviceOptions(shop).map((device) => (
-              <View key={device.id}>
-                {button(
+              <React.Fragment key={device.id}>
+                {actionRow(
+                  device.id === "camera" || device.id === "hid"
+                    ? "maximize"
+                    : device.id === "till-print"
+                      ? "printer"
+                      : "smartphone",
                   t(device.label),
+                  t(
+                    device.id === "hid"
+                      ? "externalScannerHelp"
+                      : device.id === "camera"
+                        ? "scan"
+                        : "printSystemHelp",
+                  ),
                   () => {
                     if (device.id === "camera") go("scanner");
                     else if (device.id === "hid") go("externalScanner");
@@ -2066,11 +2239,10 @@ function Till() {
                         go("printer");
                       });
                   },
-                  false,
                   !device.enabled,
-                  `device-${device.id}`,
+                  "device-" + device.id,
                 )}
-              </View>
+              </React.Fragment>
             ))}
             {help(t("printSystemHelp"))}
             {heading(t("paymentDevices"))}
@@ -2089,7 +2261,7 @@ function Till() {
               testID="scanner-input"
               accessibilityLabel={t("externalScanner")}
               style={styles.input}
-              value={scanValue}
+              defaultValue=""
               autoFocus
               autoCorrect={false}
               autoCapitalize="none"
@@ -2101,24 +2273,24 @@ function Till() {
               onBlur={() => {
                 setScannerFocused(false);
                 scannerValue.current = "";
-                setScanValue("");
+                scannerInput.current?.clear();
               }}
               onChangeText={(value) => {
                 scannerValue.current = value;
-                setScanValue(value);
               }}
-              onSubmitEditing={() => {
+              onSubmitEditing={(event) => {
+                const scanned = event.nativeEvent.text || scannerValue.current;
                 if (
                   !scans ||
                   (actionLock.current && !scanWriting.current) ||
                   locked ||
-                  !scannerValue.current ||
+                  !scanned ||
                   AppState.currentState === "background"
                 )
                   return;
-                const value = scannerValue.current;
+                const value = scanned;
                 scannerValue.current = "";
-                setScanValue("");
+                scannerInput.current?.clear();
                 setScanResult("");
                 setBusy(true);
                 scanWriting.current++;
@@ -2191,7 +2363,16 @@ function Till() {
       default:
         return (
           <>
-            {heading(t("more"))}
+            <View style={styles.profileCard}>
+              <View style={styles.menuIcon}>{icon("user")}</View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.menuTitle}>{shop.staffName}</Text>
+                <Text style={styles.small}>
+                  {shop.name} · {shop.branchName}
+                </Text>
+              </View>
+            </View>
+            {menu("pause-circle", t("held"), "held")}
             {menu("lock", t("setPin"), "pin")}
             {pinEnabled && button(t("lockNow"), lock)}
             {button(t("switchUser"), () => setConfirmSignOut(true))}
@@ -2215,7 +2396,6 @@ function Till() {
   }
   const navs: { target: Screen; label: string; glyph: IconName }[] = [
     { target: "sell", label: "sell", glyph: "shopping-bag" },
-    { target: "held", label: "held", glyph: "pause-circle" },
     { target: "receipts", label: "receipts", glyph: "file-text" },
     { target: "more", label: "more", glyph: "menu" },
   ];
@@ -2296,6 +2476,9 @@ function Till() {
           )}
           <GestureScroll
             testID="screen-scroll"
+            keyboardDismissMode={
+              screen === "externalScanner" ? "none" : undefined
+            }
             scrollRef={scrollRef}
             width={dimensions.width}
             rtl={rtl}
@@ -2388,6 +2571,7 @@ function Till() {
                     !(screen === "done" && receiptDetails) &&
                     [
                       "cart",
+                      "payment",
                       "cash",
                       "upi",
                       "quick",
@@ -2448,7 +2632,72 @@ function makeStyles(p: {
   danger: string;
 }) {
   return StyleSheet.create({
-    intro: { paddingTop: 12, paddingBottom: 4 },
+    center: { alignItems: "center" },
+    sectionHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: 12,
+    },
+    menuIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: 14,
+      backgroundColor: p.soft,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    menuTitle: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: p.ink,
+      lineHeight: 22,
+    },
+    profileCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 14,
+      padding: 18,
+      borderRadius: 18,
+      borderColor: p.line,
+      borderWidth: 1,
+      backgroundColor: p.paper,
+    },
+    welcomeArt: {
+      height: 150,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: p.soft,
+      borderRadius: 32,
+      marginBottom: 20,
+    },
+    welcomeReceipt: {
+      padding: 22,
+      width: 140,
+      height: 130,
+      backgroundColor: p.paper,
+      borderRadius: 16,
+      transform: [{ rotate: "-7deg" }],
+    },
+    receiptRule: {
+      height: 5,
+      width: 90,
+      borderRadius: 3,
+      backgroundColor: p.line,
+      marginTop: 13,
+    },
+    welcomeCheck: {
+      position: "absolute",
+      end: -20,
+      bottom: 6,
+      width: 44,
+      height: 44,
+      borderRadius: 15,
+      backgroundColor: p.accent,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    intro: { paddingTop: 10, paddingBottom: 4 },
     introIcon: {
       width: 52,
       height: 52,
@@ -2459,12 +2708,9 @@ function makeStyles(p: {
       marginBottom: 6,
     },
     setupCard: {
-      padding: 18,
+      padding: 0,
       gap: 12,
-      backgroundColor: p.paper,
-      borderRadius: 22,
-      borderWidth: 1,
-      borderColor: p.line,
+      backgroundColor: p.wash,
     },
     connectionTools: { flexDirection: "row", gap: 10 },
     inputFocused: { borderColor: p.accent, backgroundColor: p.paper },
@@ -2473,6 +2719,8 @@ function makeStyles(p: {
       paddingTop: 10,
       paddingBottom: 12,
       backgroundColor: p.wash,
+      borderTopWidth: 1,
+      borderTopColor: p.line,
     },
     checkoutButton: {
       minHeight: 58,
@@ -2545,7 +2793,7 @@ function makeStyles(p: {
       color: p.accent,
       flexShrink: 1,
     },
-    content: { padding: 16, gap: 14, paddingBottom: 24 },
+    content: { padding: 22, gap: 14, paddingBottom: 28 },
     heading: {
       fontSize: 25,
       fontWeight: "700",
@@ -2594,7 +2842,7 @@ function makeStyles(p: {
       minHeight: 48,
       borderRadius: 12,
       padding: 12,
-      backgroundColor: p.wash,
+      backgroundColor: p.paper,
       color: p.ink,
       fontSize: 16,
       borderWidth: 1,
@@ -2621,7 +2869,7 @@ function makeStyles(p: {
       minHeight: 66,
     },
     message: {
-      backgroundColor: p.wash,
+      backgroundColor: p.soft,
       padding: 14,
       borderRadius: 12,
       marginVertical: 4,
@@ -2636,7 +2884,7 @@ function makeStyles(p: {
     },
     segments: {
       flexDirection: "row",
-      backgroundColor: p.line,
+      backgroundColor: p.soft,
       padding: 4,
       borderRadius: 16,
       gap: 4,
@@ -2676,23 +2924,23 @@ function makeStyles(p: {
     art: {
       width: 44,
       height: 44,
-      marginTop: 12,
-      marginStart: 10,
+      marginTop: 14,
+      marginStart: 14,
       borderRadius: 13,
       backgroundColor: p.wash,
       alignItems: "center",
       justifyContent: "center",
       overflow: "hidden",
     },
-    tileLabel: { padding: 10, gap: 5 },
+    tileLabel: { padding: 14, gap: 5 },
     itemName: {
       fontSize: 13,
-      fontWeight: "500",
+      fontWeight: "600",
       color: p.ink,
       minHeight: 34,
       lineHeight: 17,
     },
-    itemPrice: { fontSize: 14, fontWeight: "700", color: p.ink },
+    itemPrice: { fontSize: 13, fontWeight: "500", color: p.muted },
     itemCount: {
       position: "absolute",
       top: 10,

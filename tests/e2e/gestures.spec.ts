@@ -4,6 +4,7 @@ test.use({ hasTouch: true });
 async function sale(page: Page) {
   await page.getByTestId("item-coffee").click();
   await page.getByTestId("view-cart").click();
+  await page.getByTestId("take-payment").click();
   await page.getByRole("button", { name: /^Cash ·/ }).click();
   await page.getByTestId("cash-received").fill("100");
   await page.getByTestId("finish-cash").click();

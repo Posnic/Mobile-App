@@ -31,6 +31,7 @@ for (const language of languages) {
     await page.getByTestId("item-coffee").click();
     await context.setOffline(true);
     await page.getByTestId("view-cart").click();
+    await page.getByTestId("take-payment").click();
     await page
       .getByRole("button", { name: new RegExp(`^${t("cash")} ·`) })
       .click();

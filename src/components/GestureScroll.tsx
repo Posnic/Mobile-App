@@ -102,7 +102,10 @@ export function GestureScroll({
         alwaysBounceVertical
         scrollsToTop
         keyboardShouldPersistTaps="handled"
-        keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+        keyboardDismissMode={
+          props.keyboardDismissMode ??
+          (Platform.OS === "ios" ? "interactive" : "on-drag")
+        }
       />
     </View>
   );

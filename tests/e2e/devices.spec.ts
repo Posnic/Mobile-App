@@ -53,7 +53,7 @@ test("deliberate scanner mode adds repeated products offline and stops on exit",
   ).toBeVisible();
   await page.getByRole("button", { name: "Current sale", exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Cash · ₹70", exact: true }),
+    page.getByRole("button", { name: "Charge · ₹70", exact: true }),
   ).toBeVisible();
   await expect(input).toHaveCount(0);
 });

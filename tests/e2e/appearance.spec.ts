@@ -30,6 +30,7 @@ for (const colorScheme of ["light", "dark"] as const) {
     ).toBeTruthy();
     await expect(page.getByTestId("view-cart")).toBeInViewport();
     await page.getByTestId("view-cart").click();
+    await page.getByTestId("take-payment").click();
     await page.getByRole("button", { name: /^Cash ·/ }).click();
     await page.screenshot({
       path: `test-results/ux-cash-${colorScheme}.png`,

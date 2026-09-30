@@ -19,6 +19,8 @@ test("setup has LAN, QR and pairing shortcuts beside its server field", async ({
       exact: true,
     })
     .click();
+  await expect(page.getByTestId("server-input")).toHaveCount(0);
+  await page.getByTestId("manual-server").click();
   await expect(page.getByTestId("server-input")).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Scan shop QR", exact: true }),
@@ -109,6 +111,7 @@ test("offline cash sale survives reload, quick codes remain internal, and langua
   await expect(page.getByTestId("item-coffee")).not.toContainText("11");
   await context.setOffline(true);
   await page.getByTestId("view-cart").click();
+  await page.getByTestId("take-payment").click();
   await page.getByRole("button", { name: "Cash · ₹115", exact: true }).click();
   await page.getByTestId("cash-received").fill("200");
   await expect(page.getByText("₹85", { exact: true })).toBeVisible();
@@ -181,7 +184,7 @@ test("quick amount, hold and resume keep correct amount", async ({ page }) => {
   ).toBeVisible();
   await page.getByText("₹150", { exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Cash · ₹150", exact: true }),
+    page.getByRole("button", { name: "Charge · ₹150", exact: true }),
   ).toBeVisible();
   await page.setViewportSize({ width: 320, height: 740 });
   expect(
