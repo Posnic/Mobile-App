@@ -1,5 +1,11 @@
 # Implementation status — 1 October 2026
 
+## Login correction — beta10
+
+Android 0.3.0-beta.10 fixes password login when the phone retains a session cookie. The installed server log showed `/users/kioskMobileLogin` rejected by CSRF middleware, although the account was `super_admin` and Mobile POS was enabled. The client now omits ambient cookies and reflects the same server's CSRF response header from its preceding probe for native cookie-store compatibility. No server ACL or CSRF exemption is added. Top-level session-security failures are no longer labelled as role denial.
+
+Validation: 76 unit, 36 browser and 23 real mobile/POS integration tests; Android versionCode 19. Install over the existing app without clearing pending data. This release contains only the mobile APK and its documentation/checksums; no desktop installer is needed for this fix.
+
 ## Current delivery
 
 Android `0.3.0-beta.9` with Windows `1.8.5-beta.6` is the independent offline counter

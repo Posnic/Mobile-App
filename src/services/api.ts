@@ -14,6 +14,7 @@ export class ApiError extends Error {
   }
 }
 export class PosnicApi {
+  private csrfToken: string | null = null;
   constructor(
     readonly base: string,
     private fetcher: typeof fetch = fetch,
@@ -36,23 +37,37 @@ export class PosnicApi {
           Accept: "application/json",
           ...(body === undefined ? {} : { "Content-Type": "application/json" }),
           ...(token ? { Authorization: "Bearer " + token } : {}),
+          ...(!token && body !== undefined && this.csrfToken
+            ? { "X-XSRF-TOKEN": this.csrfToken }
+            : {}),
         },
         body: body === undefined ? undefined : JSON.stringify(body),
         signal: controller.signal,
         redirect: "error",
+        // Mobile authenticates explicitly; a retained browser/session cookie
+        // must not turn password sign-in into an ambient authenticated write.
+        credentials: "omit",
       });
+      // Some native cookie stores still retain server sessions. Reflect the
+      // same server's token from the preceding probe without bypassing CSRF.
+      this.csrfToken = response.headers?.get("X-CSRF-TOKEN") || this.csrfToken;
       if (!response.ok) {
         const details = await response.json().catch(() => null);
+        const serverMessage = details?.error?.message ?? details?.message;
         throw new ApiError(
-          details?.error?.message?.startsWith("Enable Mobile POS")
-            ? "mobileDisabled"
-            : response.status === 401
-              ? "signInFailed"
-              : response.status === 403
-                ? "permissionDenied"
-                : response.status === 404
-                  ? "serverUpgrade"
-                  : "networkError",
+          typeof serverMessage === "string" &&
+            serverMessage.startsWith("Your session security token")
+            ? "signInFailed"
+            : typeof serverMessage === "string" &&
+                serverMessage.startsWith("Enable Mobile POS")
+              ? "mobileDisabled"
+              : response.status === 401
+                ? "signInFailed"
+                : response.status === 403
+                  ? "permissionDenied"
+                  : response.status === 404
+                    ? "serverUpgrade"
+                    : "networkError",
           response.status,
         );
       }

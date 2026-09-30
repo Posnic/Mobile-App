@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { parseServerInput } from "../src/services/serverAddress";
 import { ShopConnection, shopRoutes } from "../src/services/routes";
-import { ApiError } from "../src/services/api";
+import { ApiError, PosnicApi } from "../src/services/api";
 import { trainingShop } from "../src/data/training";
 import type { Shop, Sale } from "../src/domain/types";
 
@@ -115,4 +115,45 @@ test("server refusals do not trigger failover and legacy bootstrap remains pinne
   await assert.rejects(() => connection.upload(sale), /permissionDenied/);
   assert.equal(writes, 1);
   assert.deepEqual(shopRoutes({ ...shop, connection: undefined }), [remote]);
+});
+
+test("mobile login omits ambient cookies and reflects the server probe CSRF token", async () => {
+  let calls = 0;
+  const api = new PosnicApi(local, (async (_url, init) => {
+    assert.equal(init?.credentials, "omit");
+    const headers = new Headers(init?.headers);
+    if (calls++ === 0)
+      return new Response(
+        JSON.stringify({ edition: "community", apiSchema: 1 }),
+        { headers: { "X-CSRF-TOKEN": "session-proof" } },
+      );
+    assert.equal(headers.get("X-XSRF-TOKEN"), "session-proof");
+    return new Response(JSON.stringify({ token: "login-result" }));
+  }) as typeof fetch);
+  await api.probe();
+  await api.request("/users/kioskMobileLogin", {
+    username: "owner",
+    password: "test",
+  });
+  assert.equal(calls, 2);
+});
+
+test("session-security rejection is not reported as a role denial and writes are not replayed", async () => {
+  let calls = 0;
+  const api = new PosnicApi(local, (async () => {
+    calls++;
+    return new Response(
+      JSON.stringify({
+        message:
+          "Your session security token is missing or expired. Refresh and try again.",
+      }),
+      { status: 403 },
+    );
+  }) as typeof fetch);
+  await assert.rejects(
+    api.request("/users/kioskMobileLogin", {}),
+    (e: unknown) =>
+      e instanceof ApiError && e.message === "signInFailed" && e.status === 403,
+  );
+  assert.equal(calls, 1);
 });

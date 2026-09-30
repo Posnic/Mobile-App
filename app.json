@@ -3,7 +3,7 @@
     "name": "Posnic POS",
     "slug": "posnic-mobile",
     "scheme": "com.posnic.mobile",
-    "version": "0.3.0-beta.9",
+    "version": "0.3.0-beta.10",
     "orientation": "default",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -19,7 +19,7 @@
     "android": {
       "package": "com.posnic.mobile",
       "permissions": ["CAMERA", "ACCESS_NETWORK_STATE", "ACCESS_WIFI_STATE"],
-      "versionCode": 18,
+      "versionCode": 19,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#2969AD"
