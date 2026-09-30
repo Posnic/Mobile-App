@@ -1,5 +1,13 @@
 # Implementation status — 1 October 2026
 
+## Server settings — beta12
+
+More → Connection & sync → Server settings shows the saved endpoint and cashier, retries sync, and accepts a fresh sign-in to the same shop/branch/cashier without redirecting saved sales. Change server uses guarded disconnect and returns to the Wi-Fi/QR/code/address setup menu. Unsynced sales, unresolved printing and unfinished carts prevent disconnect. Authentication errors are no longer all labelled offline; the banner shows the actual failure.
+
+The reported phone could not open the desktop runtime-info URL in Chrome either. Desktop listener and local LAN-address HTTP checks succeeded; the active firewall rules permit the installed Posnic executable. This establishes a phone-to-desktop reachability issue but does not establish whether hotspot isolation, routing or phone configuration caused it. The settings update does not claim to repair that external network path.
+
+Checks: 80 unit tests, 37 browser scenarios, explicit disconnect refusal/basket preservation followed by successful return to Wi-Fi setup, and Android assembly. Android versionCode 21. Mobile APK only; no desktop installer.
+
 ## First-time PIN correction — beta11
 
 Android 0.3.0-beta.11 performs new PIN key derivation in a dedicated native worker (PBKDF2-HMAC-SHA256, 600,000 iterations, 32-byte key). This removes first-time setup from the JavaScript scrypt path that could exceed its 20-second deadline on phones. The per-install secure-store secret, random salt, AES-GCM sealing and persistent attempt limits remain. PIN records carry the KDF identifier; existing scrypt records remain readable without destructive migration. If an older PIN is too slow on a particular phone, password recovery followed by setting a new PIN uses the native format.

@@ -152,3 +152,70 @@ test("offline image readiness counts the whole catalogue, not the visible item p
   await page.getByText("Offline data", { exact: true }).click();
   await expect(page.getByText("60 / 60", { exact: true })).toBeVisible();
 });
+
+test("server settings refuse to disconnect an unfinished basket", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByTestId("start-training").click();
+  await page.route("**/api/**", (route) => route.abort());
+  await page.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>((resolve) => {
+      const r = indexedDB.open("posnic-preview");
+      r.onsuccess = () => resolve(r.result);
+    });
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction("records", "readwrite"),
+        s = tx.objectStore("records"),
+        r = s.get("shop");
+      r.onsuccess = () =>
+        s.put(
+          {
+            ...r.result,
+            mode: "live",
+            capabilities: { ...r.result.capabilities, saleSync: true },
+            baseUrl: "http://127.0.0.1:5999/api",
+          },
+          "shop",
+        );
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+    db.close();
+  });
+  await page.reload();
+  await page.getByTestId("item-coffee").click();
+  await page.getByRole("tab", { name: "More", exact: true }).click();
+  await page.getByText("Connection & sync", { exact: true }).last().click();
+  await page
+    .getByRole("button", { name: "Server settings", exact: true })
+    .click();
+  await expect(
+    page.getByText("http://127.0.0.1:5999/api", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Change server", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(
+    page.getByText(/There is an unfinished or held cart/),
+  ).toBeVisible();
+  await page.getByRole("tab", { name: "Sell", exact: true }).click();
+  await expect(page.getByTestId("view-cart")).toContainText("35");
+  await page.getByTestId("view-cart").click();
+  await page
+    .getByRole("button", { name: "Remove one Filter coffee", exact: true })
+    .click();
+  await page.getByRole("tab", { name: "More", exact: true }).click();
+  await page.getByText("Connection & sync", { exact: true }).last().click();
+  await page
+    .getByRole("button", { name: "Server settings", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Change server", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Find server on Wi-Fi", exact: true }),
+  ).toBeVisible();
+});

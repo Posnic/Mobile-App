@@ -243,5 +243,7 @@
   "removeFavourite": "Remove from favourites",
   "favouritesHelp": "Tap the star on an item to keep it here. Search and categories also filter favourites.",
   "pinSetupWorking": "Securing your PIN…",
-  "pinSetupTimeout": "PIN setup took too long. Your account is still signed in. Try saving the PIN again."
+  "pinSetupTimeout": "PIN setup took too long. Your account is still signed in. Try saving the PIN again.",
+  "serverSettings": "Server settings",
+  "changeServer": "Change server"
 }
