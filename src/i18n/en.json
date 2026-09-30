@@ -214,7 +214,7 @@
   "pairedPrinters": "Paired devices",
   "confirmPrinted": "Receipt printed",
   "reprintConfirm": "Allow another copy",
-  "directPrinterHelp": "Pair in Android settings. ESC/POS Bluetooth printers only; test compatibility first.",
+  "directPrinterHelp": "Android: pair a Bluetooth ESC/POS printer in Settings, or connect a USB printer-class ESC/POS printer with OTG. Test compatibility first.",
   "printCheckPaper": "Check the paper before retrying. The receipt may already have printed.",
   "offlineUntil": "Offline access expires",
   "historyPolicy": "Receipt history: days / maximum records",
@@ -222,5 +222,14 @@
   "protectedData": "All branch items stay on this device. Unsynced sales and unresolved printing are protected from history cleanup. Reconnect before offline access expires; your PIN does not extend it.",
   "serverAcceptance": "Synced means accepted by your shop server. Cloud confirmation is not reported by this server.",
   "olderReceipts": "Find an older receipt",
-  "ownReceipts": "Search your mobile receipts at this branch. Requires the shop server."
+  "ownReceipts": "Search your mobile receipts at this branch. Requires the shop server.",
+  "productImages": "Product images",
+  "directReceiptPrinter": "Direct receipt printer",
+  "usbPrinters": "USB printers (OTG)",
+  "cashDrawer": "Cash drawer",
+  "cashDrawerHelp": "Open with the first cash receipt only. Connect a compatible drawer to the printer. Retries, reprints and test prints do not open it.",
+  "drawerPin": "Connector pin",
+  "appStorage": "App storage",
+  "freeStorage": "Available storage",
+  "storageLow": "Storage is low. Image downloads pause to leave room for sales. Free space on the phone; do not clear this app’s data while sales are waiting to sync."
 }

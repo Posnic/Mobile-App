@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Sale, Shop, Item } from "../domain/types";
+import { downloadCatalogue } from "./catalogueDownload";
 import { credentials } from "../platform/credentials";
 
 export { serverAddress, parseShopQr } from "./serverAddress";
@@ -97,9 +98,7 @@ export class PosnicApi {
             : { username, password, device },
         ),
       );
-    const data = bootstrap.parse(
-      await this.request("/mobile/v1/bootstrap", undefined, result.token),
-    );
+    const data = await this.readCatalogue(result.token);
     const shop: Shop = { ...data.shop, mode: "live", baseUrl: this.base };
     if (!shop.capabilities.saleSync) throw new Error("serverUpgrade");
     if (persist) await credentials.set(result.token);
@@ -130,17 +129,49 @@ export class PosnicApi {
     return response;
   }
   async catalogue(): Promise<{ shop: Shop; items: Item[] }> {
-    const data = bootstrap.parse(
-      await this.request(
-        "/mobile/v1/bootstrap",
-        undefined,
-        await credentials.get(),
-      ),
-    );
+    const data = await this.readCatalogue(await credentials.get());
     return {
       shop: { ...data.shop, mode: "live", baseUrl: this.base },
       items: data.items,
     };
+  }
+  private async readCatalogue(token: string | null) {
+    const raw = await this.request(
+      "/mobile/v1/bootstrap?catalogue=paged",
+      undefined,
+      token,
+    );
+    const manifest = pagedBootstrap.safeParse(raw);
+    if (!manifest.success) return bootstrap.parse(raw);
+    const { shop, catalogue } = manifest.data;
+    if (catalogue.version !== shop.snapshotVersion)
+      throw new ApiError("invalidServer", 409);
+    const store = await (await import("../data/openStorage")).openStorage();
+    const items = await downloadCatalogue(
+      catalogue,
+      JSON.stringify([this.base, shop.id, shop.branchId, shop.staffId]),
+      store,
+      async (index, id) => {
+        const page = cataloguePage.parse(
+          await this.request(
+            `/mobile/v1/catalogue/${encodeURIComponent(catalogue.version)}/${index}`,
+            undefined,
+            token,
+          ),
+        );
+        if (
+          page.id !== id ||
+          page.index !== index ||
+          page.version !== catalogue.version ||
+          page.shopId !== shop.id ||
+          page.branchId !== shop.branchId ||
+          page.staffId !== shop.staffId
+        )
+          throw new ApiError("invalidServer", 409);
+        return page.items;
+      },
+    );
+    return { shop, items };
   }
   async receipts(shop: Shop, query: string, before?: string) {
     const result = receiptPage.parse(
@@ -200,7 +231,8 @@ const item = z.object({
   barcode: z.string().optional(),
   category: z.string(),
   visual: z.string(),
-  image: z.string().url().optional(),
+  image: z.string().max(2048).optional(),
+  imageRevision: z.string().max(100).optional(),
   shape: z.enum(["circle", "square", "diamond"]).optional(),
   taxBps: z.number().int().min(0).max(10000),
   taxInclusive: z.boolean(),
@@ -304,3 +336,27 @@ const receiptPage = z.object({
     .max(50),
 });
 export type ServerReceipt = z.infer<typeof receiptPage>["receipts"][number];
+
+const pagedBootstrap = z.object({
+  shop: bootstrap.shape.shop,
+  catalogue: z.object({
+    protocol: z.literal(1),
+    version: z.string().regex(/^[a-f0-9]{64}$/),
+    count: z.number().int().nonnegative(),
+    pages: z.array(
+      z.object({
+        id: z.string().regex(/^[a-f0-9]{64}$/),
+        count: z.number().int().min(1).max(256),
+      }),
+    ),
+  }),
+});
+const cataloguePage = z.object({
+  version: z.string(),
+  index: z.number().int().nonnegative(),
+  id: z.string(),
+  shopId: z.string(),
+  branchId: z.string(),
+  staffId: z.string(),
+  items: z.array(item).max(256),
+});

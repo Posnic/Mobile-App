@@ -7,6 +7,7 @@ import android.graphics.Color
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
+import expo.modules.kotlin.Promise
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.util.UUID
@@ -27,22 +28,33 @@ class PosnicPrinterModule : Module() {
       if (!bluetooth.isEnabled) error("deviceUnavailable")
       bluetooth.bondedDevices.map { mapOf("address" to it.address, "name" to (it.name ?: it.address)) }
     }
-    AsyncFunction("printReceipt") { address: String, text: String, width: Int ->
+    AsyncFunction("usbDevices") { UsbPrinter(appContext.reactContext ?: error("deviceUnavailable")).devices() }
+    AsyncFunction("requestUsbPermission") { address:String, promise:Promise ->
+      UsbPrinter(appContext.reactContext ?: error("deviceUnavailable")).request(address,promise)
+    }
+    AsyncFunction("printReceipt") { address: String, text: String, width: Int, drawerPin: Int ->
       if (!running.compareAndSet(false, true)) error("printCheckPaper")
       var sent = false
       var socket: android.bluetooth.BluetoothSocket? = null
+      var usbStream: java.io.OutputStream? = null
       val timer = Executors.newSingleThreadScheduledExecutor()
       try {
         require(width == 384 || width == 576)
+        require(drawerPin in -1..1)
         require(text.length in 1..24000)
-        val bluetooth = adapter()
-        if (!bluetooth.isEnabled) error("deviceUnavailable")
-        val device = bluetooth.bondedDevices.firstOrNull { it.address == address }
-          ?: error("deviceUnavailable")
-        // No insecure channel guessing or fallback to a different device.
-        socket = device.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"))
-        val target = socket
-        timer.schedule({ try { target.close() } catch (_: Exception) {} }, 45, TimeUnit.SECONDS)
+        val connect: () -> java.io.OutputStream
+        if(address.startsWith("usb:")) {
+          usbStream=UsbPrinter(appContext.reactContext ?: error("deviceUnavailable")).open(address)
+          connect={usbStream ?: error("deviceUnavailable")}
+        } else {
+          val bluetooth = adapter()
+          if (!bluetooth.isEnabled) error("deviceUnavailable")
+          val device = bluetooth.bondedDevices.firstOrNull { it.address == address } ?: error("deviceUnavailable")
+          socket=device.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"))
+          val target=socket!!
+          connect={target.connect();target.outputStream}
+        }
+        timer.schedule({try {socket?.close();usbStream?.close()} catch (_:Exception) {}},45,TimeUnit.SECONDS)
         val paint = TextPaint().apply { color = Color.BLACK; textSize = 24f; isAntiAlias = true }
         val layout = StaticLayout.Builder.obtain(text, 0, text.length, paint, width - 24)
           .setAlignment(Layout.Alignment.ALIGN_NORMAL).setIncludePad(true).build()
@@ -50,8 +62,7 @@ class PosnicPrinterModule : Module() {
         val bitmap = Bitmap.createBitmap(width, layout.height + 24, Bitmap.Config.ARGB_8888)
         try {
           Canvas(bitmap).apply { drawColor(Color.WHITE); translate(12f, 12f); layout.draw(this) }
-          target.connect()
-          val output = target.outputStream
+          val output = connect()
           // Mark uncertain before the first write: write() can fail after partial delivery.
           sent = true
           output.write(byteArrayOf(0x1b, 0x40))
@@ -75,13 +86,15 @@ class PosnicPrinterModule : Module() {
             top += height
           }
           output.write(byteArrayOf(0x0a, 0x0a, 0x0a))
+          // ESC p: 100 ms on, 400 ms off. Never included in tests or reprints.
+          if (drawerPin >= 0) output.write(byteArrayOf(0x1b, 0x70, drawerPin.toByte(), 50, 200.toByte()))
           output.flush()
           mapOf("state" to "submitted", "submitted" to true)
         } finally { bitmap.recycle() }
       } catch (_: Exception) {
         mapOf("state" to if (sent) "unknown" else "failed", "submitted" to sent)
       } finally {
-        try { socket?.close() } catch (_: Exception) {}
+        try { socket?.close(); usbStream?.close() } catch (_: Exception) {}
         timer.shutdownNow()
         running.set(false)
       }

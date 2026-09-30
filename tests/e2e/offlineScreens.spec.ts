@@ -15,6 +15,10 @@ test("offline data and sync screens preserve the basket and explain server ackno
   await expect(
     page.getByText(/Unsynced sales and unresolved printing/),
   ).toBeVisible();
+  await expect(page.getByText("App storage", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Available storage", { exact: true }),
+  ).toBeVisible();
   await context.setOffline(true);
   await page.setViewportSize({ width: 320, height: 740 });
   expect(

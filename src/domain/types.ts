@@ -26,6 +26,7 @@ export interface Item {
   category: string;
   visual: string;
   image?: string;
+  imageRevision?: string;
   shape?: "circle" | "square" | "diamond";
   taxBps: number;
   taxInclusive: boolean;
@@ -138,7 +139,13 @@ export interface Outbox {
 export interface Settings {
   locale: Locale;
   printer: "system" | "till" | "bluetooth";
-  directPrinter?: { address: string; name: string; width: 384 | 576 };
+  directPrinter?: {
+    address: string;
+    name: string;
+    width: 384 | 576;
+    /** ESC/POS connector selection: 0 = pin 2, 1 = pin 5. Disabled by default. */
+    cashDrawer?: 0 | 1;
+  };
   autoPrint: boolean;
 }
 export interface DirectPrintJob {
@@ -148,6 +155,8 @@ export interface DirectPrintJob {
   state:
     "queued" | "sending" | "submitted" | "unknown" | "failed" | "confirmed";
   attempts: number;
+  /** Only the initial cash receipt may pulse the attached drawer. */
+  drawerPulse?: 0 | 1;
   updatedAt: string;
 }
 export interface SessionData {

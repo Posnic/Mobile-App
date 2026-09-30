@@ -46,6 +46,7 @@ test("first settings write and sale batch use one connection and survive reopeni
     assert.deepEqual(await second.storage.get("settings"), { locale: "ta" });
     assert.deepEqual(await second.storage.list("sale:"), [{ id: "1" }]);
     assert.deepEqual(await second.storage.list("outbox:"), [{ saleId: "1" }]);
+    assert.deepEqual(await second.storage.keys!("sale:"), ["sale:1"]);
   } finally {
     db?.close();
     rmSync(dir, { recursive: true });

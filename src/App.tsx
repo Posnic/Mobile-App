@@ -57,6 +57,8 @@ import { printSale, printTest } from "./platform/printing";
 import {
   directPrinterAvailable,
   pairedPrinters,
+  usbPrinters,
+  authorizeDirectPrinter,
   printDirect,
   testDirect,
 } from "./platform/directPrinter";
@@ -67,6 +69,9 @@ import { adjacentRecord } from "./domain/gestures";
 import { deviceOptions, receiptJobMessage } from "./domain/devices";
 import { ScanQueue } from "./domain/scanQueue";
 import { printNeedsAttention } from "./domain/retention";
+import { cacheProductImages } from "./services/imageCache";
+import { storageUsage } from "./platform/storageUsage";
+import { imageFiles, imageFetch } from "./platform/imageFiles";
 import { Brand } from "./components/Brand";
 import { authorizeAccount } from "./services/accountAuthorization";
 
@@ -107,6 +112,12 @@ export default function App() {
 }
 
 function Till() {
+  const [cachedImages, setCachedImages] = useState<Record<string, string>>({});
+  const [diskUsage, setDiskUsage] = useState<{
+    used: number;
+    available: number;
+  } | null>(null);
+  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
   const [directJobs, setDirectJobs] = useState<DirectPrintJob[]>([]);
   const [printers, setPrinters] = useState<{ address: string; name: string }[]>(
     [],
@@ -236,9 +247,58 @@ function Till() {
   const rtl = languages.find((l) => l.code === locale)?.rtl ?? false;
   const shop = state?.shop;
   const currency = shop?.currency ?? "INR";
+  useEffect(() => {
+    if (screen !== "offlineData" || locked) return;
+    let active = true;
+    const measure = () =>
+      void storageUsage()
+        .then((usage) => {
+          if (active) setDiskUsage(usage);
+        })
+        .catch(() => {
+          if (active) setDiskUsage(null);
+        });
+    measure();
+    const timer = setInterval(measure, 10000);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
+  }, [screen, locked, state?.catalogueUpdatedAt]);
   const money = (value: number) => formatMoney(value, currency, locale);
   const sum = totals(state?.cart.lines ?? []);
   const account = shop ? selectedAccount(shop, accountId) : null;
+  useEffect(() => {
+    const controller = new AbortController();
+    let pending: Record<string, string> = {};
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const flush = () => {
+      const batch = pending;
+      pending = {};
+      timer = undefined;
+      if (!controller.signal.aborted)
+        setCachedImages((previous) => ({ ...previous, ...batch }));
+    };
+    setCachedImages({});
+    setFailedImages({});
+    if (shop && state && !locked) {
+      void cacheProductImages(
+        state.items,
+        shop,
+        imageFiles,
+        controller.signal,
+        (id, uri) => {
+          pending[id] = uri;
+          if (!timer) timer = setTimeout(flush, 50);
+        },
+        imageFetch,
+      ).catch(() => {});
+    }
+    return () => {
+      controller.abort();
+      if (timer) clearTimeout(timer);
+    };
+  }, [state?.items, shop?.id, shop?.branchId, shop?.baseUrl, locked]);
   const refresh = useCallback(async () => {
     if (repo) {
       setState(await repo.load());
@@ -1526,9 +1586,15 @@ function Till() {
                           item.shape === "diamond" && { borderRadius: 12 },
                         ]}
                       >
-                        {item.image ? (
+                        {cachedImages[item.id] && !failedImages[item.id] ? (
                           <Image
-                            source={{ uri: item.image }}
+                            source={{ uri: cachedImages[item.id] }}
+                            onError={() =>
+                              setFailedImages((previous) => ({
+                                ...previous,
+                                [item.id]: true,
+                              }))
+                            }
                             style={{ width: "100%", height: "100%" }}
                             resizeMode="cover"
                           />
@@ -2289,7 +2355,28 @@ function Till() {
               <View style={{ flex: 1 }}>
                 {row(t("catalogue"), String(state.items.length))}
                 {row(t("receipts"), String(state.sales.length))}
+                {row(
+                  t("productImages"),
+                  Object.keys(cachedImages).filter((id) => !failedImages[id])
+                    .length +
+                    " / " +
+                    state.items.filter((item) => item.image).length,
+                )}
                 {row(t("pending"), String(state.outbox.length))}
+                {diskUsage &&
+                  row(
+                    t("appStorage"),
+                    new Intl.NumberFormat(locale, {
+                      maximumFractionDigits: 1,
+                    }).format(diskUsage.used / 1048576) + " MB",
+                  )}
+                {diskUsage &&
+                  row(
+                    t("freeStorage"),
+                    new Intl.NumberFormat(locale, {
+                      maximumFractionDigits: 1,
+                    }).format(diskUsage.available / 1048576) + " MB",
+                  )}
               </View>
             </View>
             {state.catalogueUpdatedAt &&
@@ -2299,6 +2386,9 @@ function Till() {
                   new Date(state.catalogueUpdatedAt).toLocaleString(locale),
               )}
             {help(t("protectedData"))}
+            {diskUsage &&
+              diskUsage.available < 100 * 1048576 &&
+              message(t("storageLow"))}
             {message(
               t("offlineUntil") +
                 ": " +
@@ -2473,7 +2563,7 @@ function Till() {
                   <Text style={styles.body}>
                     {t(
                       value === "bluetooth"
-                        ? "directPrinter"
+                        ? "directReceiptPrinter"
                         : value === "system"
                           ? "systemPrinter"
                           : "tillPrinter",
@@ -2496,16 +2586,20 @@ function Till() {
                   () =>
                     void run(async () => setPrinters(await pairedPrinters())),
                 )}
+                {button(
+                  t("usbPrinters"),
+                  () => void run(async () => setPrinters(await usbPrinters())),
+                )}
                 {printers.map((printer) => (
                   <View key={printer.address}>
                     {button(
                       printer.name,
                       () =>
-                        void run(() =>
+                        void run(async () =>
                           repo.settings({
                             ...state.settings,
                             directPrinter: {
-                              ...printer,
+                              ...(await authorizeDirectPrinter(printer)),
                               width: state.settings.directPrinter?.width ?? 384,
                             },
                           }),
@@ -2535,6 +2629,56 @@ function Till() {
                     </View>
                   ))}
                 </View>
+                {state.settings.directPrinter && (
+                  <>
+                    <View style={styles.row}>
+                      <Text style={[styles.body, { flex: 1 }]}>
+                        {t("cashDrawer")}
+                      </Text>
+                      <Switch
+                        accessibilityLabel={t("cashDrawer")}
+                        value={
+                          state.settings.directPrinter.cashDrawer !== undefined
+                        }
+                        disabled={shop.permissions.receiptPrint !== true}
+                        onValueChange={(enabled) =>
+                          void run(() =>
+                            repo.settings({
+                              ...state.settings,
+                              directPrinter: {
+                                ...state.settings.directPrinter!,
+                                cashDrawer: enabled ? 0 : undefined,
+                              },
+                            }),
+                          )
+                        }
+                      />
+                    </View>
+                    {help(t("cashDrawerHelp"))}
+                    {state.settings.directPrinter.cashDrawer !== undefined && (
+                      <View style={styles.row}>
+                        {([0, 1] as const).map((pin) => (
+                          <View key={pin} style={{ flex: 1 }}>
+                            {button(
+                              t("drawerPin") + " " + (pin === 0 ? "2" : "5"),
+                              () =>
+                                void run(() =>
+                                  repo.settings({
+                                    ...state.settings,
+                                    directPrinter: {
+                                      ...state.settings.directPrinter!,
+                                      cashDrawer: pin,
+                                    },
+                                  }),
+                                ),
+                              state.settings.directPrinter?.cashDrawer === pin,
+                            )}
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </>
+                )}
               </>
             )}
             {help(t("printSystemHelp"))}

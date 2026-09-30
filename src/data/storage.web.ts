@@ -1,6 +1,15 @@
 import type { Storage, Change } from "./storage";
 /** Browser preview uses IndexedDB transactions. Native tills use encrypted SQLite. */
-export async function openStorage(): Promise<Storage> {
+let opening: Promise<Storage> | null = null;
+export function openStorage(): Promise<Storage> {
+  if (!opening)
+    opening = initialize().catch((error) => {
+      opening = null;
+      throw error;
+    });
+  return opening;
+}
+async function initialize(): Promise<Storage> {
   const db = await new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open("posnic-preview", 1);
     request.onupgradeneeded = () => request.result.createObjectStore("records");
@@ -8,6 +17,16 @@ export async function openStorage(): Promise<Storage> {
     request.onerror = () => reject(request.error);
   });
   return {
+    keys(prefix: string) {
+      return new Promise<string[]>((resolve, reject) => {
+        const q = db
+          .transaction("records")
+          .objectStore("records")
+          .getAllKeys(IDBKeyRange.bound(prefix, prefix + "\uffff"));
+        q.onsuccess = () => resolve(q.result.map(String));
+        q.onerror = () => reject(q.error);
+      });
+    },
     get<T>(key: string) {
       return new Promise<T | null>((resolve, reject) => {
         const q = db.transaction("records").objectStore("records").get(key);

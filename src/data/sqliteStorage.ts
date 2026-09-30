@@ -19,6 +19,16 @@ export function sqliteStorage(db: Connection): Storage {
     return result;
   }
   return {
+    keys(prefix: string) {
+      return serial(async () => {
+        const rows = await db.getAllAsync<{ key: string }>(
+          "SELECT key FROM records WHERE key>=? AND key<? ORDER BY key",
+          prefix,
+          prefix + "\uffff",
+        );
+        return rows.map((row) => row.key);
+      });
+    },
     get<T>(key: string) {
       return serial(async () => {
         const row = await db.getFirstAsync<{ value: string }>(

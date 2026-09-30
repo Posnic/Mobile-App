@@ -533,6 +533,16 @@ export class Repository {
         printer: prior && !reprint ? prior.printer : settings.directPrinter,
         state: "sending",
         attempts: (prior?.attempts ?? 0) + 1,
+        ...(!reprint &&
+        !prior?.attempts &&
+        !sale.training &&
+        sale.payment.method === "cash" &&
+        (prior?.printer ?? settings.directPrinter).cashDrawer !== undefined
+          ? {
+              drawerPulse: (prior?.printer ?? settings.directPrinter)
+                .cashDrawer,
+            }
+          : {}),
         updatedAt: new Date(this.now()).toISOString(),
       };
       await this.store.batch([

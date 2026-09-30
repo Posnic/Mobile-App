@@ -88,6 +88,43 @@ test("concurrent direct print attempts have a single execution owner", async () 
   ]);
   assert.equal(results.filter((r) => r.status === "fulfilled").length, 1);
 });
+
+test("cash drawer is opt-in, cash-only and never pulsed again on retry or reprint", async () => {
+  const { repo, store, sale } = await setup();
+  const settings = (await repo.load()).settings;
+  const printer = { ...settings.directPrinter!, cashDrawer: 0 as const };
+  await repo.settings({ ...settings, directPrinter: printer });
+  // Existing jobs keep the exact printer configuration from checkout.
+  assert.equal((await repo.prepareDirectPrint(sale.id)).drawerPulse, undefined);
+  await repo.completeDirectPrint(sale.id, "submitted");
+  await repo.addItem(trainingItems[0]!);
+  const next = await repo.checkout((await repo.load()).cart.id, {
+    method: "cash",
+    received: 5000,
+    change: 0,
+  });
+  assert.equal((await repo.prepareDirectPrint(next.id)).drawerPulse, 0);
+  await repo.completeDirectPrint(next.id, "failed");
+  assert.equal((await repo.prepareDirectPrint(next.id)).drawerPulse, undefined);
+  await repo.completeDirectPrint(next.id, "submitted");
+  assert.equal(
+    (await repo.prepareDirectPrint(next.id, true)).drawerPulse,
+    undefined,
+  );
+  await repo.completeDirectPrint(next.id, "submitted");
+  // Even a stored electronic-payment receipt can never request the cash pulse.
+  await store.batch([
+    {
+      key: "sale:upi",
+      value: {
+        ...next,
+        id: "upi",
+        payment: { method: "upi", status: "staff-confirmed" },
+      },
+    },
+  ]);
+  assert.equal((await repo.prepareDirectPrint("upi")).drawerPulse, undefined);
+});
 test("failed journal commit never authorizes a printer send", async () => {
   const { repo, store, sale } = await setup();
   store.fail = true;
