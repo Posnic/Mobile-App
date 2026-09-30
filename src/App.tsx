@@ -2334,7 +2334,6 @@ function Till() {
                   style={styles.menu}
                   onPress={() => {
                     receiptOrder.current = state.sales.map((s) => s.id);
-                    receiptOrder.current = state.sales.map((s) => s.id);
                     setLastSale(sale);
                     setReceiptDetails(true);
                     go("done");
