@@ -1,8 +1,8 @@
 # Posnic Mobile POS
 
 A dedicated mobile till for Posnic, built with React Native, Expo and TypeScript.
-This first implementation is an **alpha for local evaluation**, not a production
-payment release. Start with **Try a training shop**. Practice transactions stay
+This is an **independent offline counter beta for pilot testing**.
+Start with **Try a training shop**. Practice transactions stay
 on the device and are never uploaded.
 
 ## Run
@@ -37,7 +37,13 @@ Do not uninstall or clear storage on a device with unsynced sales.
 - Permissions and offline grant expiry.
 - Branch UPI account selection and amount-bound QR generation. Manual confirmation
   stays explicitly staff-confirmed; it never implies bank verification.
-- Phone print-service receipts and a capability-gated till print-job client.
+- Direct Android Bluetooth Classic/USB printer-class ESC/POS, optional printer-connected
+  cash drawer, durable print recovery, OS print service and Till receipt status.
+- Indexed offline product browsing/scanning, atomic persisted-page activation, cached
+  product images and protected receipt retention. Items have no receipt-history cap.
+- Explicit quantity entry for configured weighed items, localized decimals and receipt units.
+- Cloud receipt status backed by an explicit gateway acknowledgment; community installs
+  retain shop-server acknowledgment.
 - All 18 POS languages with complete mobile message coverage, Arabic direction,
   localized receipts and offline language packs. Translations remain beta pending
   native-speaker review; shop-entered product names are preserved.
@@ -56,8 +62,10 @@ features.mobilePosV1; a legacy server must be updated. Account sign-in also requ
 the matching web-api, Gateway and website release. See the release notes for deployment status.
 
 See [implementation status](docs/IMPLEMENTATION_STATUS.md) and the required
-[server contract](docs/MOBILE_API.md). Direct Bluetooth/USB printer drivers, provider-confirmed UPI/card payments and
-native hardware QA remain release requirements. All language packs have every current
+[server contract](docs/MOBILE_API.md). The [offline test guide](docs/OFFLINE_DIRECT_PRINT_BETA.md)
+maps all nine approved offline designs to implemented screens. Provider-confirmed UPI/card
+payments, iOS direct adapters, richer selling options and physical hardware qualification
+remain separate roadmap work. All language packs have every current
 mobile key; native-speaker review and physical-device font checks remain outstanding.
 See [language support](docs/LANGUAGES.md).
 
