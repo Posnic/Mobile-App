@@ -39,20 +39,31 @@ export class Repository {
   }
   async load(): Promise<SessionData> {
     await this.tail;
-    const [shop, items, cart, held, sales, outbox, settings, customers] =
-      await Promise.all([
-        this.store.get<Shop>("shop"),
-        this.catalogueCache ?? this.store.list<Item>("item:"),
-        this.store.get<Cart>("cart"),
-        this.store.list<Cart>("held:"),
-        this.store.list<Sale>("sale:"),
-        this.store.list<Outbox>("outbox:"),
-        this.store.get<Settings>("settings"),
-        this.store.list<Customer>("customer:"),
-      ]);
+    const [
+      shop,
+      items,
+      cart,
+      held,
+      sales,
+      outbox,
+      settings,
+      customers,
+      catalogueUpdatedAt,
+    ] = await Promise.all([
+      this.store.get<Shop>("shop"),
+      this.catalogueCache ?? this.store.list<Item>("item:"),
+      this.store.get<Cart>("cart"),
+      this.store.list<Cart>("held:"),
+      this.store.list<Sale>("sale:"),
+      this.store.list<Outbox>("outbox:"),
+      this.store.get<Settings>("settings"),
+      this.store.list<Customer>("customer:"),
+      this.store.get<string>("catalogue-updated-at"),
+    ]);
     this.catalogueCache = items;
     return {
       shop,
+      catalogueUpdatedAt: catalogueUpdatedAt ?? undefined,
       items,
       cart: cart ?? this.newCart(),
       held,
@@ -87,6 +98,10 @@ export class Repository {
         throw new Error("invalidServer");
       await this.store.batch([
         { key: "shop", value: shop },
+        {
+          key: "catalogue-updated-at",
+          value: new Date(this.now()).toISOString(),
+        },
         { key: "cart", value: this.newCart() },
         ...items.map((item) => ({ key: "item:" + item.id, value: item })),
       ]);
@@ -103,9 +118,12 @@ export class Repository {
         (await this.store.list<Outbox>("outbox:")).length
       )
         throw new Error("permissionDenied");
-      const changes: Change[] = ["shop", "cart", "receipt-sequence"].map(
-        (key) => ({ key, value: null }),
-      );
+      const changes: Change[] = [
+        "shop",
+        "cart",
+        "receipt-sequence",
+        "catalogue-updated-at",
+      ].map((key) => ({ key, value: null }));
       for (const prefix of ["item:", "sale:", "held:", "customer:", "print:"])
         for (const row of await this.store.list<{ id: string }>(prefix))
           changes.push({ key: prefix + row.id, value: null });
@@ -134,9 +152,12 @@ export class Repository {
       if (cart?.lines.length || (await this.store.list<Cart>("held:")).length)
         throw new Error("signOutCart");
       const shop = await this.store.get<Shop>("shop");
-      const changes: Change[] = ["shop", "cart", "receipt-sequence"].map(
-        (key) => ({ key, value: null }),
-      );
+      const changes: Change[] = [
+        "shop",
+        "cart",
+        "receipt-sequence",
+        "catalogue-updated-at",
+      ].map((key) => ({ key, value: null }));
       // Keep acknowledged receipts locally without exposing another cashier's history.
       for (const sale of sales)
         changes.push({
@@ -213,6 +234,10 @@ export class Repository {
         ...old.map((item) => ({ key: "item:" + item.id, value: null })),
         ...items.map((item) => ({ key: "item:" + item.id, value: item })),
         { key: "shop", value: shop },
+        {
+          key: "catalogue-updated-at",
+          value: new Date(this.now()).toISOString(),
+        },
       ]);
       this.catalogueCache = null;
     });

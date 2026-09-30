@@ -151,6 +151,7 @@ export interface DirectPrintJob {
   updatedAt: string;
 }
 export interface SessionData {
+  catalogueUpdatedAt?: string;
   shop: Shop | null;
   items: Item[];
   cart: Cart;

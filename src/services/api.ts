@@ -142,6 +142,24 @@ export class PosnicApi {
       items: data.items,
     };
   }
+  async receipts(shop: Shop, query: string, before?: string) {
+    const result = receiptPage.parse(
+      await this.request(
+        "/mobile/v1/receipts?q=" +
+          encodeURIComponent(query) +
+          (before ? "&before=" + encodeURIComponent(before) : ""),
+        undefined,
+        await credentials.get(),
+      ),
+    );
+    if (
+      result.shopId !== shop.id ||
+      result.branchId !== shop.branchId ||
+      result.staffId !== shop.staffId
+    )
+      throw new ApiError("invalidServer", 409);
+    return result;
+  }
   async printReceipt(saleId: string) {
     return this.request(
       "/mobile/v1/print-jobs",
@@ -255,3 +273,34 @@ export const bootstrap = z.object({
   }),
   items: z.array(item),
 });
+
+const receiptPage = z.object({
+  shopId: z.string(),
+  branchId: z.string(),
+  staffId: z.string(),
+  next: z.string().nullable(),
+  receipts: z
+    .array(
+      z.object({
+        id: z.string(),
+        receipt: z.string(),
+        createdAt: z.string(),
+        total: minor,
+        tax: minor,
+        currency: z.string(),
+        customer: z.string(),
+        method: z.enum(["cash", "upi"]),
+        lines: z
+          .array(
+            z.object({
+              name: z.string(),
+              quantity: z.number().positive(),
+              price: minor,
+            }),
+          )
+          .max(500),
+      }),
+    )
+    .max(50),
+});
+export type ServerReceipt = z.infer<typeof receiptPage>["receipts"][number];

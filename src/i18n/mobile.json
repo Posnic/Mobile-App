@@ -184,7 +184,12 @@
     "directPrinterHelp": "Android அமைப்புகளில் இணைக்கவும். ESC/POS புளூடூத் அச்சுப்பொறிகள் மட்டும்; முதலில் சோதிக்கவும்.",
     "printCheckPaper": "மீண்டும் முயலும் முன் காகிதத்தைச் சரிபார்க்கவும். ரசீது ஏற்கனவே அச்சிடப்பட்டிருக்கலாம்.",
     "offlineUntil": "ஆஃப்லைன் அணுகல் முடிவு",
-    "historyPolicy": "ரசீது வரலாறு: நாட்கள் / அதிகபட்ச பதிவுகள்"
+    "historyPolicy": "ரசீது வரலாறு: நாட்கள் / அதிகபட்ச பதிவுகள்",
+    "offlineData": "ஆஃப்லைன் தரவு",
+    "protectedData": "ஒத்திசைக்காத விற்பனை, தீர்க்கப்படாத அச்சுப் பணிகள் நீக்கப்படாது. அனைத்து பொருட்களும் சாதனத்தில் இருக்கும். PIN ஆஃப்லைன் அனுமதியை நீட்டிக்காது.",
+    "serverAcceptance": "கடை சேவையகம் ஏற்றுக்கொண்டது. கிளவுட் உறுதிப்படுத்தல் கிடைக்கவில்லை.",
+    "olderReceipts": "பழைய ரசீதைத் தேடு",
+    "ownReceipts": "இக்கிளையில் உங்கள் மொபைல் ரசீதுகளைத் தேடுங்கள். கடை சேவையகம் தேவை."
   },
   "hi": {
     "name": "नाम",
@@ -369,7 +374,12 @@
     "directPrinterHelp": "Android सेटिंग में पेयर करें। केवल ESC/POS ब्लूटूथ प्रिंटर; पहले जाँच करें।",
     "printCheckPaper": "दोबारा प्रयास से पहले कागज़ जाँचें। रसीद पहले ही छप चुकी हो सकती है।",
     "offlineUntil": "ऑफ़लाइन पहुँच समाप्ति",
-    "historyPolicy": "रसीद इतिहास: दिन / अधिकतम रिकॉर्ड"
+    "historyPolicy": "रसीद इतिहास: दिन / अधिकतम रिकॉर्ड",
+    "offlineData": "ऑफ़लाइन डेटा",
+    "protectedData": "सभी उत्पाद डिवाइस पर रहते हैं। असिंक्रनाइज़ बिक्री और अनसुलझे प्रिंट सुरक्षित रहते हैं। PIN ऑफ़लाइन अनुमति नहीं बढ़ाता।",
+    "serverAcceptance": "दुकान सर्वर ने स्वीकार किया। क्लाउड पुष्टि उपलब्ध नहीं है।",
+    "olderReceipts": "पुरानी रसीद खोजें",
+    "ownReceipts": "इस शाखा की अपनी मोबाइल रसीदें खोजें। दुकान सर्वर आवश्यक है।"
   },
   "ml": {
     "name": "പേര്",
@@ -554,7 +564,12 @@
     "directPrinterHelp": "Android ക്രമീകരണങ്ങളിൽ ജോടിയാക്കുക. ESC/POS ബ്ലൂടൂത്ത് പ്രിന്ററുകൾ മാത്രം; ആദ്യം പരിശോധിക്കുക.",
     "printCheckPaper": "വീണ്ടും ശ്രമിക്കുന്നതിന് മുമ്പ് പേപ്പർ പരിശോധിക്കുക. രസീത് ഇതിനകം പ്രിന്റ് ചെയ്തിരിക്കാം.",
     "offlineUntil": "ഓഫ്‌ലൈൻ പ്രവേശനം അവസാനിക്കുന്നത്",
-    "historyPolicy": "രസീത് ചരിത്രം: ദിവസങ്ങൾ / പരമാവധി രേഖകൾ"
+    "historyPolicy": "രസീത് ചരിത്രം: ദിവസങ്ങൾ / പരമാവധി രേഖകൾ",
+    "offlineData": "ഓഫ്‌ലൈൻ ഡാറ്റ",
+    "protectedData": "എല്ലാ ഇനങ്ങളും ഉപകരണത്തിൽ തുടരും. സമന്വയിപ്പിക്കാത്ത വിൽപ്പനയും പരിഹരിക്കാത്ത അച്ചടിയും നീക്കം ചെയ്യില്ല. PIN ഓഫ്‌ലൈൻ അനുമതി നീട്ടില്ല.",
+    "serverAcceptance": "കടയുടെ സെർവർ സ്വീകരിച്ചു. ക്ലൗഡ് സ്ഥിരീകരണം ലഭ്യമല്ല.",
+    "olderReceipts": "പഴയ രസീത് കണ്ടെത്തുക",
+    "ownReceipts": "ഈ ശാഖയിലെ നിങ്ങളുടെ മൊബൈൽ രസീതുകൾ തിരയുക. കടയുടെ സെർവർ വേണം."
   },
   "kn": {
     "name": "ಹೆಸರು",
@@ -739,7 +754,12 @@
     "directPrinterHelp": "Android ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಜೋಡಿಸಿ. ESC/POS ಬ್ಲೂಟೂತ್ ಪ್ರಿಂಟರ್‌ಗಳು ಮಾತ್ರ; ಮೊದಲು ಪರೀಕ್ಷಿಸಿ.",
     "printCheckPaper": "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸುವ ಮೊದಲು ಕಾಗದ ಪರಿಶೀಲಿಸಿ. ರಸೀದಿ ಈಗಾಗಲೇ ಮುದ್ರಿತವಾಗಿರಬಹುದು.",
     "offlineUntil": "ಆಫ್‌ಲೈನ್ ಪ್ರವೇಶ ಮುಕ್ತಾಯ",
-    "historyPolicy": "ರಸೀದಿ ಇತಿಹಾಸ: ದಿನಗಳು / ಗರಿಷ್ಠ ದಾಖಲೆಗಳು"
+    "historyPolicy": "ರಸೀದಿ ಇತಿಹಾಸ: ದಿನಗಳು / ಗರಿಷ್ಠ ದಾಖಲೆಗಳು",
+    "offlineData": "ಆಫ್‌ಲೈನ್ ಡೇಟಾ",
+    "protectedData": "ಎಲ್ಲಾ ವಸ್ತುಗಳು ಸಾಧನದಲ್ಲಿರುತ್ತವೆ. ಸಿಂಕ್ ಆಗದ ಮಾರಾಟ ಮತ್ತು ಬಾಕಿ ಮುದ್ರಣವನ್ನು ಅಳಿಸಲಾಗುವುದಿಲ್ಲ. PIN ಆಫ್‌ಲೈನ್ ಅನುಮತಿ ವಿಸ್ತರಿಸುವುದಿಲ್ಲ.",
+    "serverAcceptance": "ಅಂಗಡಿ ಸರ್ವರ್ ಸ್ವೀಕರಿಸಿದೆ. ಕ್ಲೌಡ್ ದೃಢೀಕರಣ ಲಭ್ಯವಿಲ್ಲ.",
+    "olderReceipts": "ಹಳೆಯ ರಸೀದಿ ಹುಡುಕಿ",
+    "ownReceipts": "ಈ ಶಾಖೆಯ ನಿಮ್ಮ ಮೊಬೈಲ್ ರಸೀದಿಗಳನ್ನು ಹುಡುಕಿ. ಅಂಗಡಿ ಸರ್ವರ್ ಬೇಕು."
   },
   "te": {
     "name": "పేరు",
@@ -924,7 +944,12 @@
     "directPrinterHelp": "Android సెట్టింగ్‌లలో జత చేయండి. ESC/POS బ్లూటూత్ ప్రింటర్‌లు మాత్రమే; ముందు పరీక్షించండి.",
     "printCheckPaper": "మళ్లీ ప్రయత్నించే ముందు కాగితం చూడండి. రసీదు ఇప్పటికే ముద్రితమై ఉండవచ్చు.",
     "offlineUntil": "ఆఫ్‌లైన్ యాక్సెస్ గడువు",
-    "historyPolicy": "రసీదు చరిత్ర: రోజులు / గరిష్ట రికార్డులు"
+    "historyPolicy": "రసీదు చరిత్ర: రోజులు / గరిష్ట రికార్డులు",
+    "offlineData": "ఆఫ్‌లైన్ డేటా",
+    "protectedData": "అన్ని వస్తువులు పరికరంలో ఉంటాయి. సింక్ కాని అమ్మకాలు, పరిష్కారం కాని ప్రింటింగ్ తొలగించబడవు. PIN ఆఫ్‌లైన్ అనుమతి పొడిగించదు.",
+    "serverAcceptance": "షాపు సర్వర్ అంగీకరించింది. క్లౌడ్ నిర్ధారణ అందుబాటులో లేదు.",
+    "olderReceipts": "పాత రసీదు కనుగొనండి",
+    "ownReceipts": "ఈ శాఖలో మీ మొబైల్ రసీదులు వెతకండి. షాపు సర్వర్ అవసరం."
   },
   "si": {
     "name": "නම",
@@ -1109,7 +1134,12 @@
     "directPrinterHelp": "Android සැකසුම් තුළ යුගල කරන්න. ESC/POS බ්ලූටූත් මුද්‍රක පමණි; පළමුව පරීක්ෂා කරන්න.",
     "printCheckPaper": "නැවත උත්සාහ කිරීමට පෙර කඩදාසිය බලන්න. රිසිට්පත දැනටමත් මුද්‍රණය වී තිබිය හැක.",
     "offlineUntil": "නොබැඳි ප්‍රවේශය අවසන් වේ",
-    "historyPolicy": "රිසිට්පත් ඉතිහාසය: දින / උපරිම වාර්තා"
+    "historyPolicy": "රිසිට්පත් ඉතිහාසය: දින / උපරිම වාර්තා",
+    "offlineData": "නොබැඳි දත්ත",
+    "protectedData": "සියලු භාණ්ඩ උපාංගයේ රැඳේ. සමමුහුර්ත නොකළ විකුණුම් සහ නොවිසඳුණු මුද්‍රණ ඉවත් නොකෙරේ. PIN නොබැඳි අවසරය දිගු නොකරයි.",
+    "serverAcceptance": "වෙළඳසැල් සේවාදායකය පිළිගෙන ඇත. වලාකුළු තහවුරු කිරීම නොමැත.",
+    "olderReceipts": "පැරණි රිසිට්පතක් සොයන්න",
+    "ownReceipts": "මෙම ශාඛාවේ ඔබේ ජංගම රිසිට්පත් සොයන්න. වෙළඳසැල් සේවාදායකය අවශ්‍යයි."
   },
   "ne": {
     "name": "नाम",
@@ -1294,7 +1324,12 @@
     "directPrinterHelp": "Android सेटिङमा जोड्नुहोस्। ESC/POS ब्लुटुथ प्रिन्टर मात्र; पहिले परीक्षण गर्नुहोस्।",
     "printCheckPaper": "फेरि प्रयास गर्नुअघि कागज जाँच्नुहोस्। रसिद पहिले नै छापिएको हुन सक्छ।",
     "offlineUntil": "अफलाइन पहुँच समाप्ति",
-    "historyPolicy": "रसिद इतिहास: दिन / अधिकतम रेकर्ड"
+    "historyPolicy": "रसिद इतिहास: दिन / अधिकतम रेकर्ड",
+    "offlineData": "अफलाइन डेटा",
+    "protectedData": "सबै सामान उपकरणमा रहन्छन्। सिंक नभएका बिक्री र समाधान नभएका प्रिन्ट हटाइँदैनन्। PIN ले अफलाइन अनुमति बढाउँदैन।",
+    "serverAcceptance": "पसलको सर्भरले स्वीकार गरेको छ। क्लाउड पुष्टि उपलब्ध छैन।",
+    "olderReceipts": "पुरानो रसिद खोज्नुहोस्",
+    "ownReceipts": "यस शाखाका आफ्ना मोबाइल रसिद खोज्नुहोस्। पसलको सर्भर आवश्यक छ।"
   },
   "ar": {
     "name": "الاسم",
@@ -1480,7 +1515,12 @@
     "directPrinterHelp": "اقترن من إعدادات Android. طابعات بلوتوث ESC/POS فقط؛ اختبر التوافق أولاً.",
     "printCheckPaper": "تحقق من الورق قبل إعادة المحاولة. ربما تمت طباعة الإيصال بالفعل.",
     "offlineUntil": "انتهاء الوصول دون اتصال",
-    "historyPolicy": "سجل الإيصالات: الأيام / الحد الأقصى للسجلات"
+    "historyPolicy": "سجل الإيصالات: الأيام / الحد الأقصى للسجلات",
+    "offlineData": "البيانات دون اتصال",
+    "protectedData": "تبقى الأصناف على الجهاز. لا تُحذف المبيعات غير المتزامنة والطباعة غير المحسومة. الرمز لا يمدد صلاحية العمل دون اتصال.",
+    "serverAcceptance": "قبله خادم المتجر. تأكيد السحابة غير متاح.",
+    "olderReceipts": "البحث عن إيصال قديم",
+    "ownReceipts": "ابحث عن إيصالاتك المحمولة في هذا الفرع. يتطلب خادم المتجر."
   },
   "fr": {
     "name": "Nom",
@@ -1665,7 +1705,12 @@
     "directPrinterHelp": "Associez dans les réglages Android. Imprimantes Bluetooth ESC/POS uniquement ; testez la compatibilité.",
     "printCheckPaper": "Vérifiez le papier avant de réessayer. Le reçu est peut-être déjà imprimé.",
     "offlineUntil": "Expiration de l’accès hors ligne",
-    "historyPolicy": "Historique : jours / nombre maximal de reçus"
+    "historyPolicy": "Historique : jours / nombre maximal de reçus",
+    "offlineData": "Données hors ligne",
+    "protectedData": "Les articles restent sur cet appareil. Les ventes non synchronisées et impressions non résolues sont conservées. Le PIN ne prolonge pas l’accès hors ligne.",
+    "serverAcceptance": "Accepté par le serveur du magasin. Confirmation du cloud indisponible.",
+    "olderReceipts": "Trouver un ancien reçu",
+    "ownReceipts": "Recherchez vos reçus mobiles dans cette agence. Le serveur du magasin est requis."
   },
   "es": {
     "name": "Nombre",
@@ -1850,7 +1895,12 @@
     "directPrinterHelp": "Vincule en ajustes de Android. Solo impresoras Bluetooth ESC/POS; pruebe la compatibilidad.",
     "printCheckPaper": "Revise el papel antes de reintentar. El recibo podría haberse impreso.",
     "offlineUntil": "Caducidad del acceso sin conexión",
-    "historyPolicy": "Historial: días / máximo de recibos"
+    "historyPolicy": "Historial: días / máximo de recibos",
+    "offlineData": "Datos sin conexión",
+    "protectedData": "Los artículos permanecen aquí. Las ventas sin sincronizar y las impresiones pendientes se conservan. El PIN no amplía el acceso sin conexión.",
+    "serverAcceptance": "Aceptado por el servidor de la tienda. Confirmación de la nube no disponible.",
+    "olderReceipts": "Buscar un recibo antiguo",
+    "ownReceipts": "Busca tus recibos móviles de esta sucursal. Requiere el servidor de la tienda."
   },
   "pt": {
     "name": "Nome",
@@ -2035,7 +2085,12 @@
     "directPrinterHelp": "Emparelhe nas definições Android. Apenas impressoras Bluetooth ESC/POS; teste a compatibilidade.",
     "printCheckPaper": "Verifique o papel antes de tentar novamente. O recibo pode já ter sido impresso.",
     "offlineUntil": "Validade do acesso offline",
-    "historyPolicy": "Histórico: dias / máximo de recibos"
+    "historyPolicy": "Histórico: dias / máximo de recibos",
+    "offlineData": "Dados offline",
+    "protectedData": "Os artigos ficam neste dispositivo. Vendas não sincronizadas e impressões por resolver são preservadas. O PIN não prolonga o acesso offline.",
+    "serverAcceptance": "Aceite pelo servidor da loja. Confirmação da nuvem indisponível.",
+    "olderReceipts": "Encontrar recibo antigo",
+    "ownReceipts": "Pesquise os seus recibos móveis nesta filial. Requer o servidor da loja."
   },
   "id": {
     "name": "Nama",
@@ -2220,7 +2275,12 @@
     "directPrinterHelp": "Sandingkan di setelan Android. Hanya printer Bluetooth ESC/POS; uji kompatibilitas terlebih dahulu.",
     "printCheckPaper": "Periksa kertas sebelum mencoba lagi. Struk mungkin sudah tercetak.",
     "offlineUntil": "Akses offline berakhir",
-    "historyPolicy": "Riwayat struk: hari / jumlah maksimum"
+    "historyPolicy": "Riwayat struk: hari / jumlah maksimum",
+    "offlineData": "Data offline",
+    "protectedData": "Semua barang tetap di perangkat. Penjualan belum tersinkron dan pencetakan belum selesai tidak dihapus. PIN tidak memperpanjang akses offline.",
+    "serverAcceptance": "Diterima server toko. Konfirmasi cloud tidak tersedia.",
+    "olderReceipts": "Cari struk lama",
+    "ownReceipts": "Cari struk seluler Anda di cabang ini. Memerlukan server toko."
   },
   "th": {
     "name": "ชื่อ",
@@ -2405,7 +2465,12 @@
     "directPrinterHelp": "จับคู่ในการตั้งค่า Android รองรับเฉพาะเครื่องพิมพ์บลูทูธ ESC/POS โปรดทดสอบก่อน",
     "printCheckPaper": "ตรวจสอบกระดาษก่อนลองอีกครั้ง ใบเสร็จอาจพิมพ์ไปแล้ว",
     "offlineUntil": "สิทธิ์ออฟไลน์หมดอายุ",
-    "historyPolicy": "ประวัติใบเสร็จ: วัน / จำนวนสูงสุด"
+    "historyPolicy": "ประวัติใบเสร็จ: วัน / จำนวนสูงสุด",
+    "offlineData": "ข้อมูลออฟไลน์",
+    "protectedData": "สินค้าอยู่บนอุปกรณ์นี้ ยอดขายที่ยังไม่ซิงค์และงานพิมพ์ที่ยังไม่เสร็จจะไม่ถูกลบ PIN ไม่ต่ออายุสิทธิ์ออฟไลน์",
+    "serverAcceptance": "เซิร์ฟเวอร์ร้านยอมรับแล้ว ไม่มีการยืนยันจากคลาวด์",
+    "olderReceipts": "ค้นหาใบเสร็จเก่า",
+    "ownReceipts": "ค้นหาใบเสร็จมือถือของคุณในสาขานี้ ต้องเชื่อมต่อเซิร์ฟเวอร์ร้าน"
   },
   "de": {
     "name": "Name",
@@ -2590,7 +2655,12 @@
     "directPrinterHelp": "In Android-Einstellungen koppeln. Nur ESC/POS-Bluetooth-Drucker; Kompatibilität zuerst testen.",
     "printCheckPaper": "Vor erneutem Versuch das Papier prüfen. Der Beleg wurde möglicherweise bereits gedruckt.",
     "offlineUntil": "Offline-Zugriff läuft ab",
-    "historyPolicy": "Belegverlauf: Tage / maximale Anzahl"
+    "historyPolicy": "Belegverlauf: Tage / maximale Anzahl",
+    "offlineData": "Offline-Daten",
+    "protectedData": "Alle Artikel bleiben auf diesem Gerät. Nicht synchronisierte Verkäufe und ungeklärte Druckaufträge bleiben erhalten. Die PIN verlängert den Offline-Zugang nicht.",
+    "serverAcceptance": "Vom Shop-Server angenommen. Cloud-Bestätigung nicht verfügbar.",
+    "olderReceipts": "Älteren Beleg suchen",
+    "ownReceipts": "Eigene mobile Belege dieser Filiale suchen. Der Shop-Server muss erreichbar sein."
   },
   "sw": {
     "name": "Jina",
@@ -2775,7 +2845,12 @@
     "directPrinterHelp": "Oanisha katika mipangilio ya Android. Printa za Bluetooth ESC/POS pekee; jaribu kwanza.",
     "printCheckPaper": "Angalia karatasi kabla ya kujaribu tena. Risiti inaweza kuwa imechapishwa tayari.",
     "offlineUntil": "Ufikiaji bila mtandao unaisha",
-    "historyPolicy": "Historia ya risiti: siku / idadi ya juu"
+    "historyPolicy": "Historia ya risiti: siku / idadi ya juu",
+    "offlineData": "Data nje ya mtandao",
+    "protectedData": "Bidhaa hubaki kwenye kifaa. Mauzo ambayo hayajasawazishwa na uchapishaji ambao haujatatuliwa havifutwi. PIN haiongezi ruhusa ya nje ya mtandao.",
+    "serverAcceptance": "Imekubaliwa na seva ya duka. Uthibitisho wa wingu haupatikani.",
+    "olderReceipts": "Tafuta risiti ya zamani",
+    "ownReceipts": "Tafuta risiti zako za simu katika tawi hili. Inahitaji seva ya duka."
   },
   "nl": {
     "name": "Naam",
@@ -2960,7 +3035,12 @@
     "directPrinterHelp": "Koppel via Android-instellingen. Alleen ESC/POS-Bluetooth-printers; test eerst de compatibiliteit.",
     "printCheckPaper": "Controleer het papier voordat u opnieuw probeert. De bon is mogelijk al afgedrukt.",
     "offlineUntil": "Offline toegang verloopt",
-    "historyPolicy": "Bongeschiedenis: dagen / maximaal aantal"
+    "historyPolicy": "Bongeschiedenis: dagen / maximaal aantal",
+    "offlineData": "Offlinegegevens",
+    "protectedData": "Artikelen blijven op dit apparaat. Niet-gesynchroniseerde verkopen en onopgeloste afdruktaken blijven bewaard. De pincode verlengt offline toegang niet.",
+    "serverAcceptance": "Geaccepteerd door de winkelserver. Cloudbevestiging niet beschikbaar.",
+    "olderReceipts": "Oudere bon zoeken",
+    "ownReceipts": "Zoek uw mobiele bonnen in dit filiaal. Vereist de winkelserver."
   },
   "it": {
     "name": "Nome",
@@ -3145,6 +3225,11 @@
     "directPrinterHelp": "Associa nelle impostazioni Android. Solo stampanti Bluetooth ESC/POS; verifica prima la compatibilità.",
     "printCheckPaper": "Controlla la carta prima di riprovare. La ricevuta potrebbe essere già stampata.",
     "offlineUntil": "Scadenza accesso offline",
-    "historyPolicy": "Storico ricevute: giorni / numero massimo"
+    "historyPolicy": "Storico ricevute: giorni / numero massimo",
+    "offlineData": "Dati offline",
+    "protectedData": "Gli articoli restano sul dispositivo. Vendite non sincronizzate e stampe irrisolte sono conservate. Il PIN non prolunga l’accesso offline.",
+    "serverAcceptance": "Accettato dal server del negozio. Conferma cloud non disponibile.",
+    "olderReceipts": "Cerca una ricevuta precedente",
+    "ownReceipts": "Cerca le tue ricevute mobili in questa filiale. Richiede il server del negozio."
   }
 }

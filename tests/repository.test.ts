@@ -540,3 +540,39 @@ test("scanner writes use the offline catalogue and the same current selling ACL"
   );
   assert.deepEqual((await repo.load()).cart, state.cart);
 });
+
+test("catalogue freshness is durable and failed refresh cannot advance it", async () => {
+  const { storage, repo } = setup();
+  const shop = {
+    ...trainingShop,
+    mode: "live" as const,
+    baseUrl: "http://localhost:5555",
+  };
+  await repo.pair(shop, trainingItems);
+  assert.equal(
+    (await repo.load()).catalogueUpdatedAt,
+    new Date(1000).toISOString(),
+  );
+  const newer = new Repository(
+    storage,
+    () => "new-id",
+    () => 2000,
+  );
+  storage.fail = true;
+  await assert.rejects(
+    newer.refreshCatalogue(shop, trainingItems),
+    /disk full/,
+  );
+  assert.equal(
+    (await newer.load()).catalogueUpdatedAt,
+    new Date(1000).toISOString(),
+  );
+  storage.fail = false;
+  await newer.refreshCatalogue(shop, trainingItems);
+  assert.equal(
+    (await newer.load()).catalogueUpdatedAt,
+    new Date(2000).toISOString(),
+  );
+  await newer.signOut();
+  assert.equal((await newer.load()).catalogueUpdatedAt, undefined);
+});

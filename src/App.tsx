@@ -45,7 +45,9 @@ import { selectedAccount, upiUri } from "./domain/payments";
 import type { Item, Locale, Sale, SessionData } from "./domain/types";
 import { detectLocale, translator, translationCoverage } from "./i18n";
 import { languages } from "./i18n/registry";
-import { PosnicApi } from "./services/api";
+
+import { PosnicApi, type ServerReceipt } from "./services/api";
+
 import { SyncWorker } from "./services/sync";
 import { parseServerInput } from "./services/serverAddress";
 import { discoverServers, type DiscoveredServer } from "./services/discovery";
@@ -82,6 +84,9 @@ type Screen =
   | "language"
   | "printer"
   | "devices"
+  | "serverReceipts"
+  | "offlineData"
+  | "printAttention"
   | "connection"
   | "customer"
   | "item"
@@ -123,6 +128,15 @@ function Till() {
   const [localMethod, setLocalMethod] = useState<
     "menu" | "address" | "wifi" | "pair"
   >("menu");
+
+  const [serverReceipts, setServerReceipts] = useState<ServerReceipt[]>([]);
+  const [serverCursor, setServerCursor] = useState<string | null>(null);
+  const [serverQuery, setServerQuery] = useState("");
+  const [searchedQuery, setSearchedQuery] = useState("");
+  const [serverSearched, setServerSearched] = useState(false);
+  const [serverReceipt, setServerReceipt] = useState<ServerReceipt | null>(
+    null,
+  );
   const [receiptQuery, setReceiptQuery] = useState("");
   const [authorizationCode, setAuthorizationCode] = useState("");
   const accountRequest = useRef<AbortController | null>(null);
@@ -340,7 +354,17 @@ function Till() {
     }
   }, [syncNow, locked]);
   const refreshable =
-    !!shop && !locked && ["sell", "held", "receipts"].includes(screen);
+    !!shop &&
+    !locked &&
+    [
+      "sell",
+      "held",
+      "receipts",
+      "connection",
+      "offlineData",
+      "printAttention",
+    ].includes(screen);
+
   const backTarget: Screen =
     screen === "externalScanner"
       ? "devices"
@@ -355,6 +379,12 @@ function Till() {
                   "printer",
                   "devices",
                   "connection",
+
+                  "offlineData",
+                  "serverReceipts",
+
+                  "printAttention",
+
                   "item",
                   "leaveTraining",
                   "pin",
@@ -1837,7 +1867,14 @@ function Till() {
                 </Text>
                 {directJobs.some((j) => j.saleId === lastSale.id) && (
                   <>
-                    {help(t("printCheckPaper"))}
+                    {help(
+                      t(
+                        directJobs.find((j) => j.saleId === lastSale.id)
+                          ?.state === "confirmed"
+                          ? "confirmPrinted"
+                          : "printCheckPaper",
+                      ),
+                    )}
                     {button(
                       t("confirmPrinted"),
                       () =>
@@ -2025,6 +2062,9 @@ function Till() {
                 testID: "receipt-search",
               },
             )}
+
+            {shop.mode === "live" &&
+              menu("search", t("olderReceipts"), "serverReceipts")}
             {!state.sales.length && help(t("noReceipts"))}
             {state.sales
               .filter(
@@ -2057,7 +2097,9 @@ function Till() {
                   <View style={{ flex: 1 }}>
                     <Text style={styles.body}>{sale.receipt}</Text>
                     <Text style={styles.small}>
-                      {new Date(sale.createdAt).toLocaleTimeString(locale, {
+                      {new Date(sale.createdAt).toLocaleString(locale, {
+                        day: "numeric",
+                        month: "short",
                         hour: "2-digit",
                         minute: "2-digit",
                       })}{" "}
@@ -2137,6 +2179,180 @@ function Till() {
             )}
           </>
         );
+
+      case "serverReceipts":
+        return (
+          <>
+            {back("receipts")}
+            {heading(t("olderReceipts"))}
+            {help(t("ownReceipts"))}
+            {field(
+              t("receipts") + " · " + t("customer"),
+              serverQuery,
+              setServerQuery,
+            )}
+            {button(
+              t("olderReceipts"),
+              () =>
+                void run(async () => {
+                  setServerReceipt(null);
+                  setServerReceipts([]);
+                  setServerCursor(null);
+                  setServerSearched(false);
+                  const page = await new PosnicApi(shop.baseUrl!).receipts(
+                    shop,
+                    serverQuery,
+                  );
+                  setServerReceipts(page.receipts);
+                  setServerCursor(page.next);
+                  setSearchedQuery(serverQuery);
+                  setServerSearched(true);
+                }),
+              true,
+              busy || shop.mode === "training" || !shop.baseUrl,
+            )}
+            {serverSearched && !serverReceipts.length && help(t("noReceipts"))}
+            {serverReceipt ? (
+              <>
+                {heading(serverReceipt.receipt)}
+                {help(new Date(serverReceipt.createdAt).toLocaleString(locale))}
+                {serverReceipt.lines.map((line, index) => (
+                  <View key={index}>
+                    {row(
+                      line.name + " × " + line.quantity,
+                      formatMoney(
+                        line.price * line.quantity,
+                        serverReceipt.currency,
+                        locale,
+                      ),
+                    )}
+                  </View>
+                ))}
+                {row(
+                  t("total"),
+                  formatMoney(
+                    serverReceipt.total,
+                    serverReceipt.currency,
+                    locale,
+                  ),
+                )}
+                {help(t(serverReceipt.method))}
+                {button(t("back"), () => setServerReceipt(null))}
+              </>
+            ) : (
+              <>
+                {serverReceipts.map((receipt) => (
+                  <Pressable
+                    key={receipt.id}
+                    style={styles.menu}
+                    accessibilityRole="button"
+                    accessibilityLabel={receipt.receipt}
+                    onPress={() => setServerReceipt(receipt)}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.body}>{receipt.receipt}</Text>
+                      <Text style={styles.small}>
+                        {new Date(receipt.createdAt).toLocaleString(locale)} ·{" "}
+                        {receipt.customer}
+                      </Text>
+                    </View>
+                    <Text style={styles.value}>
+                      {formatMoney(receipt.total, receipt.currency, locale)}
+                    </Text>
+                  </Pressable>
+                ))}
+                {serverCursor &&
+                  button(
+                    t("next"),
+                    () =>
+                      void run(async () => {
+                        const page = await new PosnicApi(
+                          shop.baseUrl!,
+                        ).receipts(shop, searchedQuery, serverCursor);
+                        setServerReceipts(page.receipts);
+                        setServerCursor(page.next);
+                        scrollRef.current?.scrollTo({ y: 0, animated: true });
+                      }),
+                    false,
+                    busy,
+                  )}
+              </>
+            )}
+          </>
+        );
+      case "offlineData":
+        return (
+          <>
+            {back("connection")}
+            {heading(t("offlineData"))}
+            <View style={styles.profileCard}>
+              <View style={{ flex: 1 }}>
+                {row(t("catalogue"), String(state.items.length))}
+                {row(t("receipts"), String(state.sales.length))}
+                {row(t("pending"), String(state.outbox.length))}
+              </View>
+            </View>
+            {state.catalogueUpdatedAt &&
+              help(
+                t("catalogue") +
+                  " · " +
+                  new Date(state.catalogueUpdatedAt).toLocaleString(locale),
+              )}
+            {help(t("protectedData"))}
+            {message(
+              t("offlineUntil") +
+                ": " +
+                new Date(shop.offlineUntil).toLocaleString(locale),
+            )}
+            {Date.parse(shop.offlineUntil) <= Date.now() &&
+              message(t("grantExpired"))}
+            {help(
+              t("historyPolicy") +
+                ": " +
+                (shop.historyPolicy?.days ?? 90) +
+                " / " +
+                (shop.historyPolicy?.maxReceipts ?? 10000),
+            )}
+            {menu("refresh-cw", t("connection"), "connection")}
+            {menu("printer", t("printer"), "printer")}
+          </>
+        );
+      case "printAttention":
+        return (
+          <>
+            {back("connection")}
+            {heading(t("printCheckPaper"))}
+            {help(t("printUnknown"))}
+            {directJobs.filter(printNeedsAttention).map((job) => {
+              const sale = state.sales.find((s) => s.id === job.saleId);
+              if (!sale) return null;
+              return (
+                <Pressable
+                  key={job.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={sale.receipt}
+                  style={styles.menu}
+                  onPress={() => {
+                    receiptOrder.current = state.sales.map((s) => s.id);
+                    setLastSale(sale);
+                    setReceiptDetails(true);
+                    go("done");
+                  }}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.body}>{sale.receipt}</Text>
+                    <Text style={styles.small}>
+                      {job.printer.name} ·{" "}
+                      {new Date(job.updatedAt).toLocaleString(locale)}
+                    </Text>
+                  </View>
+                  {icon("chevron-right")}
+                </Pressable>
+              );
+            })}
+            {menu("printer", t("printer"), "printer")}
+          </>
+        );
       case "connection":
         return (
           <>
@@ -2147,26 +2363,27 @@ function Till() {
                 ? t("trainingHelp")
                 : (shop.baseUrl ?? ""),
             )}
-            {row(t("catalogue"), String(state.items.length))}
-            {row(t("receipts"), String(state.sales.length))}
             {row(
-              t("directPrinter"),
-              String(directJobs.filter(printNeedsAttention).length) +
-                " · " +
-                t("review"),
+              t("synced"),
+              String(
+                state.sales.filter((s) => !s.training && s.sync === "synced")
+                  .length,
+              ),
             )}
-            {help(
-              t("offlineUntil") +
-                ": " +
-                new Date(shop.offlineUntil).toLocaleString(locale),
+            {help(t("serverAcceptance"))}
+            {menu(
+              "database",
+              t("offlineData"),
+              "offlineData",
+              String(state.items.length) + " · " + t("items"),
             )}
-            {help(
-              t("historyPolicy") +
-                ": " +
-                (shop.historyPolicy?.days ?? 90) +
-                " / " +
-                (shop.historyPolicy?.maxReceipts ?? 10000),
-            )}
+            {directJobs.some(printNeedsAttention) &&
+              menu(
+                "alert-circle",
+                t("printCheckPaper"),
+                "printAttention",
+                String(directJobs.filter(printNeedsAttention).length),
+              )}
             {row(
               t("pending"),
               String(state.outbox.filter((e) => e.state === "pending").length),
@@ -2185,15 +2402,37 @@ function Till() {
               shop.mode === "training" || syncing,
             )}
             {help(t("keepSelling"))}
-            {state.outbox
-              .filter((e) => e.error)
-              .map((e) => (
-                <View style={styles.message} key={e.id}>
-                  <Text style={styles.body}>
-                    {t(e.error ?? "networkError")}
-                  </Text>
-                </View>
-              ))}
+            {state.outbox.map((entry) => {
+              const sale = state.sales.find((s) => s.id === entry.saleId);
+              return (
+                <Pressable
+                  key={entry.id}
+                  style={styles.menu}
+                  accessibilityRole="button"
+                  disabled={!sale}
+                  onPress={() => {
+                    if (sale) {
+                      setLastSale(sale);
+                      setReceiptDetails(true);
+                      go("done");
+                    }
+                  }}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.body}>
+                      {sale?.receipt ?? entry.saleId}
+                    </Text>
+                    <Text style={styles.small}>
+                      {t(entry.state)}
+                      {entry.error ? " · " + t(entry.error) : ""}
+                    </Text>
+                  </View>
+                  {sale && (
+                    <Text style={styles.value}>{money(sale.total)}</Text>
+                  )}
+                </Pressable>
+              );
+            })}
           </>
         );
       case "printer":
@@ -2548,6 +2787,9 @@ function Till() {
             {menu("printer", t("printer"), "printer")}
             {menu("cpu", t("devices"), "devices")}
             {menu("refresh-cw", t("connection"), "connection")}
+
+            {menu("database", t("offlineData"), "offlineData")}
+
             {help(shop.mode === "training" ? t("trainingHelp") : shop.name)}
             {shop.mode === "training" &&
               menu("log-out", t("leaveTraining"), "leaveTraining")}
