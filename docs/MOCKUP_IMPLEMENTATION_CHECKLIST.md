@@ -67,3 +67,9 @@ All four new messages ship in all 18 languages. Verification: 80 unit tests, 39 
 Basket reloads deserialize a new favourites array. The catalogue effect previously treated that new array identity as a filter change and temporarily removed all product tiles, collapsing the scroll position. It now depends on the selected favourite IDs only when the favourites filter is active. Genuine filter and catalogue changes still refresh results.
 
 Regression reproduced on beta13: selecting a bottom product reset scrollTop from 3129 to 0. Both ordinary and favourite-filtered lists now retain their exact position through repeated additions. Verification: 80 unit tests and 41 browser tests passed, plus typecheck, formatting and attribution checks. Physical Android confirmation remains part of pilot testing.
+
+## beta15: desktop Wi-Fi product images
+
+The installed desktop serves product images at `/uploads/...`; the mobile downloader previously used only `/api/uploads/...`, which the cloud proxy supports but the desktop returned as 404. On an API-prefixed upload 404, download from the paired server's root upload path. Keep the same cache key so completed downloads remain available offline. No fallback for another origin, authentication/permission failures, redirects or unrelated paths; byte limits and image validation still apply.
+
+Verified against the running desktop: the original URL returned 404; the root path returned JPEG, 18,159 bytes, and the updated downloader successfully read it. Regression tests cover fallback caching and offline reuse, plus origin/path/status restrictions. Physical phone display remains for pilot confirmation.

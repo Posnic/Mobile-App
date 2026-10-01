@@ -33,12 +33,30 @@ export async function readImage(
   url: string,
   signal: AbortSignal,
   fetcher: typeof fetch = fetch,
+  pairedBase?: string,
 ) {
-  const response = await fetcher(url, {
+  const options: RequestInit = {
     signal,
     credentials: "omit",
     redirect: "error",
-  });
+  };
+  let response = await fetcher(url, options);
+  // Desktop serves uploads at its origin root; cloud proxies also serve the
+  // API-prefixed route. Only retry a missing upload on the paired origin.
+  if (response.status === 404 && pairedBase && !signal.aborted) {
+    const source = new URL(url);
+    const base = new URL(pairedBase);
+    const prefix = base.pathname.replace(/\/$/, "");
+    if (
+      prefix.endsWith("/api") &&
+      source.origin === base.origin &&
+      source.pathname.startsWith(prefix + "/uploads/")
+    ) {
+      source.pathname = source.pathname.slice(prefix.length);
+      await response.body?.cancel().catch(() => {});
+      response = await fetcher(source.href, options);
+    }
+  }
   const mime =
     response.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase() ??
     "";
@@ -126,6 +144,7 @@ export async function cacheProductImages(
           url,
           controller.signal,
           fetcher,
+          shop.baseUrl,
         );
         if (signal.aborted) return;
         const uri = await files.put(key, bytes, mime);

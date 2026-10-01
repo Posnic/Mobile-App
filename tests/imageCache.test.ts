@@ -154,3 +154,79 @@ test("oversized, non-image and interrupted streams are rejected before persisten
     /cancelled/,
   );
 });
+
+test("desktop root uploads are cached after an API-path 404 and work offline", async () => {
+  const saved = new Map<string, string>();
+  const files: ImageFiles = {
+    get: async (key) => saved.get(key) ?? null,
+    put: async (key, bytes) => {
+      assert.deepEqual(bytes, png);
+      saved.set(key, "file:" + key);
+      return "file:" + key;
+    },
+  };
+  const item = { ...trainingItems[0]!, image: "/uploads/demo/product.png" };
+  const calls: string[] = [];
+  const fetcher: typeof fetch = async (url, options) => {
+    calls.push(String(url));
+    assert.equal(options?.credentials, "omit");
+    assert.equal(options?.redirect, "error");
+    assert.equal(options?.headers, undefined);
+    return String(url).includes("/api/uploads/")
+      ? new Response("{}", { status: 404 })
+      : new Response(png, { headers: { "Content-Type": "image/png" } });
+  };
+  await cacheProductImages(
+    [item],
+    shop,
+    files,
+    new AbortController().signal,
+    () => {},
+    fetcher,
+  );
+  assert.deepEqual(calls, [
+    shop.baseUrl + "/uploads/demo/product.png",
+    "http://192.168.1.2:5555/uploads/demo/product.png",
+  ]);
+  assert.equal(saved.size, 1);
+  let shown = 0;
+  await cacheProductImages(
+    [item],
+    shop,
+    files,
+    new AbortController().signal,
+    () => {
+      shown++;
+    },
+    async () => {
+      throw Error("offline");
+    },
+  );
+  assert.equal(shown, 1);
+});
+
+test("upload fallback does not retry permissions, foreign origins, non-upload paths or redirects", async () => {
+  for (const [url, status] of [
+    [shop.baseUrl + "/uploads/a.png", 403],
+    [shop.baseUrl + "/uploads/a.png", 401],
+    [shop.baseUrl + "/uploads/a.png", 302],
+    ["https://cdn.example/api/uploads/a.png", 404],
+    [shop.baseUrl + "/private/a.png", 404],
+  ] as const) {
+    let calls = 0;
+    await assert.rejects(
+      () =>
+        readImage(
+          url,
+          new AbortController().signal,
+          async () => {
+            calls++;
+            return new Response("{}", { status });
+          },
+          shop.baseUrl,
+        ),
+      /invalidImage/,
+    );
+    assert.equal(calls, 1);
+  }
+});
