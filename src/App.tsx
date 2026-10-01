@@ -361,6 +361,12 @@ function Till() {
     }
   }, [repo]);
   useEffect(() => setItemPage(0), [query, category, favouritesOnly]);
+  // Loading the basket returns a fresh favourites array. Only its contents,
+  // while filtering favourites, can change the catalogue query. Depending on
+  // the array identity clears the grid on every item tap and collapses scroll.
+  const catalogueFavouriteIds = JSON.stringify(
+    favouritesOnly ? (state?.favourites ?? []) : [],
+  );
   useEffect(() => {
     let active = true;
     setCatalogueView(null);
@@ -369,7 +375,7 @@ function Till() {
       () => {
         void repo
           .catalogue({
-            ids: favouritesOnly ? (state?.favourites ?? []) : undefined,
+            ids: favouritesOnly ? JSON.parse(catalogueFavouriteIds) : undefined,
             search: query,
             category,
             offset: itemPage * 48,
@@ -394,7 +400,7 @@ function Till() {
   }, [
     repo,
     shop?.snapshotVersion,
-    state?.favourites,
+    catalogueFavouriteIds,
     favouritesOnly,
     state?.items,
     query,
