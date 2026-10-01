@@ -55,3 +55,9 @@ The shipped app keeps three primary tabs (Sell, Receipts, More); Sync and Device
 - POS integration coverage: real database sale ingestion, replay protection, scoped history, grants, receipt routes, desktop setup and cloud delivery.
 
 Card terminals, NFC acquiring, scales and other entries explicitly labelled “planned”, “Soon” or “provider integration required” in the approved HTML are roadmap placeholders, not implemented payment providers. Physical printing still requires testing on the shop's hardware. These limits must stay visible in the release guide; software tests do not certify paper delivery or bank settlement.
+
+## beta13: choose the server before signing in
+
+Local setup now has separate discovery/address and authentication steps. Wi-Fi results are tappable server cards with a server icon, explicit Use this server action, address, version and arrow. Incompatible servers remain disabled with an explanation. Selecting a server stops discovery and shows only that endpoint's sign-in or pairing form. Change server clears the password and returns to selection; manual addresses are probed before showing credentials. QR setup opens the selected-server form. Focused setup screens omit welcome/training content and duplicate back buttons.
+
+All four new messages ship in all 18 languages. Verification: 80 unit tests, 39 browser tests, and 24 POS integration tests passed. The Wi-Fi browser test replaces only the unavailable browser Wi-Fi adapter with a fixed local IP and mocks LAN responses; physical phone networking still needs pilot confirmation. The test covers three discovered servers, incompatible-server disabling, no credential fields/requests before selection, and switching without carrying a password. Android ARM64 release build verified separately.

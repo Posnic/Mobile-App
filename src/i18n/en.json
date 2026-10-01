@@ -245,5 +245,9 @@
   "pinSetupWorking": "Securing your PIN…",
   "pinSetupTimeout": "PIN setup took too long. Your account is still signed in. Try saving the PIN again.",
   "serverSettings": "Server settings",
-  "changeServer": "Change server"
+  "changeServer": "Change server",
+  "chooseServer": "Choose your server",
+  "chooseServerHelp": "Tap Use this server beside your shop’s till.",
+  "useServer": "Use this server",
+  "signInToServer": "Sign in to this server"
 }

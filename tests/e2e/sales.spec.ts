@@ -1,7 +1,16 @@
 import { test, expect } from "@playwright/test";
-test("setup has LAN, QR and pairing shortcuts beside its server field", async ({
+test("local setup chooses a verified server before showing its credentials", async ({
   page,
 }) => {
+  await page.route("http://192.168.50.4:5555/api/runtime-info", (route) =>
+    route.fulfill({
+      json: {
+        edition: "community",
+        apiSchema: 1,
+        features: { mobilePosV1: true },
+      },
+    }),
+  );
   await page.goto("/");
   await expect(
     page.getByRole("button", { name: "Sign in", exact: true }),
@@ -12,7 +21,6 @@ test("setup has LAN, QR and pairing shortcuts beside its server field", async ({
       exact: true,
     }),
   ).toBeVisible();
-  await expect(page.getByTestId("server-input")).toHaveCount(0);
   await page
     .getByRole("button", {
       name: "Connect a local or Community shop",
@@ -21,10 +29,24 @@ test("setup has LAN, QR and pairing shortcuts beside its server field", async ({
     .click();
   await expect(page.getByTestId("server-input")).toHaveCount(0);
   await page.getByTestId("manual-server").click();
-  await expect(page.getByTestId("server-input")).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Scan shop QR", exact: true }),
+    page.getByRole("textbox", { name: "Username", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("textbox", { name: "Password", exact: true }),
+  ).toHaveCount(0);
+  await page.getByTestId("server-input").fill("192.168.50.4:5555");
+  await page.getByTestId("choose-server-next").click();
+  await expect(page.getByTestId("selected-server")).toContainText(
+    "http://192.168.50.4:5555/api",
+  );
+  await expect(page.getByTestId("server-input")).toHaveCount(0);
+  await expect(
+    page.getByRole("textbox", { name: "Username", exact: true }),
   ).toBeVisible();
+  await page
+    .getByRole("textbox", { name: "Password", exact: true })
+    .fill("not-submitted");
   await page.getByRole("button", { name: "Pairing code", exact: true }).click();
   await expect(
     page.getByRole("textbox", { name: "Pairing code", exact: true }),
@@ -32,16 +54,50 @@ test("setup has LAN, QR and pairing shortcuts beside its server field", async ({
   await expect(
     page.getByRole("textbox", { name: "Username", exact: true }),
   ).toHaveCount(0);
-  await page.getByRole("button", { name: "Pairing code", exact: true }).click();
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(
-    page.getByRole("textbox", { name: "Username", exact: true }),
-  ).toBeVisible();
+    page.getByRole("textbox", { name: "Password", exact: true }),
+  ).toHaveValue("");
   await page.setViewportSize({ width: 320, height: 740 });
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBeTruthy();
+  await page
+    .getByRole("button", { name: "Change server", exact: true })
+    .click();
+  await expect(
+    page.getByRole("textbox", { name: "Username", exact: true }),
+  ).toHaveCount(0);
+  await expect(page.getByTestId("manual-server")).toBeVisible();
+});
+test("unreachable or incompatible servers never reveal sign-in fields", async ({
+  page,
+}) => {
+  await page.route("http://192.168.50.4:5555/api/runtime-info", (route) =>
+    route.fulfill({
+      json: {
+        edition: "community",
+        apiSchema: 1,
+        features: { mobilePosV1: false },
+      },
+    }),
+  );
+  await page.goto("/");
+  await page
+    .getByRole("button", {
+      name: "Connect a local or Community shop",
+      exact: true,
+    })
+    .click();
+  await page.getByTestId("manual-server").click();
+  await page.getByTestId("server-input").fill("192.168.50.4:5555");
+  await page.getByTestId("choose-server-next").click();
+  await expect(
+    page.getByRole("textbox", { name: "Username", exact: true }),
+  ).toHaveCount(0);
+  await expect(page.getByTestId("server-input")).toBeVisible();
 });
 test("PIN locks the till without losing its cart and rejects a wrong PIN", async ({
   page,

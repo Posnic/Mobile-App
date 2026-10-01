@@ -212,7 +212,11 @@
     "pinSetupWorking": "PIN பாதுகாக்கப்படுகிறது…",
     "pinSetupTimeout": "PIN அமைக்க அதிக நேரம் ஆனது. கணக்கு இன்னும் உள்நுழைந்துள்ளது. மீண்டும் சேமிக்கவும்.",
     "serverSettings": "சர்வர் அமைப்புகள்",
-    "changeServer": "சர்வரை மாற்று"
+    "changeServer": "சர்வரை மாற்று",
+    "chooseServer": "உங்கள் சேவையகத்தைத் தேர்ந்தெடுக்கவும்",
+    "chooseServerHelp": "உங்கள் கடையின் டில் அருகில் உள்ள இந்தச் சேவையகத்தைப் பயன்படுத்து என்பதைத் தட்டவும்.",
+    "useServer": "இந்தச் சேவையகத்தைப் பயன்படுத்து",
+    "signInToServer": "இந்தச் சேவையகத்தில் உள்நுழையவும்"
   },
   "hi": {
     "name": "नाम",
@@ -425,7 +429,11 @@
     "pinSetupWorking": "PIN सुरक्षित किया जा रहा है…",
     "pinSetupTimeout": "PIN सेट करने में अधिक समय लगा। खाता अभी लॉग इन है। फिर से PIN सहेजें।",
     "serverSettings": "सर्वर सेटिंग्स",
-    "changeServer": "सर्वर बदलें"
+    "changeServer": "सर्वर बदलें",
+    "chooseServer": "अपना सर्वर चुनें",
+    "chooseServerHelp": "अपनी दुकान के टिल के पास इस सर्वर का उपयोग करें पर टैप करें।",
+    "useServer": "इस सर्वर का उपयोग करें",
+    "signInToServer": "इस सर्वर में साइन इन करें"
   },
   "ml": {
     "name": "പേര്",
@@ -638,7 +646,11 @@
     "pinSetupWorking": "PIN സുരക്ഷിതമാക്കുന്നു…",
     "pinSetupTimeout": "PIN സജ്ജീകരിക്കാൻ സമയം കൂടുതലായി. അക്കൗണ്ട് ലോഗിൻ ചെയ്തിട്ടുണ്ട്. വീണ്ടും സംരക്ഷിക്കുക.",
     "serverSettings": "സെർവർ ക്രമീകരണങ്ങൾ",
-    "changeServer": "സെർവർ മാറ്റുക"
+    "changeServer": "സെർവർ മാറ്റുക",
+    "chooseServer": "നിങ്ങളുടെ സെർവർ തിരഞ്ഞെടുക്കുക",
+    "chooseServerHelp": "കടയുടെ ടില്ലിനടുത്തുള്ള ഈ സെർവർ ഉപയോഗിക്കുക എന്നതിൽ ടാപ്പ് ചെയ്യുക.",
+    "useServer": "ഈ സെർവർ ഉപയോഗിക്കുക",
+    "signInToServer": "ഈ സെർവറിൽ സൈൻ ഇൻ ചെയ്യുക"
   },
   "kn": {
     "name": "ಹೆಸರು",
@@ -851,7 +863,11 @@
     "pinSetupWorking": "PIN ಸುರಕ್ಷಿತಗೊಳಿಸಲಾಗುತ್ತಿದೆ…",
     "pinSetupTimeout": "PIN ಹೊಂದಿಸಲು ಹೆಚ್ಚು ಸಮಯವಾಯಿತು. ಖಾತೆ ಲಾಗಿನ್ ಆಗಿದೆ. ಮತ್ತೆ ಉಳಿಸಿ.",
     "serverSettings": "ಸರ್ವರ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
-    "changeServer": "ಸರ್ವರ್ ಬದಲಿಸಿ"
+    "changeServer": "ಸರ್ವರ್ ಬದಲಿಸಿ",
+    "chooseServer": "ನಿಮ್ಮ ಸರ್ವರ್ ಆಯ್ಕೆಮಾಡಿ",
+    "chooseServerHelp": "ನಿಮ್ಮ ಅಂಗಡಿಯ ಟಿಲ್ ಪಕ್ಕದಲ್ಲಿರುವ ಈ ಸರ್ವರ್ ಬಳಸಿ ಅನ್ನು ಟ್ಯಾಪ್ ಮಾಡಿ.",
+    "useServer": "ಈ ಸರ್ವರ್ ಬಳಸಿ",
+    "signInToServer": "ಈ ಸರ್ವರ್‌ಗೆ ಸೈನ್ ಇನ್ ಮಾಡಿ"
   },
   "te": {
     "name": "పేరు",
@@ -1064,7 +1080,11 @@
     "pinSetupWorking": "PIN భద్రపరుస్తోంది…",
     "pinSetupTimeout": "PIN ఏర్పాటు ఎక్కువ సమయం తీసుకుంది. ఖాతా లాగిన్‌లో ఉంది. మళ్లీ సేవ్ చేయండి.",
     "serverSettings": "సర్వర్ సెట్టింగ్‌లు",
-    "changeServer": "సర్వర్ మార్చండి"
+    "changeServer": "సర్వర్ మార్చండి",
+    "chooseServer": "మీ సర్వర్‌ను ఎంచుకోండి",
+    "chooseServerHelp": "మీ దుకాణం టిల్ పక్కన ఉన్న ఈ సర్వర్‌ను ఉపయోగించండి నొక్కండి.",
+    "useServer": "ఈ సర్వర్‌ను ఉపయోగించండి",
+    "signInToServer": "ఈ సర్వర్‌కు సైన్ ఇన్ చేయండి"
   },
   "si": {
     "name": "නම",
@@ -1277,7 +1297,11 @@
     "pinSetupWorking": "PIN සුරක්ෂිත කරමින්…",
     "pinSetupTimeout": "PIN සැකසීමට වැඩි කාලයක් ගත විය. ගිණුම තවමත් පිවිසී ඇත. නැවත සුරකින්න.",
     "serverSettings": "සේවාදායක සැකසුම්",
-    "changeServer": "සේවාදායකය වෙනස් කරන්න"
+    "changeServer": "සේවාදායකය වෙනස් කරන්න",
+    "chooseServer": "ඔබේ සේවාදායකය තෝරන්න",
+    "chooseServerHelp": "ඔබේ වෙළඳසැලේ ටිල් එක අසල ඇති මෙම සේවාදායකය භාවිත කරන්න තට්ටු කරන්න.",
+    "useServer": "මෙම සේවාදායකය භාවිත කරන්න",
+    "signInToServer": "මෙම සේවාදායකයට පිවිසෙන්න"
   },
   "ne": {
     "name": "नाम",
@@ -1490,7 +1514,11 @@
     "pinSetupWorking": "PIN सुरक्षित गरिँदैछ…",
     "pinSetupTimeout": "PIN सेट गर्न धेरै समय लाग्यो। खाता अझै लग इन छ। फेरि सुरक्षित गर्नुहोस्।",
     "serverSettings": "सर्भर सेटिङहरू",
-    "changeServer": "सर्भर बदल्नुहोस्"
+    "changeServer": "सर्भर बदल्नुहोस्",
+    "chooseServer": "आफ्नो सर्भर छान्नुहोस्",
+    "chooseServerHelp": "पसलको टिल छेउमा यो सर्भर प्रयोग गर्नुहोस् थिच्नुहोस्।",
+    "useServer": "यो सर्भर प्रयोग गर्नुहोस्",
+    "signInToServer": "यो सर्भरमा साइन इन गर्नुहोस्"
   },
   "ar": {
     "name": "الاسم",
@@ -1704,7 +1732,11 @@
     "pinSetupWorking": "جارٍ تأمين رمز PIN…",
     "pinSetupTimeout": "استغرق إعداد الرمز وقتاً طويلاً. لا يزال حسابك مسجلاً. حاول حفظ الرمز مجدداً.",
     "serverSettings": "إعدادات الخادم",
-    "changeServer": "تغيير الخادم"
+    "changeServer": "تغيير الخادم",
+    "chooseServer": "اختر خادمك",
+    "chooseServerHelp": "اضغط على استخدام هذا الخادم بجانب جهاز البيع الخاص بمتجرك.",
+    "useServer": "استخدام هذا الخادم",
+    "signInToServer": "تسجيل الدخول إلى هذا الخادم"
   },
   "fr": {
     "name": "Nom",
@@ -1917,7 +1949,11 @@
     "pinSetupWorking": "Sécurisation du PIN…",
     "pinSetupTimeout": "La configuration du PIN a pris trop de temps. Votre compte reste connecté. Réessayez d’enregistrer le PIN.",
     "serverSettings": "Paramètres du serveur",
-    "changeServer": "Changer de serveur"
+    "changeServer": "Changer de serveur",
+    "chooseServer": "Choisissez votre serveur",
+    "chooseServerHelp": "Touchez Utiliser ce serveur à côté de la caisse de votre magasin.",
+    "useServer": "Utiliser ce serveur",
+    "signInToServer": "Se connecter à ce serveur"
   },
   "es": {
     "name": "Nombre",
@@ -2130,7 +2166,11 @@
     "pinSetupWorking": "Protegiendo el PIN…",
     "pinSetupTimeout": "La configuración tardó demasiado. Tu cuenta sigue conectada. Guarda el PIN de nuevo.",
     "serverSettings": "Configuración del servidor",
-    "changeServer": "Cambiar servidor"
+    "changeServer": "Cambiar servidor",
+    "chooseServer": "Elige tu servidor",
+    "chooseServerHelp": "Toca Usar este servidor junto a la caja de tu tienda.",
+    "useServer": "Usar este servidor",
+    "signInToServer": "Iniciar sesión en este servidor"
   },
   "pt": {
     "name": "Nome",
@@ -2343,7 +2383,11 @@
     "pinSetupWorking": "Protegendo o PIN…",
     "pinSetupTimeout": "A configuração demorou demasiado. A conta continua conectada. Tente guardar o PIN novamente.",
     "serverSettings": "Definições do servidor",
-    "changeServer": "Alterar servidor"
+    "changeServer": "Alterar servidor",
+    "chooseServer": "Escolha o seu servidor",
+    "chooseServerHelp": "Toque em Usar este servidor ao lado do caixa da sua loja.",
+    "useServer": "Usar este servidor",
+    "signInToServer": "Entrar neste servidor"
   },
   "id": {
     "name": "Nama",
@@ -2556,7 +2600,11 @@
     "pinSetupWorking": "Mengamankan PIN…",
     "pinSetupTimeout": "Pengaturan PIN terlalu lama. Akun masih masuk. Coba simpan PIN lagi.",
     "serverSettings": "Pengaturan server",
-    "changeServer": "Ganti server"
+    "changeServer": "Ganti server",
+    "chooseServer": "Pilih server Anda",
+    "chooseServerHelp": "Ketuk Gunakan server ini di samping kasir toko Anda.",
+    "useServer": "Gunakan server ini",
+    "signInToServer": "Masuk ke server ini"
   },
   "th": {
     "name": "ชื่อ",
@@ -2769,7 +2817,11 @@
     "pinSetupWorking": "กำลังรักษาความปลอดภัย PIN…",
     "pinSetupTimeout": "ตั้งค่า PIN นานเกินไป บัญชียังเข้าสู่ระบบอยู่ ลองบันทึก PIN อีกครั้ง",
     "serverSettings": "การตั้งค่าเซิร์ฟเวอร์",
-    "changeServer": "เปลี่ยนเซิร์ฟเวอร์"
+    "changeServer": "เปลี่ยนเซิร์ฟเวอร์",
+    "chooseServer": "เลือกเซิร์ฟเวอร์ของคุณ",
+    "chooseServerHelp": "แตะ ใช้เซิร์ฟเวอร์นี้ ข้างเครื่องขายหน้าร้านของคุณ",
+    "useServer": "ใช้เซิร์ฟเวอร์นี้",
+    "signInToServer": "เข้าสู่ระบบเซิร์ฟเวอร์นี้"
   },
   "de": {
     "name": "Name",
@@ -2982,7 +3034,11 @@
     "pinSetupWorking": "PIN wird gesichert…",
     "pinSetupTimeout": "Die PIN-Einrichtung dauerte zu lange. Dein Konto ist weiter angemeldet. Speichere die PIN erneut.",
     "serverSettings": "Servereinstellungen",
-    "changeServer": "Server wechseln"
+    "changeServer": "Server wechseln",
+    "chooseServer": "Server auswählen",
+    "chooseServerHelp": "Tippen Sie neben Ihrer Ladenkasse auf Diesen Server verwenden.",
+    "useServer": "Diesen Server verwenden",
+    "signInToServer": "Bei diesem Server anmelden"
   },
   "sw": {
     "name": "Jina",
@@ -3195,7 +3251,11 @@
     "pinSetupWorking": "Inalinda PIN…",
     "pinSetupTimeout": "Kuweka PIN kumechukua muda mrefu. Akaunti bado imeingia. Jaribu kuhifadhi PIN tena.",
     "serverSettings": "Mipangilio ya seva",
-    "changeServer": "Badilisha seva"
+    "changeServer": "Badilisha seva",
+    "chooseServer": "Chagua seva yako",
+    "chooseServerHelp": "Gusa Tumia seva hii karibu na kasha la duka lako.",
+    "useServer": "Tumia seva hii",
+    "signInToServer": "Ingia kwenye seva hii"
   },
   "nl": {
     "name": "Naam",
@@ -3408,7 +3468,11 @@
     "pinSetupWorking": "PIN beveiligen…",
     "pinSetupTimeout": "Het instellen duurde te lang. Je account is nog ingelogd. Probeer de PIN opnieuw op te slaan.",
     "serverSettings": "Serverinstellingen",
-    "changeServer": "Server wijzigen"
+    "changeServer": "Server wijzigen",
+    "chooseServer": "Kies je server",
+    "chooseServerHelp": "Tik op Deze server gebruiken naast de kassa van je winkel.",
+    "useServer": "Deze server gebruiken",
+    "signInToServer": "Aanmelden bij deze server"
   },
   "it": {
     "name": "Nome",
@@ -3621,6 +3685,10 @@
     "pinSetupWorking": "Protezione del PIN…",
     "pinSetupTimeout": "La configurazione ha richiesto troppo tempo. L’account è ancora connesso. Prova a salvare di nuovo il PIN.",
     "serverSettings": "Impostazioni server",
-    "changeServer": "Cambia server"
+    "changeServer": "Cambia server",
+    "chooseServer": "Scegli il server",
+    "chooseServerHelp": "Tocca Usa questo server accanto alla cassa del tuo negozio.",
+    "useServer": "Usa questo server",
+    "signInToServer": "Accedi a questo server"
   }
 }

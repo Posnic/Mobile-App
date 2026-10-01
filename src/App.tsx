@@ -147,7 +147,7 @@ function Till() {
   const receiptOrder = useRef<string[]>([]);
   const [localSetup, setLocalSetup] = useState(false);
   const [localMethod, setLocalMethod] = useState<
-    "menu" | "address" | "wifi" | "pair"
+    "menu" | "address" | "wifi" | "pair" | "signin"
   >("menu");
 
   const [serverReceipts, setServerReceipts] = useState<ServerReceipt[]>([]);
@@ -570,7 +570,11 @@ function Till() {
     if (!shop && localSetup && screen !== "scanner" && screen !== "language") {
       if (localMethod !== "menu") {
         discovery.current?.abort();
-        setLocalMethod("menu");
+        setPassword("");
+        setError("");
+        setLocalMethod(
+          localMethod === "signin" && foundServers.length ? "wifi" : "menu",
+        );
       } else setLocalSetup(false);
       return true;
     }
@@ -627,11 +631,12 @@ function Till() {
     const details = parseServerInput(value);
     setServer(details.address);
     setLocalSetup(true);
-    setLocalMethod("address");
-    if (details.code) {
-      setPairCode(details.code);
-      setPairing(true);
-    }
+    setLocalMethod("signin");
+    setError("");
+    setPassword("");
+    setUsername("");
+    setPairCode(details.code || "");
+    setPairing(Boolean(details.code) || localMethod === "pair");
     discovery.current?.abort();
   }
   async function searchWifi() {
@@ -666,8 +671,10 @@ function Till() {
       if (!controller.signal.aborted)
         setError(e instanceof Error ? e.message : "networkError");
     } finally {
-      discovery.current = null;
-      setSearching(false);
+      if (discovery.current === controller) {
+        discovery.current = null;
+        setSearching(false);
+      }
     }
   }
 
@@ -1268,30 +1275,36 @@ function Till() {
     if (!shop && screen !== "scanner" && screen !== "language")
       return (
         <>
-          <View style={styles.intro}>
-            {!localSetup && (
-              <View
-                style={styles.welcomeArt}
-                accessibilityElementsHidden
-                importantForAccessibility="no-hide-descendants"
-              >
-                <View style={styles.welcomeReceipt}>
-                  <Feather
-                    name="shopping-bag"
-                    size={32}
-                    color={palette.accent}
-                  />
-                  <View style={styles.receiptRule} />
-                  <View style={[styles.receiptRule, { width: 58 }]} />
-                  <View style={styles.welcomeCheck}>
-                    <Feather name="check" size={22} color={palette.onAccent} />
+          {!localSetup && (
+            <View style={styles.intro}>
+              {
+                <View
+                  style={styles.welcomeArt}
+                  accessibilityElementsHidden
+                  importantForAccessibility="no-hide-descendants"
+                >
+                  <View style={styles.welcomeReceipt}>
+                    <Feather
+                      name="shopping-bag"
+                      size={32}
+                      color={palette.accent}
+                    />
+                    <View style={styles.receiptRule} />
+                    <View style={[styles.receiptRule, { width: 58 }]} />
+                    <View style={styles.welcomeCheck}>
+                      <Feather
+                        name="check"
+                        size={22}
+                        color={palette.onAccent}
+                      />
+                    </View>
                   </View>
                 </View>
-              </View>
-            )}
-            {heading(t("welcome"))}
-            {help(t("connectHelp"))}
-          </View>
+              }
+              {heading(t("welcome"))}
+              {help(t("connectHelp"))}
+            </View>
+          )}
           {!localSetup ? (
             <View style={styles.setupCard}>
               <View
@@ -1375,11 +1388,18 @@ function Till() {
             </View>
           ) : (
             <View style={styles.setupCard}>
-              {button(t("backToAccount"), () => setLocalSetup(false))}
+              {localMethod === "menu" &&
+                button(t("backToAccount"), () => {
+                  discovery.current?.abort();
+                  setError("");
+                  setLocalSetup(false);
+                })}
               {localMethod === "menu" ? (
                 <>
                   {help(t("wifiHelp"))}
                   {actionRow("wifi", t("searchWifi"), t("wifiRequired"), () => {
+                    setPairing(false);
+                    setPairCode("");
                     setLocalMethod("wifi");
                     void searchWifi();
                   })}
@@ -1404,129 +1424,209 @@ function Till() {
                 </>
               ) : (
                 <>
-                  {button(t("back"), () => {
-                    discovery.current?.abort();
-                    setLocalMethod("menu");
-                  })}
-                  <Text style={styles.fieldLabel}>{t("server")}</Text>
-                  <View
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t(
+                      localMethod === "signin" ? "changeServer" : "back",
+                    )}
+                    disabled={busy}
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
-                      gap: 6,
+                      gap: 8,
+                      minHeight: 44,
+                    }}
+                    onPress={() => {
+                      discovery.current?.abort();
+                      setPassword("");
+                      setPairCode("");
+                      setError("");
+                      setLocalMethod(
+                        localMethod === "signin" && foundServers.length
+                          ? "wifi"
+                          : "menu",
+                      );
                     }}
                   >
-                    <TextInput
-                      accessibilityLabel={t("server")}
-                      testID="server-input"
-                      value={server}
-                      onChangeText={(value) => {
-                        setServer(value);
-                        try {
-                          const details = parseServerInput(value);
-                          if (details.code) {
-                            setPairing(true);
-                            setPairCode(details.code);
-                          }
-                        } catch {}
-                      }}
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                      placeholder={t("serverPlaceholder")}
-                      placeholderTextColor={palette.muted}
-                      style={[styles.input, { flex: 1, minWidth: 0 }]}
-                    />
-                  </View>
-                  <View style={styles.connectionTools}>
-                    {iconButton(
-                      searching ? "x" : "wifi",
-                      t(searching ? "stopSearch" : "searchWifi"),
-                      () => void searchWifi(),
-                    )}
-                    {iconButton("maximize", t("shopQr"), () => {
-                      discovery.current?.abort();
-                      go("scanner");
-                    })}
-                    {iconButton("key", t("pairCode"), () =>
-                      setPairing((value) => !value),
-                    )}
-                  </View>
-                  {help(t("wifiFirst"))}
-                  {searching && (
-                    <Text accessibilityLiveRegion="polite" style={styles.small}>
-                      {t("searchingWifi")} {searchProgress}%
+                    {icon("arrow-left", 18)}
+                    <Text style={styles.buttonText}>
+                      {t(localMethod === "signin" ? "changeServer" : "back")}
                     </Text>
-                  )}
-                  {foundServers.map((hit) => (
-                    <View key={hit.address}>
-                      {button(
-                        hit.address +
-                          (hit.compatible ? "" : " · " + t("serverUpgrade")),
-                        () => acceptServer(hit.address),
-                        false,
-                        !hit.compatible,
-                      )}
-                    </View>
-                  ))}
-                  {pairing ? (
+                  </Pressable>
+                  {localMethod === "signin" ? (
                     <>
-                      {field(t("pairCode"), pairCode, setPairCode)}
-                      {help(t("pairHelp"))}
+                      {heading(t("signInToServer"))}
+                      <View
+                        style={[styles.menu, { backgroundColor: palette.soft }]}
+                        testID="selected-server"
+                      >
+                        <View style={styles.menuIcon}>{icon("server")}</View>
+                        <View style={{ flex: 1, minWidth: 0 }}>
+                          <Text style={styles.menuTitle}>Posnic POS</Text>
+                          <Text style={styles.small}>{server}</Text>
+                        </View>
+                        {icon("check-circle")}
+                      </View>
+                    </>
+                  ) : localMethod === "wifi" ? (
+                    <>
+                      {heading(t("chooseServer"))}
+                      {help(t("chooseServerHelp"))}
+                      {searching && (
+                        <ActivityIndicator color={palette.accent} />
+                      )}
+                      <Text
+                        accessibilityLiveRegion="polite"
+                        style={styles.small}
+                      >
+                        {searching
+                          ? t("searchingWifi") + " " + searchProgress + "%"
+                          : t("searchWifi")}
+                      </Text>
+                      {foundServers.map((hit) => (
+                        <View key={hit.address}>
+                          {actionRow(
+                            "server",
+                            t("useServer") + " · " + new URL(hit.address).host,
+                            "Posnic POS · " +
+                              (hit.compatible
+                                ? hit.version
+                                : t("serverUpgrade")),
+                            () => acceptServer(hit.address),
+                            !hit.compatible,
+                            "found-server",
+                          )}
+                        </View>
+                      ))}
+                      {button(
+                        t(searching ? "stopSearch" : "searchWifi"),
+                        () => void searchWifi(),
+                      )}
+                      {actionRow(
+                        "globe",
+                        t("server"),
+                        t("addressHelp"),
+                        () => {
+                          discovery.current?.abort();
+                          setLocalMethod("address");
+                          setError("");
+                        },
+                        false,
+                        "manual-server",
+                      )}
                     </>
                   ) : (
                     <>
-                      {field(t("username"), username, setUsername)}
-                      {field(t("password"), password, setPassword, {
-                        secret: true,
-                      })}
-                      {help(t("rememberHelp"))}
+                      {heading(t("chooseServer"))}
+                      {help(t("addressHelp"))}
+                      <Text style={styles.fieldLabel}>{t("server")}</Text>
+                      <TextInput
+                        accessibilityLabel={t("server")}
+                        testID="server-input"
+                        value={server}
+                        onChangeText={setServer}
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        placeholder={t("serverPlaceholder")}
+                        placeholderTextColor={palette.muted}
+                        style={styles.input}
+                      />
+                      {button(
+                        t("next"),
+                        () =>
+                          void run(async () => {
+                            const details = parseServerInput(server);
+                            const runtime = await new PosnicApi(
+                              details.address,
+                            ).probe();
+                            if (runtime.features?.mobilePosV1 !== true)
+                              throw new Error("serverUpgrade");
+                            acceptServer(server);
+                          }),
+                        true,
+                        !server.trim(),
+                        "choose-server-next",
+                      )}
+                      {actionRow("maximize", t("shopQr"), t("pairHelp"), () =>
+                        go("scanner"),
+                      )}
                     </>
                   )}
-                  {button(
-                    t(pairing ? "pair" : "signIn"),
-                    () =>
-                      void run(async () => {
-                        const details = parseServerInput(server);
-                        const data = await new PosnicApi(
-                          details.address,
-                        ).connect(
-                          username,
-                          password,
-                          details.code ||
-                            (pairing ? pairCode.trim() : undefined),
-                        );
-                        await repo.pair(data.shop, data.items);
-                        await vault.remember({
-                          token: data.token,
-                          username: pairing ? data.shop.staffName : username,
-                          password: pairing ? "" : password,
-                          server: details.address,
-                        });
+                  {localMethod === "signin" && (
+                    <>
+                      {button(t(pairing ? "signIn" : "pairCode"), () => {
+                        setPairing(!pairing);
+                        setPassword("");
                         setPairCode("");
-                        setPin("");
-                        setPinConfirm("");
-                        go("pin");
-                      }),
-                    true,
-                    !server ||
-                      (pairing ? !pairCode.trim() : !username || !password),
+                        setError("");
+                      })}
+                      {pairing ? (
+                        <>
+                          {field(t("pairCode"), pairCode, setPairCode)}
+                          {help(t("pairHelp"))}
+                        </>
+                      ) : (
+                        <>
+                          {field(t("username"), username, setUsername)}
+                          {field(t("password"), password, setPassword, {
+                            secret: true,
+                          })}
+                          {help(t("rememberHelp"))}
+                        </>
+                      )}
+                      {button(
+                        t(pairing ? "pair" : "signIn"),
+                        () =>
+                          void run(async () => {
+                            const details = parseServerInput(server);
+                            const data = await new PosnicApi(
+                              details.address,
+                            ).connect(
+                              username,
+                              password,
+                              details.code ||
+                                (pairing ? pairCode.trim() : undefined),
+                            );
+                            await repo.pair(data.shop, data.items);
+                            await vault.remember({
+                              token: data.token,
+                              username: pairing
+                                ? data.shop.staffName
+                                : username,
+                              password: pairing ? "" : password,
+                              server: details.address,
+                            });
+                            setPairCode("");
+                            setPin("");
+                            setPinConfirm("");
+                            go("pin");
+                          }),
+                        true,
+                        !server ||
+                          (pairing ? !pairCode.trim() : !username || !password),
+                      )}
+                    </>
                   )}
                 </>
               )}
             </View>
           )}
-          {button(
-            t("trainingStart"),
-            () =>
-              void run(async () => {
-                await repo.startTraining();
-                go("sell");
-              }),
-            false,
-            false,
-            "start-training",
+          {!localSetup && (
+            <>
+              {button(
+                t("trainingStart"),
+                () =>
+                  void run(async () => {
+                    await repo.startTraining();
+                    go("sell");
+                  }),
+                false,
+                false,
+                "start-training",
+              )}
+              {help(t("trainingHelp"))}
+            </>
           )}
-          {help(t("trainingHelp"))}
         </>
       );
     if (screen === "language")
