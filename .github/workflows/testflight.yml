@@ -18,6 +18,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+      - name: Verify native PIN derivation
+        run: |
+          swiftc modules/posnic-security/apple/PosnicPinKey.swift tests/native/PinKeyTest.swift -o "$RUNNER_TEMP/pin-key-test"
+          "$RUNNER_TEMP/pin-key-test"
       - name: Generate iOS project
         run: |
           node -e 'const fs=require("fs"); const p="app.json"; const j=JSON.parse(fs.readFileSync(p)); j.expo.ios.buildNumber=String(100000+Number(process.env.GITHUB_RUN_NUMBER)*100+Number(process.env.GITHUB_RUN_ATTEMPT)); fs.writeFileSync(p,JSON.stringify(j,null,2));'

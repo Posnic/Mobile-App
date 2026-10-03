@@ -1,6 +1,7 @@
 import * as Crypto from "expo-crypto";
 import { z } from "zod";
 import { credentials } from "../platform/credentials";
+import { foreground } from "../platform/foreground";
 import { hmac } from "@noble/hashes/hmac.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils.js";
@@ -84,8 +85,8 @@ export async function authorizeAccount(
   const url = new URL(request.authorizationUrl);
   if (url.origin !== ACCOUNT_ORIGIN || url.pathname !== "/api/mobile/authorize")
     throw new Error("invalidServer");
-  await openBrowser(url.href, request.request.slice(-6).toUpperCase());
   const expires = Date.now() + request.expiresIn * 1000;
+  await openBrowser(url.href, request.request.slice(-6).toUpperCase());
   while (Date.now() < expires && !signal.aborted) {
     await new Promise<void>((resolve) => {
       const finish = () => {
@@ -96,6 +97,8 @@ export async function authorizeAccount(
       const timer = setTimeout(finish, 5000);
       signal.addEventListener("abort", finish, { once: true });
     });
+    await foreground(signal);
+    if (Date.now() >= expires) break;
     const data = await post("token", {
       request: request.request,
       codeVerifier: verifier,
@@ -175,6 +178,7 @@ async function findAuthorizedTill(
       .filter(privateApiAddress)
       .map((baseUrl) => ({ ...server, baseUrl })),
   );
+  if (!candidates.length) return null;
   const until = Date.now() + 22000;
   while (Date.now() < until && !signal.aborted) {
     const results = await Promise.all(

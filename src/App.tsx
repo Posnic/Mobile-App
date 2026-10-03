@@ -80,6 +80,7 @@ import { storageUsage } from "./platform/storageUsage";
 import { imageFiles, imageFetch } from "./platform/imageFiles";
 import { Brand } from "./components/Brand";
 import { authorizeAccount } from "./services/accountAuthorization";
+import { foreground } from "./platform/foreground";
 
 type Screen =
   | "sell"
@@ -1337,6 +1338,7 @@ function Till() {
                             },
                             controller.signal,
                           );
+                          await foreground(controller.signal);
                           const data = await new PosnicApi(
                             grant.baseUrl,
                           ).connect("", "", grant.code, true, grant.verifier);
