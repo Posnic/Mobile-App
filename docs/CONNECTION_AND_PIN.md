@@ -1,4 +1,4 @@
-# Connection and PIN unlock — 0.1.2
+# Connection and PIN unlock
 
 The setup screen has one server field with adjacent Wi-Fi discovery, QR scan and
 pairing-code icons. A shop code, hostname, private IP, full URL or supported
@@ -16,16 +16,29 @@ servers; they do not grant trust or bypass sign-in/capability checks.
 
 The remembered account (username, password, address and token) uses OS SecureStore
 on native devices. Set a 4–6 digit unlock PIN after login or under More. Mobile
-ports the local-unlock rules and scrypt parameters from POS/src/pin-lock.js; it does
+ports the local-unlock rules from POS/src/pin-lock.js; it does
 not reuse a manager approval PIN or transfer a desktop device's PIN record.
 
-PIN enrollment encrypts the remembered account with scrypt-derived AES-256-GCM,
+New native PIN enrollment uses PBKDF2-HMAC-SHA256 with 600,000 iterations on a
+background worker (CommonCrypto on iOS, Java crypto on Android). It encrypts the
+remembered account with AES-256-GCM,
 random salt/nonce and an install secret, then removes the unwrapped stored account
 and legacy token. Backgrounding or Lock now drops the unlocked key/token from the
 vault. The PIN never goes to the server. Five failed attempts require a fresh
 password login for the same shop, branch and staff identity; paid sales and the
 local database are retained. Existing OS-protected database encryption remains
 independent of the PIN. No biometric dependency is added.
+
+Records identify their key-derivation algorithm; existing untagged scrypt records
+retain the legacy derivation path. A failed first enrollment preserves the signed-in
+account and does not save a partial PIN. The first iOS pilot used the JavaScript
+scrypt path and could time out; the native module fixes new iOS enrollments.
+
+Cloud browser authorization waits for the mobile app to return to the foreground
+before exchanging the one-use grant or pairing with the shop. Safari background
+suspension must not consume a grant while the app cannot receive the response.
+Cancellation removes the foreground listener; returning after expiry requires a
+fresh authorization. The app does not blindly retry consumed one-use credentials.
 
 The browser preview keeps vault secrets in memory only. Native persistence and
 Wi-Fi discovery must be exercised on a phone; simulated discovery, SQLite,
