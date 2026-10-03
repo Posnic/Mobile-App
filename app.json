@@ -8,6 +8,9 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.posnic.mobile",
+      "appleTeamId": "VMG89YGXKR",
+      "version": "0.3.0",
+      "buildNumber": "1",
       "supportsTablet": true,
       "infoPlist": {
         "NSLocalNetworkUsageDescription": "Connect to your shop's Posnic till and printers.",

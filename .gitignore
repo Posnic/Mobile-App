@@ -13,5 +13,8 @@ test-results/
 *.keystore
 *.jks
 *.p12
+*.p8
+*.mobileprovision
+credentials.json
 
 artifacts/
