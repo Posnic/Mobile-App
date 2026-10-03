@@ -70,6 +70,30 @@ remain separate roadmap work. All language packs have every current
 mobile key; native-speaker review and physical-device font checks remain outstanding.
 See [language support](docs/LANGUAGES.md).
 
+## iPhone and iPad TestFlight builds
+
+Run the manually dispatched **iOS TestFlight** workflow in GitHub Actions. It runs
+the checks, generates the Expo iOS project on a Mac runner, signs an App Store
+archive and uploads it to Apple. It does not publish to the public App Store.
+
+The Apple app is `6818860892`, bundle `com.posnic.mobile`, team `VMG89YGXKR`.
+The pilot tester group is **Posnic POS Pilot**. After Apple finishes processing,
+resolve any export-compliance questions, assign the processed build to that group
+and verify that the tester is invited. An uploaded build alone is not confirmation
+that testers can install it.
+
+Required repository secrets: `IOS_CERT_P12` (base64), `IOS_CERT_PASSWORD`,
+`IOS_APPSTORE_PROVISIONING_PROFILE` (base64, specifically for `com.posnic.mobile`),
+`ASC_API_KEY_ID`, `ASC_API_ISSUER` and `ASC_API_KEY_P8`. Signing files stay outside
+the repository; the temporary Mac keychain and API-key file are cleaned after use.
+The workflow uses a unique numeric build number for each run/attempt. The separate
+numeric `ios.version` must be updated when releasing a new iOS marketing version.
+
+The iOS build uses the system print dialog and configured Till printing; the direct
+Bluetooth Classic/USB ESC/POS adapter is Android-only. Validate local-network
+permission, camera scanning, offline catalogue/sales, PIN and receipts on an iPhone
+before treating an uploaded build as production-ready.
+
 ## Checks
 
 ```sh
