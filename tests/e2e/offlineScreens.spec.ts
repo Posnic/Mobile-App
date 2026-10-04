@@ -90,8 +90,12 @@ test("large offline catalogue pages and exact code lookup include the final prod
     .fill("Final warehouse");
   await expect(page.getByTestId("item-large10016")).toBeVisible();
   await page.getByTestId("item-large10016").click();
+  // Wait for the first durable add before submitting a separate quick-code action.
+  await expect(page.getByTestId("view-cart")).toContainText("35");
+  await expect(page.getByTestId("view-cart")).toBeEnabled();
   await page.getByRole("textbox", { name: "Search items" }).fill("10016");
   await page.getByRole("textbox", { name: "Search items" }).press("Enter");
+  await expect(page.getByTestId("view-cart")).toContainText("70");
   await page.getByTestId("view-cart").click();
   await expect(
     page.getByText("Final warehouse item", { exact: true }),
