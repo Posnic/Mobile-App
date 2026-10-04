@@ -79,10 +79,12 @@ import {
 import { storageUsage } from "./platform/storageUsage";
 import { imageFiles, imageFetch } from "./platform/imageFiles";
 import { Brand } from "./components/Brand";
+import { PhotoOrders } from "./components/PhotoOrders";
 import { authorizeAccount } from "./services/accountAuthorization";
 import { foreground } from "./platform/foreground";
 
 type Screen =
+  | "photoOrders"
   | "sell"
   | "quick"
   | "cart"
@@ -1726,6 +1728,20 @@ function Till() {
         </>
       );
     if (!shop) return null;
+    if (screen === "photoOrders")
+      return (
+        <PhotoOrders
+          repo={repo}
+          shop={shop}
+          t={t}
+          back={() => go("sell")}
+          money={(value) => formatMoney(value, shop.currency, locale)}
+          imported={async () => {
+            await refresh();
+            go("cart");
+          }}
+        />
+      );
     switch (screen) {
       case "sell":
       case "quick": {
@@ -1789,6 +1805,9 @@ function Till() {
                   />
                   {iconButton("grid", t("code"), () => go("code"))}
                   {iconButton("maximize", t("scan"), () => go("scanner"))}
+                  {iconButton("camera", t("photoTitle"), () =>
+                    go("photoOrders"),
+                  )}
                 </View>
                 <View style={styles.searchRow}>
                   <ScrollView

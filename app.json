@@ -3,7 +3,7 @@
     "name": "Posnic POS",
     "slug": "posnic-mobile",
     "scheme": "com.posnic.mobile",
-    "version": "0.3.0-beta.15",
+    "version": "0.3.0-beta.16",
     "orientation": "default",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -22,7 +22,7 @@
     "android": {
       "package": "com.posnic.mobile",
       "permissions": ["CAMERA", "ACCESS_NETWORK_STATE", "ACCESS_WIFI_STATE"],
-      "versionCode": 24,
+      "versionCode": 25,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#2969AD"
@@ -38,7 +38,16 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Scan shop pairing codes and item barcodes."
+          "cameraPermission": "Scan shop codes, product labels and paper orders.",
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Choose a product label or paper order to read.",
+          "cameraPermission": "Photograph product labels and paper orders.",
+          "microphonePermission": false
         }
       ],
       "expo-localization",

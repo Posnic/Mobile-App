@@ -21,6 +21,7 @@ import { trainingItems, trainingShop } from "./training";
 import { resolveProductScan } from "../domain/scanning";
 import type { DirectPrintJob } from "../domain/types";
 import { receiptsToPrune, printNeedsAttention } from "../domain/retention";
+import { photoReady, photoScore, type PhotoDraft } from "../domain/photoOrders";
 
 export class Repository {
   private tail: Promise<unknown> = Promise.resolve();
@@ -371,6 +372,132 @@ export class Repository {
         });
       totals(cart.lines);
       await this.store.batch([{ key: "cart", value: cart }]);
+    });
+  }
+  photoScope(shop: Shop) {
+    return JSON.stringify([shop.mode, shop.id, shop.branchId, shop.staffId]);
+  }
+  async photoDraft(): Promise<PhotoDraft | null> {
+    return this.serial(async () => {
+      const shop = await this.authorized("sell");
+      const changes: Change[] = [];
+      for (const row of await this.store.list<PhotoDraft>("photo:"))
+        if (!(Date.parse(row.createdAt) + 7 * 86400000 > this.now()))
+          changes.push({ key: "photo:" + row.scope, value: null });
+      if (changes.length) await this.store.batch(changes);
+      return this.store.get<PhotoDraft>("photo:" + this.photoScope(shop));
+    });
+  }
+  async savePhotoDraft(draft: PhotoDraft, expectedRevision: number | null) {
+    return this.serial(async () => {
+      const shop = await this.authorized("sell");
+      if (draft.scope !== this.photoScope(shop))
+        throw Error("permissionDenied");
+      const key = "photo:" + draft.scope;
+      const previous = await this.store.get<PhotoDraft>(key);
+      if (
+        previous &&
+        Date.parse(previous.createdAt) + 7 * 86400000 > this.now() &&
+        (previous.id !== draft.id ||
+          previous.revision !== expectedRevision ||
+          previous.imported)
+      )
+        throw Error("photoChanged");
+      if (draft.image.length > 7000000 || draft.lines.length > 50)
+        throw Error("photoInvalid");
+      const next = { ...draft, revision: (expectedRevision ?? -1) + 1 };
+      await this.store.batch([{ key, value: next }]);
+      return next;
+    });
+  }
+  async discardPhotoDraft(id: string) {
+    return this.serial(async () => {
+      const shop = await this.authorized("sell");
+      const key = "photo:" + this.photoScope(shop);
+      const draft = await this.store.get<PhotoDraft>(key);
+      if (draft?.id !== id) throw Error("photoChanged");
+      await this.store.batch([{ key, value: null }]);
+    });
+  }
+  async matchPhotoProducts(text: string): Promise<Item[]> {
+    await this.authorized("sell");
+    const candidates: { item: Item; score: number }[] = [];
+    // Search every local item in bounded pages, not only the visible catalogue page.
+    let offset = 0;
+    for (;;) {
+      const page = await this.catalogue({ offset, limit: 256 });
+      for (const item of page.items) {
+        const score = photoScore(item, text);
+        if (score > 0) candidates.push({ item, score });
+      }
+      candidates.sort(
+        (a, b) => b.score - a.score || a.item.name.localeCompare(b.item.name),
+      );
+      candidates.length = Math.min(candidates.length, 8);
+      offset += page.items.length;
+      if (!page.items.length || offset >= page.total) break;
+    }
+    return candidates.map((c) => c.item);
+  }
+  async importPhotoDraft(id: string, revision: number) {
+    return this.serial(async () => {
+      const shop = await this.authorized("sell");
+      const key = "photo:" + this.photoScope(shop);
+      const draft = await this.store.get<PhotoDraft>(key);
+      if (!draft || draft.id !== id) throw Error("photoChanged");
+      if (draft.imported) return draft.imported;
+      if (draft.revision !== revision || !photoReady(draft))
+        throw Error("photoReviewRequired");
+      if (Date.parse(draft.createdAt) + 7 * 86400000 <= this.now())
+        throw Error("photoChanged");
+      const cart = (await this.store.get<Cart>("cart")) ?? this.newCart();
+      for (const row of draft.lines.filter((l) => !l.excluded)) {
+        const item = await this.store.get<Item>("item:" + row.item!.id);
+        if (
+          !item ||
+          !item.active ||
+          item.requiresConfiguration ||
+          [
+            "name",
+            "price",
+            "taxBps",
+            "taxInclusive",
+            "quantityScale",
+            "unit",
+          ].some((k) => item[k as keyof Item] !== row.item![k as keyof Item])
+        )
+          throw Error("catalogueChanged");
+        const line: Line = {
+          id: this.uuid(),
+          itemId: item.id,
+          name: item.name,
+          quantity: row.quantity!,
+          quantityScale: item.quantityScale,
+          unit: item.unit,
+          price: item.price,
+          taxBps: item.taxBps,
+          taxInclusive: item.taxInclusive,
+          snapshotVersion: shop.snapshotVersion,
+          offlineUntil: shop.offlineUntil,
+        };
+        totals([line]);
+        cart.lines.push(line);
+      }
+      totals(cart.lines);
+      // One durable commit: crash/retry cannot import the same capture twice.
+      await this.store.batch([
+        { key: "cart", value: cart },
+        {
+          key,
+          value: {
+            ...draft,
+            image: "",
+            imported: cart.id,
+            revision: draft.revision + 1,
+          },
+        },
+      ]);
+      return cart.id;
     });
   }
   async scanItem(input: string): Promise<Item> {
