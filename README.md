@@ -1,5 +1,7 @@
 # Posnic Mobile POS
 
+**[Download the latest Android build](https://github.com/Posnic/Mobile-App/releases)** — open the newest release and download its `.apk` under **Assets**. Beta builds are included.
+
 A dedicated mobile till for Posnic, built with React Native, Expo and TypeScript.
 This is an **independent offline counter beta for pilot testing**.
 Start with **Try a training shop**. Practice transactions stay
