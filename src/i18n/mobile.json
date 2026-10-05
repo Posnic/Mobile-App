@@ -260,7 +260,9 @@
     "photoImported": "பொருட்கள் ஏற்கனவே சேர்க்கப்பட்டன. மீண்டும் முயன்றால் நகல் சேராது.",
     "photoNew": "மற்றொரு படத்தைத் தொடங்கு",
     "photoChanged": "வரைவு மாறியுள்ளது. சேமித்ததைப் பார்க்க புகைப்படக் கருவிகளை மீண்டும் திறக்கவும்.",
-    "photoReviewRequired": "சேர்ப்பதற்கு முன் ஒவ்வொரு பொருள் மற்றும் அளவை உறுதிப்படுத்தவும்."
+    "photoReviewRequired": "சேர்ப்பதற்கு முன் ஒவ்வொரு பொருள் மற்றும் அளவை உறுதிப்படுத்தவும்.",
+    "privacyPolicy": "தனியுரிமைக் கொள்கை",
+    "deleteAccountRequest": "கணக்கு அல்லது தரவை நீக்கக் கோருங்கள்"
   },
   "hi": {
     "name": "नाम",
@@ -521,7 +523,9 @@
     "photoImported": "ये उत्पाद जुड़ चुके हैं। फिर प्रयास करने से दूसरी प्रति नहीं जुड़ेगी।",
     "photoNew": "नई फ़ोटो शुरू करें",
     "photoChanged": "मसौदा बदल गया। सहेजा संस्करण देखने के लिए फ़ोटो उपकरण फिर खोलें।",
-    "photoReviewRequired": "जोड़ने से पहले हर उत्पाद और मात्रा की पुष्टि करें।"
+    "photoReviewRequired": "जोड़ने से पहले हर उत्पाद और मात्रा की पुष्टि करें।",
+    "privacyPolicy": "गोपनीयता नीति",
+    "deleteAccountRequest": "खाता या डेटा हटाने का अनुरोध करें"
   },
   "ml": {
     "name": "പേര്",
@@ -782,7 +786,9 @@
     "photoImported": "ഇതിനകം ചേർത്തു. വീണ്ടും ശ്രമിച്ചാൽ പകർപ്പ് ചേർക്കില്ല.",
     "photoNew": "മറ്റൊരു ഫോട്ടോ തുടങ്ങുക",
     "photoChanged": "കരട് മാറി. ഫോട്ടോ ഉപകരണങ്ങൾ വീണ്ടും തുറക്കുക.",
-    "photoReviewRequired": "ചേർക്കുന്നതിനുമുമ്പ് ഓരോ ഉൽപ്പന്നവും അളവും സ്ഥിരീകരിക്കുക."
+    "photoReviewRequired": "ചേർക്കുന്നതിനുമുമ്പ് ഓരോ ഉൽപ്പന്നവും അളവും സ്ഥിരീകരിക്കുക.",
+    "privacyPolicy": "സ്വകാര്യതാ നയം",
+    "deleteAccountRequest": "അക്കൗണ്ടോ ഡാറ്റയോ നീക്കം ചെയ്യാൻ അഭ്യർത്ഥിക്കുക"
   },
   "kn": {
     "name": "ಹೆಸರು",
@@ -1043,7 +1049,9 @@
     "photoImported": "ಈಗಾಗಲೇ ಸೇರಿಸಲಾಗಿದೆ. ಮರುಪ್ರಯತ್ನ ನಕಲು ಸೇರಿಸುವುದಿಲ್ಲ.",
     "photoNew": "ಮತ್ತೊಂದು ಫೋಟೋ ಪ್ರಾರಂಭಿಸಿ",
     "photoChanged": "ಕರಡು ಬದಲಾಗಿದೆ. ಫೋಟೋ ಸಾಧನಗಳನ್ನು ಮತ್ತೆ ತೆರೆಯಿರಿ.",
-    "photoReviewRequired": "ಸೇರಿಸುವ ಮೊದಲು ಪ್ರತಿ ಉತ್ಪನ್ನ ಮತ್ತು ಪ್ರಮಾಣ ದೃಢಪಡಿಸಿ."
+    "photoReviewRequired": "ಸೇರಿಸುವ ಮೊದಲು ಪ್ರತಿ ಉತ್ಪನ್ನ ಮತ್ತು ಪ್ರಮಾಣ ದೃಢಪಡಿಸಿ.",
+    "privacyPolicy": "ಗೌಪ್ಯತಾ ನೀತಿ",
+    "deleteAccountRequest": "ಖಾತೆ ಅಥವಾ ಡೇಟಾ ಅಳಿಸಲು ವಿನಂತಿಸಿ"
   },
   "te": {
     "name": "పేరు",
@@ -1304,7 +1312,9 @@
     "photoImported": "ఇప్పటికే చేర్చబడ్డాయి. మళ్లీ ప్రయత్నిస్తే నకలు చేరదు.",
     "photoNew": "మరో ఫోటో ప్రారంభించు",
     "photoChanged": "ముసాయిదా మారింది. ఫోటో సాధనాలను మళ్లీ తెరవండి.",
-    "photoReviewRequired": "చేర్చేముందు ప్రతి ఉత్పత్తి మరియు పరిమాణం నిర్ధారించండి."
+    "photoReviewRequired": "చేర్చేముందు ప్రతి ఉత్పత్తి మరియు పరిమాణం నిర్ధారించండి.",
+    "privacyPolicy": "గోప్యతా విధానం",
+    "deleteAccountRequest": "ఖాతా లేదా డేటా తొలగింపును అభ్యర్థించండి"
   },
   "si": {
     "name": "නම",
@@ -1565,7 +1575,9 @@
     "photoImported": "දැනටමත් එක් කර ඇත. නැවත උත්සාහයෙන් පිටපතක් එක් නොවේ.",
     "photoNew": "වෙනත් ඡායාරූපයක් අරඹන්න",
     "photoChanged": "කෙටුම්පත වෙනස් විය. ඡායාරූප මෙවලම් නැවත විවෘත කරන්න.",
-    "photoReviewRequired": "එක් කිරීමට පෙර සෑම භාණ්ඩයක් හා ප්‍රමාණයක් තහවුරු කරන්න."
+    "photoReviewRequired": "එක් කිරීමට පෙර සෑම භාණ්ඩයක් හා ප්‍රමාණයක් තහවුරු කරන්න.",
+    "privacyPolicy": "පෞද්ගලිකත්ව ප්‍රතිපත්තිය",
+    "deleteAccountRequest": "ගිණුම හෝ දත්ත මකා දැමීමට ඉල්ලන්න"
   },
   "ne": {
     "name": "नाम",
@@ -1826,7 +1838,9 @@
     "photoImported": "वस्तु पहिले नै थपिएका छन्। फेरि प्रयास गर्दा दोहोरिँदैन।",
     "photoNew": "अर्को फोटो सुरु गर्नुहोस्",
     "photoChanged": "मस्यौदा बदलियो। फोटो उपकरण फेरि खोल्नुहोस्।",
-    "photoReviewRequired": "थप्नुअघि हरेक वस्तु र मात्रा पुष्टि गर्नुहोस्।"
+    "photoReviewRequired": "थप्नुअघि हरेक वस्तु र मात्रा पुष्टि गर्नुहोस्।",
+    "privacyPolicy": "गोपनीयता नीति",
+    "deleteAccountRequest": "खाता वा डाटा हटाउन अनुरोध गर्नुहोस्"
   },
   "ar": {
     "name": "الاسم",
@@ -2088,7 +2102,9 @@
     "photoImported": "أضيفت المنتجات بالفعل. إعادة المحاولة لا تنشئ نسخة أخرى.",
     "photoNew": "بدء صورة أخرى",
     "photoChanged": "تغيرت المسودة. أعد فتح أدوات الصور.",
-    "photoReviewRequired": "أكد كل منتج وكمية قبل الإضافة."
+    "photoReviewRequired": "أكد كل منتج وكمية قبل الإضافة.",
+    "privacyPolicy": "سياسة الخصوصية",
+    "deleteAccountRequest": "طلب حذف الحساب أو البيانات"
   },
   "fr": {
     "name": "Nom",
@@ -2349,7 +2365,9 @@
     "photoImported": "Produits déjà ajoutés. Un nouvel essai ne crée pas de doublon.",
     "photoNew": "Commencer une autre photo",
     "photoChanged": "Le brouillon a changé. Rouvrez les outils photo.",
-    "photoReviewRequired": "Confirmez chaque produit et quantité avant l’ajout."
+    "photoReviewRequired": "Confirmez chaque produit et quantité avant l’ajout.",
+    "privacyPolicy": "Politique de confidentialité",
+    "deleteAccountRequest": "Demander la suppression du compte ou des données"
   },
   "es": {
     "name": "Nombre",
@@ -2610,7 +2628,9 @@
     "photoImported": "Productos ya añadidos. Reintentar no crea otra copia.",
     "photoNew": "Comenzar otra foto",
     "photoChanged": "El borrador cambió. Abre de nuevo las herramientas de foto.",
-    "photoReviewRequired": "Confirma cada producto y cantidad antes de añadir."
+    "photoReviewRequired": "Confirma cada producto y cantidad antes de añadir.",
+    "privacyPolicy": "Política de privacidad",
+    "deleteAccountRequest": "Solicitar la eliminación de la cuenta o los datos"
   },
   "pt": {
     "name": "Nome",
@@ -2871,7 +2891,9 @@
     "photoImported": "Produtos já adicionados. Tentar novamente não cria cópia.",
     "photoNew": "Começar outra foto",
     "photoChanged": "O rascunho mudou. Reabra as ferramentas de foto.",
-    "photoReviewRequired": "Confirme cada produto e quantidade antes de adicionar."
+    "photoReviewRequired": "Confirme cada produto e quantidade antes de adicionar.",
+    "privacyPolicy": "Política de privacidade",
+    "deleteAccountRequest": "Solicitar a exclusão da conta ou dos dados"
   },
   "id": {
     "name": "Nama",
@@ -3132,7 +3154,9 @@
     "photoImported": "Produk sudah ditambahkan. Percobaan ulang tidak menggandakan.",
     "photoNew": "Mulai foto baru",
     "photoChanged": "Draf berubah. Buka kembali alat foto.",
-    "photoReviewRequired": "Konfirmasi setiap produk dan jumlah sebelum menambahkan."
+    "photoReviewRequired": "Konfirmasi setiap produk dan jumlah sebelum menambahkan.",
+    "privacyPolicy": "Kebijakan privasi",
+    "deleteAccountRequest": "Minta penghapusan akun atau data"
   },
   "th": {
     "name": "ชื่อ",
@@ -3393,7 +3417,9 @@
     "photoImported": "เพิ่มสินค้าแล้ว ลองใหม่จะไม่เพิ่มซ้ำ",
     "photoNew": "เริ่มรูปใหม่",
     "photoChanged": "ฉบับร่างเปลี่ยนแล้ว เปิดเครื่องมือรูปภาพใหม่",
-    "photoReviewRequired": "ยืนยันทุกสินค้าและจำนวนก่อนเพิ่ม"
+    "photoReviewRequired": "ยืนยันทุกสินค้าและจำนวนก่อนเพิ่ม",
+    "privacyPolicy": "นโยบายความเป็นส่วนตัว",
+    "deleteAccountRequest": "ขอลบบัญชีหรือข้อมูล"
   },
   "de": {
     "name": "Name",
@@ -3654,7 +3680,9 @@
     "photoImported": "Bereits hinzugefügt. Erneuter Versuch erzeugt keine Kopie.",
     "photoNew": "Weiteres Foto beginnen",
     "photoChanged": "Entwurf geändert. Fotowerkzeuge erneut öffnen.",
-    "photoReviewRequired": "Vor dem Hinzufügen jedes Produkt und jede Menge bestätigen."
+    "photoReviewRequired": "Vor dem Hinzufügen jedes Produkt und jede Menge bestätigen.",
+    "privacyPolicy": "Datenschutzerklärung",
+    "deleteAccountRequest": "Löschung des Kontos oder der Daten beantragen"
   },
   "sw": {
     "name": "Jina",
@@ -3915,7 +3943,9 @@
     "photoImported": "Bidhaa tayari zimeongezwa. Kurudia hakuongezi nakala.",
     "photoNew": "Anza picha nyingine",
     "photoChanged": "Rasimu imebadilika. Fungua zana za picha tena.",
-    "photoReviewRequired": "Thibitisha kila bidhaa na kiasi kabla ya kuongeza."
+    "photoReviewRequired": "Thibitisha kila bidhaa na kiasi kabla ya kuongeza.",
+    "privacyPolicy": "Sera ya faragha",
+    "deleteAccountRequest": "Omba kufutwa kwa akaunti au data"
   },
   "nl": {
     "name": "Naam",
@@ -4176,7 +4206,9 @@
     "photoImported": "Al toegevoegd. Opnieuw proberen maakt geen kopie.",
     "photoNew": "Nieuwe foto beginnen",
     "photoChanged": "Concept gewijzigd. Open de fotohulpmiddelen opnieuw.",
-    "photoReviewRequired": "Bevestig elk product en elke hoeveelheid vóór toevoegen."
+    "photoReviewRequired": "Bevestig elk product en elke hoeveelheid vóór toevoegen.",
+    "privacyPolicy": "Privacybeleid",
+    "deleteAccountRequest": "Verwijdering van account of gegevens aanvragen"
   },
   "it": {
     "name": "Nome",
@@ -4437,6 +4469,8 @@
     "photoImported": "Prodotti già aggiunti. Riprovare non crea duplicati.",
     "photoNew": "Inizia un’altra foto",
     "photoChanged": "Bozza modificata. Riapri gli strumenti foto.",
-    "photoReviewRequired": "Conferma ogni prodotto e quantità prima di aggiungere."
+    "photoReviewRequired": "Conferma ogni prodotto e quantità prima di aggiungere.",
+    "privacyPolicy": "Informativa sulla privacy",
+    "deleteAccountRequest": "Richiedi la cancellazione dell’account o dei dati"
   }
 }

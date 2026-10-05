@@ -3418,6 +3418,25 @@ function Till() {
 
             {menu("database", t("offlineData"), "offlineData")}
 
+            {button(
+              t("privacyPolicy"),
+              () =>
+                void run(() =>
+                  Linking.openURL(
+                    "https://github.com/Posnic/Mobile-App/blob/main/docs/PRIVACY.md",
+                  ),
+                ),
+            )}
+            {button(
+              t("deleteAccountRequest"),
+              () =>
+                void run(() =>
+                  Linking.openURL(
+                    "https://github.com/Posnic/Mobile-App/blob/main/docs/PRIVACY.md#access-deletion-and-account-requests",
+                  ),
+                ),
+            )}
+
             {help(shop.mode === "training" ? t("trainingHelp") : shop.name)}
             {shop.mode === "training" &&
               menu("log-out", t("leaveTraining"), "leaveTraining")}
