@@ -51,7 +51,7 @@ import { languages } from "./i18n/registry";
 import { PosnicApi, type ServerReceipt } from "./services/api";
 
 import { SyncWorker } from "./services/sync";
-import { parseServerInput } from "./services/serverAddress";
+import { isLocalServer, parseServerInput } from "./services/serverAddress";
 import { discoverServers, type DiscoveredServer } from "./services/discovery";
 import { wifiAddress } from "./platform/wifi";
 import * as Network from "expo-network";
@@ -252,6 +252,7 @@ function Till() {
   const [searchProgress, setSearchProgress] = useState(0);
   const discovery = useRef<AbortController | null>(null);
   const [syncing, setSyncing] = useState(false);
+  const [refreshingList, setRefreshingList] = useState(false);
   const syncLock = useRef(false);
   const [connectionError, setConnectionError] = useState("");
   const [changingServer, setChangingServer] = useState(false);
@@ -528,11 +529,14 @@ function Till() {
     [worker, repo, locked],
   );
   const refreshList = useCallback(async () => {
-    if (actionLock.current || locked) return;
+    if (actionLock.current || locked || syncLock.current) return;
+    setRefreshingList(true);
     try {
       await syncNow(true);
     } catch {
       setError("storageUnavailable");
+    } finally {
+      setRefreshingList(false);
     }
   }, [syncNow, locked]);
   const refreshable =
@@ -2843,7 +2847,9 @@ function Till() {
             {heading(t("serverSettings"))}
             {row(t("server"), shop.baseUrl ?? "")}
             {row(t("username"), shop.staffName)}
-            {help(t("wifiRequired"))}
+            {shop.baseUrl &&
+              isLocalServer(shop.baseUrl) &&
+              help(t("wifiRequired"))}
             {connectionError && message(t(connectionError))}
             {button(
               t(syncing ? "reconnecting" : "syncNow"),
@@ -3510,9 +3516,13 @@ function Till() {
               <View style={styles.message} accessibilityLiveRegion="polite">
                 <Text style={styles.small}>
                   {connectionError ? t(connectionError) + " · " : ""}
-                  {
-                    state?.outbox.filter((e) => e.state === "pending").length
-                  }{" "}
+                  {connectionError === "networkError" &&
+                  shop.baseUrl &&
+                  isLocalServer(shop.baseUrl) &&
+                  !shop.connection?.remote
+                    ? t("wifiRequired") + " · "
+                    : ""}
+                  {state?.outbox.filter((e) => e.state === "pending").length}{" "}
                   {t("waitingToSend")} · {t("keepSelling")}
                 </Text>
               </View>
@@ -3547,7 +3557,7 @@ function Till() {
             refreshControl={
               refreshable ? (
                 <RefreshControl
-                  refreshing={syncing}
+                  refreshing={refreshingList}
                   enabled={!busy}
                   onRefresh={() => void refreshList()}
                   tintColor={palette.accent}
