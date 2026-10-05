@@ -262,7 +262,10 @@
     "photoChanged": "வரைவு மாறியுள்ளது. சேமித்ததைப் பார்க்க புகைப்படக் கருவிகளை மீண்டும் திறக்கவும்.",
     "photoReviewRequired": "சேர்ப்பதற்கு முன் ஒவ்வொரு பொருள் மற்றும் அளவை உறுதிப்படுத்தவும்.",
     "privacyPolicy": "தனியுரிமைக் கொள்கை",
-    "deleteAccountRequest": "கணக்கு அல்லது தரவை நீக்கக் கோருங்கள்"
+    "deleteAccountRequest": "கணக்கு அல்லது தரவை நீக்கக் கோருங்கள்",
+    "reconnectCloud": "Posnic Cloud உடன் மீண்டும் இணைக்கவும்",
+    "reconnectCloudHelp": "Posnic Cloud உள்நுழைவுக்குத் திரும்பி உலாவியில் இந்தத் தொலைபேசியை அனுமதிக்கவும். உள்ளூர் சேவையக முகவரியோ கடவுச்சொல்லோ தேவையில்லை.",
+    "serverSignIn": "இந்தச் சேவையகத்தில் மீண்டும் உள்நுழையவும்"
   },
   "hi": {
     "name": "नाम",
@@ -525,7 +528,10 @@
     "photoChanged": "मसौदा बदल गया। सहेजा संस्करण देखने के लिए फ़ोटो उपकरण फिर खोलें।",
     "photoReviewRequired": "जोड़ने से पहले हर उत्पाद और मात्रा की पुष्टि करें।",
     "privacyPolicy": "गोपनीयता नीति",
-    "deleteAccountRequest": "खाता या डेटा हटाने का अनुरोध करें"
+    "deleteAccountRequest": "खाता या डेटा हटाने का अनुरोध करें",
+    "reconnectCloud": "Posnic Cloud से दोबारा जुड़ें",
+    "reconnectCloudHelp": "Posnic Cloud में साइन इन करके ब्राउज़र में इस फ़ोन को अनुमति दें। स्थानीय सर्वर का पता या पासवर्ड आवश्यक नहीं है।",
+    "serverSignIn": "इस सर्वर में दोबारा साइन इन करें"
   },
   "ml": {
     "name": "പേര്",
@@ -788,7 +794,10 @@
     "photoChanged": "കരട് മാറി. ഫോട്ടോ ഉപകരണങ്ങൾ വീണ്ടും തുറക്കുക.",
     "photoReviewRequired": "ചേർക്കുന്നതിനുമുമ്പ് ഓരോ ഉൽപ്പന്നവും അളവും സ്ഥിരീകരിക്കുക.",
     "privacyPolicy": "സ്വകാര്യതാ നയം",
-    "deleteAccountRequest": "അക്കൗണ്ടോ ഡാറ്റയോ നീക്കം ചെയ്യാൻ അഭ്യർത്ഥിക്കുക"
+    "deleteAccountRequest": "അക്കൗണ്ടോ ഡാറ്റയോ നീക്കം ചെയ്യാൻ അഭ്യർത്ഥിക്കുക",
+    "reconnectCloud": "Posnic Cloud-ലേക്ക് വീണ്ടും ബന്ധിപ്പിക്കുക",
+    "reconnectCloudHelp": "Posnic Cloud-ൽ സൈൻ ഇൻ ചെയ്ത് ബ്രൗസറിൽ ഈ ഫോണിന് അനുമതി നൽകുക. പ്രാദേശിക സെർവർ വിലാസമോ പാസ്‌വേഡോ ആവശ്യമില്ല.",
+    "serverSignIn": "ഈ സെർവറിൽ വീണ്ടും സൈൻ ഇൻ ചെയ്യുക"
   },
   "kn": {
     "name": "ಹೆಸರು",
@@ -1051,7 +1060,10 @@
     "photoChanged": "ಕರಡು ಬದಲಾಗಿದೆ. ಫೋಟೋ ಸಾಧನಗಳನ್ನು ಮತ್ತೆ ತೆರೆಯಿರಿ.",
     "photoReviewRequired": "ಸೇರಿಸುವ ಮೊದಲು ಪ್ರತಿ ಉತ್ಪನ್ನ ಮತ್ತು ಪ್ರಮಾಣ ದೃಢಪಡಿಸಿ.",
     "privacyPolicy": "ಗೌಪ್ಯತಾ ನೀತಿ",
-    "deleteAccountRequest": "ಖಾತೆ ಅಥವಾ ಡೇಟಾ ಅಳಿಸಲು ವಿನಂತಿಸಿ"
+    "deleteAccountRequest": "ಖಾತೆ ಅಥವಾ ಡೇಟಾ ಅಳಿಸಲು ವಿನಂತಿಸಿ",
+    "reconnectCloud": "Posnic Cloud ಗೆ ಮತ್ತೆ ಸಂಪರ್ಕಿಸಿ",
+    "reconnectCloudHelp": "Posnic Cloud ಗೆ ಸೈನ್ ಇನ್ ಮಾಡಿ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಈ ಫೋನ್‌ಗೆ ಅನುಮತಿ ನೀಡಿ. ಸ್ಥಳೀಯ ಸರ್ವರ್ ವಿಳಾಸ ಅಥವಾ ಪಾಸ್‌ವರ್ಡ್ ಅಗತ್ಯವಿಲ್ಲ.",
+    "serverSignIn": "ಈ ಸರ್ವರ್‌ಗೆ ಮತ್ತೆ ಸೈನ್ ಇನ್ ಮಾಡಿ"
   },
   "te": {
     "name": "పేరు",
@@ -1314,7 +1326,10 @@
     "photoChanged": "ముసాయిదా మారింది. ఫోటో సాధనాలను మళ్లీ తెరవండి.",
     "photoReviewRequired": "చేర్చేముందు ప్రతి ఉత్పత్తి మరియు పరిమాణం నిర్ధారించండి.",
     "privacyPolicy": "గోప్యతా విధానం",
-    "deleteAccountRequest": "ఖాతా లేదా డేటా తొలగింపును అభ్యర్థించండి"
+    "deleteAccountRequest": "ఖాతా లేదా డేటా తొలగింపును అభ్యర్థించండి",
+    "reconnectCloud": "Posnic Cloud కు మళ్లీ కనెక్ట్ చేయండి",
+    "reconnectCloudHelp": "Posnic Cloud లో సైన్ ఇన్ చేసి బ్రౌజర్‌లో ఈ ఫోన్‌కు అనుమతి ఇవ్వండి. స్థానిక సర్వర్ చిరునామా లేదా పాస్‌వర్డ్ అవసరం లేదు.",
+    "serverSignIn": "ఈ సర్వర్‌లో మళ్లీ సైన్ ఇన్ చేయండి"
   },
   "si": {
     "name": "නම",
@@ -1577,7 +1592,10 @@
     "photoChanged": "කෙටුම්පත වෙනස් විය. ඡායාරූප මෙවලම් නැවත විවෘත කරන්න.",
     "photoReviewRequired": "එක් කිරීමට පෙර සෑම භාණ්ඩයක් හා ප්‍රමාණයක් තහවුරු කරන්න.",
     "privacyPolicy": "පෞද්ගලිකත්ව ප්‍රතිපත්තිය",
-    "deleteAccountRequest": "ගිණුම හෝ දත්ත මකා දැමීමට ඉල්ලන්න"
+    "deleteAccountRequest": "ගිණුම හෝ දත්ත මකා දැමීමට ඉල්ලන්න",
+    "reconnectCloud": "Posnic Cloud වෙත නැවත සම්බන්ධ වන්න",
+    "reconnectCloudHelp": "Posnic Cloud වෙත පිවිස බ්‍රවුසරයෙන් මෙම දුරකථනයට අවසර දෙන්න. දේශීය සේවාදායක ලිපිනයක් හෝ මුරපදයක් අවශ්‍ය නොවේ.",
+    "serverSignIn": "මෙම සේවාදායකයට නැවත පිවිසෙන්න"
   },
   "ne": {
     "name": "नाम",
@@ -1840,7 +1858,10 @@
     "photoChanged": "मस्यौदा बदलियो। फोटो उपकरण फेरि खोल्नुहोस्।",
     "photoReviewRequired": "थप्नुअघि हरेक वस्तु र मात्रा पुष्टि गर्नुहोस्।",
     "privacyPolicy": "गोपनीयता नीति",
-    "deleteAccountRequest": "खाता वा डाटा हटाउन अनुरोध गर्नुहोस्"
+    "deleteAccountRequest": "खाता वा डाटा हटाउन अनुरोध गर्नुहोस्",
+    "reconnectCloud": "Posnic Cloud सँग फेरि जोडिनुहोस्",
+    "reconnectCloudHelp": "Posnic Cloud मा साइन इन गरेर ब्राउजरमा यस फोनलाई अनुमति दिनुहोस्। स्थानीय सर्भरको ठेगाना वा पासवर्ड चाहिँदैन।",
+    "serverSignIn": "यस सर्भरमा फेरि साइन इन गर्नुहोस्"
   },
   "ar": {
     "name": "الاسم",
@@ -2104,7 +2125,10 @@
     "photoChanged": "تغيرت المسودة. أعد فتح أدوات الصور.",
     "photoReviewRequired": "أكد كل منتج وكمية قبل الإضافة.",
     "privacyPolicy": "سياسة الخصوصية",
-    "deleteAccountRequest": "طلب حذف الحساب أو البيانات"
+    "deleteAccountRequest": "طلب حذف الحساب أو البيانات",
+    "reconnectCloud": "إعادة الاتصال بـ Posnic Cloud",
+    "reconnectCloudHelp": "عُد إلى تسجيل الدخول إلى Posnic Cloud وامنح هذا الهاتف الإذن في المتصفح. لا تحتاج إلى عنوان خادم محلي أو كلمة مروره.",
+    "serverSignIn": "تسجيل الدخول مجددًا إلى هذا الخادم"
   },
   "fr": {
     "name": "Nom",
@@ -2367,7 +2391,10 @@
     "photoChanged": "Le brouillon a changé. Rouvrez les outils photo.",
     "photoReviewRequired": "Confirmez chaque produit et quantité avant l’ajout.",
     "privacyPolicy": "Politique de confidentialité",
-    "deleteAccountRequest": "Demander la suppression du compte ou des données"
+    "deleteAccountRequest": "Demander la suppression du compte ou des données",
+    "reconnectCloud": "Se reconnecter à Posnic Cloud",
+    "reconnectCloudHelp": "Reconnectez-vous à Posnic Cloud et autorisez ce téléphone dans votre navigateur. Aucune adresse ni aucun mot de passe de serveur local ne sont nécessaires.",
+    "serverSignIn": "Se reconnecter à ce serveur"
   },
   "es": {
     "name": "Nombre",
@@ -2630,7 +2657,10 @@
     "photoChanged": "El borrador cambió. Abre de nuevo las herramientas de foto.",
     "photoReviewRequired": "Confirma cada producto y cantidad antes de añadir.",
     "privacyPolicy": "Política de privacidad",
-    "deleteAccountRequest": "Solicitar la eliminación de la cuenta o los datos"
+    "deleteAccountRequest": "Solicitar la eliminación de la cuenta o los datos",
+    "reconnectCloud": "Volver a conectar con Posnic Cloud",
+    "reconnectCloudHelp": "Inicia sesión en Posnic Cloud y autoriza este teléfono en tu navegador. No necesitas la dirección ni la contraseña de un servidor local.",
+    "serverSignIn": "Volver a iniciar sesión en este servidor"
   },
   "pt": {
     "name": "Nome",
@@ -2893,7 +2923,10 @@
     "photoChanged": "O rascunho mudou. Reabra as ferramentas de foto.",
     "photoReviewRequired": "Confirme cada produto e quantidade antes de adicionar.",
     "privacyPolicy": "Política de privacidade",
-    "deleteAccountRequest": "Solicitar a exclusão da conta ou dos dados"
+    "deleteAccountRequest": "Solicitar a exclusão da conta ou dos dados",
+    "reconnectCloud": "Reconectar ao Posnic Cloud",
+    "reconnectCloudHelp": "Entre no Posnic Cloud e autorize este telefone no navegador. Não é necessário o endereço nem a senha de um servidor local.",
+    "serverSignIn": "Entrar novamente neste servidor"
   },
   "id": {
     "name": "Nama",
@@ -3156,7 +3189,10 @@
     "photoChanged": "Draf berubah. Buka kembali alat foto.",
     "photoReviewRequired": "Konfirmasi setiap produk dan jumlah sebelum menambahkan.",
     "privacyPolicy": "Kebijakan privasi",
-    "deleteAccountRequest": "Minta penghapusan akun atau data"
+    "deleteAccountRequest": "Minta penghapusan akun atau data",
+    "reconnectCloud": "Hubungkan kembali ke Posnic Cloud",
+    "reconnectCloudHelp": "Masuk ke Posnic Cloud dan izinkan ponsel ini melalui browser. Alamat atau kata sandi server lokal tidak diperlukan.",
+    "serverSignIn": "Masuk kembali ke server ini"
   },
   "th": {
     "name": "ชื่อ",
@@ -3419,7 +3455,10 @@
     "photoChanged": "ฉบับร่างเปลี่ยนแล้ว เปิดเครื่องมือรูปภาพใหม่",
     "photoReviewRequired": "ยืนยันทุกสินค้าและจำนวนก่อนเพิ่ม",
     "privacyPolicy": "นโยบายความเป็นส่วนตัว",
-    "deleteAccountRequest": "ขอลบบัญชีหรือข้อมูล"
+    "deleteAccountRequest": "ขอลบบัญชีหรือข้อมูล",
+    "reconnectCloud": "เชื่อมต่อกับ Posnic Cloud อีกครั้ง",
+    "reconnectCloudHelp": "เข้าสู่ระบบ Posnic Cloud แล้วอนุญาตโทรศัพท์เครื่องนี้ในเบราว์เซอร์ ไม่ต้องใช้ที่อยู่หรือรหัสผ่านของเซิร์ฟเวอร์ภายใน",
+    "serverSignIn": "เข้าสู่ระบบเซิร์ฟเวอร์นี้อีกครั้ง"
   },
   "de": {
     "name": "Name",
@@ -3682,7 +3721,10 @@
     "photoChanged": "Entwurf geändert. Fotowerkzeuge erneut öffnen.",
     "photoReviewRequired": "Vor dem Hinzufügen jedes Produkt und jede Menge bestätigen.",
     "privacyPolicy": "Datenschutzerklärung",
-    "deleteAccountRequest": "Löschung des Kontos oder der Daten beantragen"
+    "deleteAccountRequest": "Löschung des Kontos oder der Daten beantragen",
+    "reconnectCloud": "Erneut mit Posnic Cloud verbinden",
+    "reconnectCloudHelp": "Melden Sie sich bei Posnic Cloud an und autorisieren Sie dieses Telefon im Browser. Adresse und Passwort eines lokalen Servers sind nicht erforderlich.",
+    "serverSignIn": "Erneut bei diesem Server anmelden"
   },
   "sw": {
     "name": "Jina",
@@ -3945,7 +3987,10 @@
     "photoChanged": "Rasimu imebadilika. Fungua zana za picha tena.",
     "photoReviewRequired": "Thibitisha kila bidhaa na kiasi kabla ya kuongeza.",
     "privacyPolicy": "Sera ya faragha",
-    "deleteAccountRequest": "Omba kufutwa kwa akaunti au data"
+    "deleteAccountRequest": "Omba kufutwa kwa akaunti au data",
+    "reconnectCloud": "Unganisha tena na Posnic Cloud",
+    "reconnectCloudHelp": "Ingia katika Posnic Cloud na uidhinishe simu hii kwenye kivinjari. Huhitaji anwani au nenosiri la seva ya ndani.",
+    "serverSignIn": "Ingia tena kwenye seva hii"
   },
   "nl": {
     "name": "Naam",
@@ -4208,7 +4253,10 @@
     "photoChanged": "Concept gewijzigd. Open de fotohulpmiddelen opnieuw.",
     "photoReviewRequired": "Bevestig elk product en elke hoeveelheid vóór toevoegen.",
     "privacyPolicy": "Privacybeleid",
-    "deleteAccountRequest": "Verwijdering van account of gegevens aanvragen"
+    "deleteAccountRequest": "Verwijdering van account of gegevens aanvragen",
+    "reconnectCloud": "Opnieuw verbinden met Posnic Cloud",
+    "reconnectCloudHelp": "Meld u aan bij Posnic Cloud en geef deze telefoon toestemming in uw browser. Een lokaal serveradres of wachtwoord is niet nodig.",
+    "serverSignIn": "Opnieuw aanmelden bij deze server"
   },
   "it": {
     "name": "Nome",
@@ -4471,6 +4519,9 @@
     "photoChanged": "Bozza modificata. Riapri gli strumenti foto.",
     "photoReviewRequired": "Conferma ogni prodotto e quantità prima di aggiungere.",
     "privacyPolicy": "Informativa sulla privacy",
-    "deleteAccountRequest": "Richiedi la cancellazione dell’account o dei dati"
+    "deleteAccountRequest": "Richiedi la cancellazione dell’account o dei dati",
+    "reconnectCloud": "Riconnetti a Posnic Cloud",
+    "reconnectCloudHelp": "Accedi a Posnic Cloud e autorizza questo telefono nel browser. Non servono indirizzo o password di un server locale.",
+    "serverSignIn": "Accedi di nuovo a questo server"
   }
 }
