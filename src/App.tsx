@@ -81,6 +81,7 @@ import { imageFiles, imageFetch } from "./platform/imageFiles";
 import { Brand } from "./components/Brand";
 import { PhotoOrders } from "./components/PhotoOrders";
 import { authorizeAccount } from "./services/accountAuthorization";
+import { openAccountBrowser } from "./platform/authBrowser";
 import { foreground } from "./platform/foreground";
 
 type Screen =
@@ -1336,7 +1337,7 @@ function Till() {
                             intent,
                             async (url, code) => {
                               setAuthorizationCode(code);
-                              await Linking.openURL(url);
+                              await openAccountBrowser(url, controller.signal);
                             },
                             controller.signal,
                           );
