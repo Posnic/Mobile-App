@@ -2,6 +2,7 @@ import * as Crypto from "expo-crypto";
 import { z } from "zod";
 import { credentials } from "../platform/credentials";
 import { foreground } from "../platform/foreground";
+import { automaticAuthReturn } from "../platform/authBrowser";
 import { hmac } from "@noble/hashes/hmac.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils.js";
@@ -80,6 +81,7 @@ export async function authorizeAccount(
         deviceId: await credentials.deviceId(),
         deviceName: "Posnic Mobile POS",
         intent,
+        returnToApp: automaticAuthReturn,
       }),
     );
   const url = new URL(request.authorizationUrl);
@@ -87,16 +89,19 @@ export async function authorizeAccount(
     throw new Error("invalidServer");
   const expires = Date.now() + request.expiresIn * 1000;
   await openBrowser(url.href, request.request.slice(-6).toUpperCase());
+  let firstPoll = true;
   while (Date.now() < expires && !signal.aborted) {
-    await new Promise<void>((resolve) => {
-      const finish = () => {
-        clearTimeout(timer);
-        signal.removeEventListener("abort", finish);
-        resolve();
-      };
-      const timer = setTimeout(finish, 5000);
-      signal.addEventListener("abort", finish, { once: true });
-    });
+    if (!firstPoll)
+      await new Promise<void>((resolve) => {
+        const finish = () => {
+          clearTimeout(timer);
+          signal.removeEventListener("abort", finish);
+          resolve();
+        };
+        const timer = setTimeout(finish, 5000);
+        signal.addEventListener("abort", finish, { once: true });
+      });
+    firstPoll = false;
     await foreground(signal);
     if (Date.now() >= expires) break;
     const data = await post("token", {
