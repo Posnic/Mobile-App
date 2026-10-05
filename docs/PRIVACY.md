@@ -20,6 +20,8 @@ Local Wi-Fi discovery and network information help find your till. Bluetooth and
 
 ## Sharing, security and retention
 
+Google ML Kit also sends SDK diagnostics and usage metrics to Google over HTTPS, such as device model and operating-system version, app version, per-installation identifiers, recognition timings, image dimensions and error/event codes. This is separate from image recognition: the local recognition images and extracted text are not sent to Google. Google uses these metrics to operate, secure and improve its SDKs, as described in its [ML Kit privacy information](https://developers.google.com/ml-kit/terms) and [data disclosure](https://developers.google.com/ml-kit/android-data-disclosure).
+
 We do not sell mobile app data or use it for advertising. The app has no advertising SDK. Service providers process information needed for hosting, authentication, optional image recognition and support. The shop may configure other providers; ask your shop administrator about those services and their processing locations. We may disclose information when legally required or necessary to protect users and the service.
 
 Cloud connections use HTTPS. Self-hosted connections can use HTTP on a shop's local network; that network traffic is not encrypted by HTTPS. Use a trusted network and a suitably secured shop server. No system can guarantee absolute security.
