@@ -1,5 +1,72 @@
 import { test, expect } from "@playwright/test";
 
+test("change server remains available during an unreachable server retry", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByTestId("start-training").click();
+  await expect(page.getByTestId("item-coffee")).toBeVisible();
+  await page.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>((resolve) => {
+      const r = indexedDB.open("posnic-preview");
+      r.onsuccess = () => resolve(r.result);
+    });
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction("records", "readwrite");
+      const store = tx.objectStore("records");
+      const r = store.get("shop");
+      r.onsuccess = () =>
+        store.put(
+          {
+            ...r.result,
+            mode: "live",
+            capabilities: { ...r.result.capabilities, saleSync: true },
+            baseUrl: "http://127.0.0.1:5999/api",
+          },
+          "shop",
+        );
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+    db.close();
+  });
+  let requests = 0;
+  let release!: () => void;
+  const held = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("http://127.0.0.1:5999/api/**", async (route) => {
+    requests++;
+    await held;
+    await route.abort();
+  });
+  await page.clock.install();
+  await page.reload();
+  await expect.poll(() => requests).toBe(1);
+  await page.getByRole("tab", { name: "More", exact: true }).click();
+  await page.getByText("Connection & sync", { exact: true }).last().click();
+  await page
+    .getByRole("button", { name: "Server settings", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Change server", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Sign out", exact: true }),
+  ).toBeDisabled();
+  release();
+  await expect(
+    page.getByRole("button", { name: "Sign out", exact: true }),
+  ).toBeEnabled();
+  // Periodic retries must stay paused while choosing to disconnect.
+  await page.clock.fastForward(61000);
+  expect(requests).toBe(1);
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Find server on Wi-Fi", exact: true }),
+  ).toBeVisible();
+});
+
 test("offline data and sync screens preserve the basket and explain server acknowledgments", async ({
   page,
   context,
