@@ -1,5 +1,8 @@
 {
   "cloudAccount": "Posnic Cloud account",
+  "reconnectCloud": "Reconnect with Posnic Cloud",
+  "reconnectCloudHelp": "Return to Posnic Cloud sign-in and approve this phone in your browser. You do not need a local server address or password.",
+  "serverSignIn": "Sign in again to this server",
   "selfHosted": "Your own server",
   "selfHostedHelp": "Using the open-source edition? Connect to your own server or a nearby till. No Posnic Cloud account required.",
   "unlocking": "Unlocking securely…",

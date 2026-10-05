@@ -256,6 +256,8 @@ function Till() {
   const syncLock = useRef(false);
   const [connectionError, setConnectionError] = useState("");
   const [changingServer, setChangingServer] = useState(false);
+  const [cloudReconnect, setCloudReconnect] = useState(false);
+  const [showServerLogin, setShowServerLogin] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
   const [confirmSignOut, setConfirmSignOut] = useState(false);
   const unlockAttempt = useRef(0);
@@ -432,6 +434,7 @@ function Till() {
   const go = (next: Screen) => {
     setConfirmReprint(false);
     if (scanWriting.current) return;
+    setShowServerLogin(false);
     setError("");
     setNotice("");
     scannerValue.current = "";
@@ -763,6 +766,8 @@ function Till() {
       setLocalSetup(changingServer);
       setLocalMethod("menu");
       setChangingServer(false);
+      setCloudReconnect(false);
+      setShowServerLogin(false);
       setConnectionError("");
       setBootAttempt((n) => n + 1);
       go("sell");
@@ -1143,7 +1148,16 @@ function Till() {
     if (confirmSignOut)
       return (
         <>
-          {heading(t(changingServer ? "changeServer" : "switchUser"))}
+          {heading(
+            t(
+              cloudReconnect
+                ? "reconnectCloud"
+                : changingServer
+                  ? "changeServer"
+                  : "switchUser",
+            ),
+          )}
+          {cloudReconnect && help(t("reconnectCloudHelp"))}
           {help(t("signOutHelp"))}
           {error && help(t(error))}
           {syncing && help(t("signOutSyncing"))}
@@ -1153,6 +1167,7 @@ function Till() {
             () => {
               setConfirmSignOut(false);
               setChangingServer(false);
+              setCloudReconnect(false);
             },
             false,
             busy,
@@ -2859,47 +2874,62 @@ function Till() {
               true,
               syncing,
             )}
-            {field(t("username"), username, setUsername)}
-            {field(t("password"), password, setPassword, { secret: true })}
-            {button(
-              t("signIn"),
-              () =>
-                void run(async () => {
-                  if (syncLock.current || !shop.baseUrl)
-                    throw Error("signOutSyncing");
-                  syncLock.current = true;
-                  try {
-                    const data = await new PosnicApi(shop.baseUrl).connect(
-                      username,
-                      password,
-                      undefined,
-                      false,
-                    );
-                    // Refresh enforces the same shop, branch, cashier and endpoint.
-                    // A login cannot redirect this device's saved outbox elsewhere.
-                    await repo.refreshCatalogue(data.shop, data.items);
-                    await vault.remember({
-                      token: data.token,
-                      username,
-                      password,
-                      server: shop.baseUrl,
-                    });
-                    setConnectionError("");
-                    setPassword("");
-                  } finally {
-                    syncLock.current = false;
-                  }
-                  void syncNow(true);
-                }),
-              false,
-              busy || syncing || !username || !password,
-            )}
-            {help(t("signOutHelp"))}
+            {button(t("reconnectCloud"), () => {
+              setError("");
+              setCloudReconnect(true);
+              setChangingServer(false);
+              setConfirmSignOut(true);
+            })}
             {button(t("changeServer"), () => {
               setError("");
+              setCloudReconnect(false);
               setChangingServer(true);
               setConfirmSignOut(true);
             })}
+            {button(t(showServerLogin ? "cancel" : "serverSignIn"), () => {
+              setPassword("");
+              setShowServerLogin(!showServerLogin);
+            })}
+            {showServerLogin && (
+              <>
+                {field(t("username"), username, setUsername)}
+                {field(t("password"), password, setPassword, { secret: true })}
+                {button(
+                  t("signIn"),
+                  () =>
+                    void run(async () => {
+                      if (syncLock.current || !shop.baseUrl)
+                        throw Error("signOutSyncing");
+                      syncLock.current = true;
+                      try {
+                        const data = await new PosnicApi(shop.baseUrl).connect(
+                          username,
+                          password,
+                          undefined,
+                          false,
+                        );
+                        // Refresh enforces the same shop, branch, cashier and endpoint.
+                        // A login cannot redirect this device's saved outbox elsewhere.
+                        await repo.refreshCatalogue(data.shop, data.items);
+                        await vault.remember({
+                          token: data.token,
+                          username,
+                          password,
+                          server: shop.baseUrl,
+                        });
+                        setConnectionError("");
+                        setPassword("");
+                        setShowServerLogin(false);
+                      } finally {
+                        syncLock.current = false;
+                      }
+                      void syncNow(true);
+                    }),
+                  false,
+                  busy || syncing || !username || !password,
+                )}
+              </>
+            )}
           </>
         );
       case "connection":
