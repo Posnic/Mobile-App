@@ -41,9 +41,10 @@ jobs:
           "$APKSIGNER" verify --print-certs artifacts/previous/*.apk > artifacts/previous/certificate.txt
           "$APKSIGNER" verify --print-certs android/app/build/outputs/apk/release/app-release.apk > artifacts/android/certificate.txt
           cat artifacts/previous/certificate.txt artifacts/android/certificate.txt
-          sed -n 's/^Signer.*certificate SHA-256 digest: //p' artifacts/previous/certificate.txt | sort -u > /tmp/previous-cert
-          sed -n 's/^Signer.*certificate SHA-256 digest: //p' artifacts/android/certificate.txt | sort -u > /tmp/current-cert
-          test -s /tmp/previous-cert && test -s /tmp/current-cert
+          sed -n 's/^.*Signer.*certificate SHA-256 digest: //p' artifacts/previous/certificate.txt | sort -u > /tmp/previous-cert
+          sed -n 's/^.*Signer.*certificate SHA-256 digest: //p' artifacts/android/certificate.txt | sort -u > /tmp/current-cert
+          test -s /tmp/previous-cert
+          test -s /tmp/current-cert
           diff /tmp/previous-cert /tmp/current-cert
           VERSION=$(node -p 'require("./package.json").version')
           cp android/app/build/outputs/apk/release/app-release.apk "artifacts/android/posnic-mobile-$VERSION-arm64.apk"
