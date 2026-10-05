@@ -508,7 +508,8 @@ function Till() {
   }, [bootAttempt]);
   const syncNow = useCallback(
     async (force = false) => {
-      if (!worker || !repo || locked || syncLock.current) return;
+      if (!worker || !repo || locked || confirmSignOut || syncLock.current)
+        return;
       syncLock.current = true;
       setSyncing(true);
       try {
@@ -526,7 +527,7 @@ function Till() {
         }
       }
     },
-    [worker, repo, locked],
+    [worker, repo, locked, confirmSignOut],
   );
   const refreshList = useCallback(async () => {
     if (actionLock.current || locked || syncLock.current) return;
@@ -624,7 +625,7 @@ function Till() {
     }
   };
   useEffect(() => {
-    if (!worker || !repo || locked) return;
+    if (!worker || !repo || locked || confirmSignOut) return;
     void syncNow();
     const timer = setInterval(() => void syncNow(), 30000);
     const listener = AppState.addEventListener("change", (value) => {
@@ -638,7 +639,7 @@ function Till() {
       listener.remove();
       network.remove();
     };
-  }, [worker, repo, syncNow]);
+  }, [worker, repo, locked, confirmSignOut, syncNow]);
   useEffect(() => () => discovery.current?.abort(), []);
 
   function acceptServer(value: string) {
@@ -1145,7 +1146,8 @@ function Till() {
           {heading(t(changingServer ? "changeServer" : "switchUser"))}
           {help(t("signOutHelp"))}
           {error && help(t(error))}
-          {button(t("signOut"), () => void signOut(), true, busy)}
+          {syncing && help(t("signOutSyncing"))}
+          {button(t("signOut"), () => void signOut(), true, busy || syncing)}
           {button(
             t("cancel"),
             () => {
@@ -2893,15 +2895,11 @@ function Till() {
               busy || syncing || !username || !password,
             )}
             {help(t("signOutHelp"))}
-            {button(
-              t("changeServer"),
-              () => {
-                setChangingServer(true);
-                setConfirmSignOut(true);
-              },
-              false,
-              syncing,
-            )}
+            {button(t("changeServer"), () => {
+              setError("");
+              setChangingServer(true);
+              setConfirmSignOut(true);
+            })}
           </>
         );
       case "connection":
