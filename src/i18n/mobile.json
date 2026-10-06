@@ -265,7 +265,8 @@
     "deleteAccountRequest": "கணக்கு அல்லது தரவை நீக்கக் கோருங்கள்",
     "reconnectCloud": "Posnic Cloud உடன் மீண்டும் இணைக்கவும்",
     "reconnectCloudHelp": "Posnic Cloud உள்நுழைவுக்குத் திரும்பி உலாவியில் இந்தத் தொலைபேசியை அனுமதிக்கவும். உள்ளூர் சேவையக முகவரியோ கடவுச்சொல்லோ தேவையில்லை.",
-    "serverSignIn": "இந்தச் சேவையகத்தில் மீண்டும் உள்நுழையவும்"
+    "serverSignIn": "இந்தச் சேவையகத்தில் மீண்டும் உள்நுழையவும்",
+    "card": "அட்டை"
   },
   "hi": {
     "name": "नाम",
@@ -531,7 +532,8 @@
     "deleteAccountRequest": "खाता या डेटा हटाने का अनुरोध करें",
     "reconnectCloud": "Posnic Cloud से दोबारा जुड़ें",
     "reconnectCloudHelp": "Posnic Cloud में साइन इन करके ब्राउज़र में इस फ़ोन को अनुमति दें। स्थानीय सर्वर का पता या पासवर्ड आवश्यक नहीं है।",
-    "serverSignIn": "इस सर्वर में दोबारा साइन इन करें"
+    "serverSignIn": "इस सर्वर में दोबारा साइन इन करें",
+    "card": "कार्ड"
   },
   "ml": {
     "name": "പേര്",
@@ -797,7 +799,8 @@
     "deleteAccountRequest": "അക്കൗണ്ടോ ഡാറ്റയോ നീക്കം ചെയ്യാൻ അഭ്യർത്ഥിക്കുക",
     "reconnectCloud": "Posnic Cloud-ലേക്ക് വീണ്ടും ബന്ധിപ്പിക്കുക",
     "reconnectCloudHelp": "Posnic Cloud-ൽ സൈൻ ഇൻ ചെയ്ത് ബ്രൗസറിൽ ഈ ഫോണിന് അനുമതി നൽകുക. പ്രാദേശിക സെർവർ വിലാസമോ പാസ്‌വേഡോ ആവശ്യമില്ല.",
-    "serverSignIn": "ഈ സെർവറിൽ വീണ്ടും സൈൻ ഇൻ ചെയ്യുക"
+    "serverSignIn": "ഈ സെർവറിൽ വീണ്ടും സൈൻ ഇൻ ചെയ്യുക",
+    "card": "കാർഡ്"
   },
   "kn": {
     "name": "ಹೆಸರು",
@@ -1063,7 +1066,8 @@
     "deleteAccountRequest": "ಖಾತೆ ಅಥವಾ ಡೇಟಾ ಅಳಿಸಲು ವಿನಂತಿಸಿ",
     "reconnectCloud": "Posnic Cloud ಗೆ ಮತ್ತೆ ಸಂಪರ್ಕಿಸಿ",
     "reconnectCloudHelp": "Posnic Cloud ಗೆ ಸೈನ್ ಇನ್ ಮಾಡಿ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಈ ಫೋನ್‌ಗೆ ಅನುಮತಿ ನೀಡಿ. ಸ್ಥಳೀಯ ಸರ್ವರ್ ವಿಳಾಸ ಅಥವಾ ಪಾಸ್‌ವರ್ಡ್ ಅಗತ್ಯವಿಲ್ಲ.",
-    "serverSignIn": "ಈ ಸರ್ವರ್‌ಗೆ ಮತ್ತೆ ಸೈನ್ ಇನ್ ಮಾಡಿ"
+    "serverSignIn": "ಈ ಸರ್ವರ್‌ಗೆ ಮತ್ತೆ ಸೈನ್ ಇನ್ ಮಾಡಿ",
+    "card": "ಕಾರ್ಡ್"
   },
   "te": {
     "name": "పేరు",
@@ -1329,7 +1333,8 @@
     "deleteAccountRequest": "ఖాతా లేదా డేటా తొలగింపును అభ్యర్థించండి",
     "reconnectCloud": "Posnic Cloud కు మళ్లీ కనెక్ట్ చేయండి",
     "reconnectCloudHelp": "Posnic Cloud లో సైన్ ఇన్ చేసి బ్రౌజర్‌లో ఈ ఫోన్‌కు అనుమతి ఇవ్వండి. స్థానిక సర్వర్ చిరునామా లేదా పాస్‌వర్డ్ అవసరం లేదు.",
-    "serverSignIn": "ఈ సర్వర్‌లో మళ్లీ సైన్ ఇన్ చేయండి"
+    "serverSignIn": "ఈ సర్వర్‌లో మళ్లీ సైన్ ఇన్ చేయండి",
+    "card": "కార్డు"
   },
   "si": {
     "name": "නම",
@@ -1595,7 +1600,8 @@
     "deleteAccountRequest": "ගිණුම හෝ දත්ත මකා දැමීමට ඉල්ලන්න",
     "reconnectCloud": "Posnic Cloud වෙත නැවත සම්බන්ධ වන්න",
     "reconnectCloudHelp": "Posnic Cloud වෙත පිවිස බ්‍රවුසරයෙන් මෙම දුරකථනයට අවසර දෙන්න. දේශීය සේවාදායක ලිපිනයක් හෝ මුරපදයක් අවශ්‍ය නොවේ.",
-    "serverSignIn": "මෙම සේවාදායකයට නැවත පිවිසෙන්න"
+    "serverSignIn": "මෙම සේවාදායකයට නැවත පිවිසෙන්න",
+    "card": "කාඩ්පත"
   },
   "ne": {
     "name": "नाम",
@@ -1861,7 +1867,8 @@
     "deleteAccountRequest": "खाता वा डाटा हटाउन अनुरोध गर्नुहोस्",
     "reconnectCloud": "Posnic Cloud सँग फेरि जोडिनुहोस्",
     "reconnectCloudHelp": "Posnic Cloud मा साइन इन गरेर ब्राउजरमा यस फोनलाई अनुमति दिनुहोस्। स्थानीय सर्भरको ठेगाना वा पासवर्ड चाहिँदैन।",
-    "serverSignIn": "यस सर्भरमा फेरि साइन इन गर्नुहोस्"
+    "serverSignIn": "यस सर्भरमा फेरि साइन इन गर्नुहोस्",
+    "card": "कार्ड"
   },
   "ar": {
     "name": "الاسم",
@@ -2128,7 +2135,8 @@
     "deleteAccountRequest": "طلب حذف الحساب أو البيانات",
     "reconnectCloud": "إعادة الاتصال بـ Posnic Cloud",
     "reconnectCloudHelp": "عُد إلى تسجيل الدخول إلى Posnic Cloud وامنح هذا الهاتف الإذن في المتصفح. لا تحتاج إلى عنوان خادم محلي أو كلمة مروره.",
-    "serverSignIn": "تسجيل الدخول مجددًا إلى هذا الخادم"
+    "serverSignIn": "تسجيل الدخول مجددًا إلى هذا الخادم",
+    "card": "بطاقة"
   },
   "fr": {
     "name": "Nom",
@@ -2394,7 +2402,8 @@
     "deleteAccountRequest": "Demander la suppression du compte ou des données",
     "reconnectCloud": "Se reconnecter à Posnic Cloud",
     "reconnectCloudHelp": "Reconnectez-vous à Posnic Cloud et autorisez ce téléphone dans votre navigateur. Aucune adresse ni aucun mot de passe de serveur local ne sont nécessaires.",
-    "serverSignIn": "Se reconnecter à ce serveur"
+    "serverSignIn": "Se reconnecter à ce serveur",
+    "card": "Carte"
   },
   "es": {
     "name": "Nombre",
@@ -2660,7 +2669,8 @@
     "deleteAccountRequest": "Solicitar la eliminación de la cuenta o los datos",
     "reconnectCloud": "Volver a conectar con Posnic Cloud",
     "reconnectCloudHelp": "Inicia sesión en Posnic Cloud y autoriza este teléfono en tu navegador. No necesitas la dirección ni la contraseña de un servidor local.",
-    "serverSignIn": "Volver a iniciar sesión en este servidor"
+    "serverSignIn": "Volver a iniciar sesión en este servidor",
+    "card": "Tarjeta"
   },
   "pt": {
     "name": "Nome",
@@ -2926,7 +2936,8 @@
     "deleteAccountRequest": "Solicitar a exclusão da conta ou dos dados",
     "reconnectCloud": "Reconectar ao Posnic Cloud",
     "reconnectCloudHelp": "Entre no Posnic Cloud e autorize este telefone no navegador. Não é necessário o endereço nem a senha de um servidor local.",
-    "serverSignIn": "Entrar novamente neste servidor"
+    "serverSignIn": "Entrar novamente neste servidor",
+    "card": "Cartão"
   },
   "id": {
     "name": "Nama",
@@ -3192,7 +3203,8 @@
     "deleteAccountRequest": "Minta penghapusan akun atau data",
     "reconnectCloud": "Hubungkan kembali ke Posnic Cloud",
     "reconnectCloudHelp": "Masuk ke Posnic Cloud dan izinkan ponsel ini melalui browser. Alamat atau kata sandi server lokal tidak diperlukan.",
-    "serverSignIn": "Masuk kembali ke server ini"
+    "serverSignIn": "Masuk kembali ke server ini",
+    "card": "Kartu"
   },
   "th": {
     "name": "ชื่อ",
@@ -3458,7 +3470,8 @@
     "deleteAccountRequest": "ขอลบบัญชีหรือข้อมูล",
     "reconnectCloud": "เชื่อมต่อกับ Posnic Cloud อีกครั้ง",
     "reconnectCloudHelp": "เข้าสู่ระบบ Posnic Cloud แล้วอนุญาตโทรศัพท์เครื่องนี้ในเบราว์เซอร์ ไม่ต้องใช้ที่อยู่หรือรหัสผ่านของเซิร์ฟเวอร์ภายใน",
-    "serverSignIn": "เข้าสู่ระบบเซิร์ฟเวอร์นี้อีกครั้ง"
+    "serverSignIn": "เข้าสู่ระบบเซิร์ฟเวอร์นี้อีกครั้ง",
+    "card": "บัตร"
   },
   "de": {
     "name": "Name",
@@ -3724,7 +3737,8 @@
     "deleteAccountRequest": "Löschung des Kontos oder der Daten beantragen",
     "reconnectCloud": "Erneut mit Posnic Cloud verbinden",
     "reconnectCloudHelp": "Melden Sie sich bei Posnic Cloud an und autorisieren Sie dieses Telefon im Browser. Adresse und Passwort eines lokalen Servers sind nicht erforderlich.",
-    "serverSignIn": "Erneut bei diesem Server anmelden"
+    "serverSignIn": "Erneut bei diesem Server anmelden",
+    "card": "Karte"
   },
   "sw": {
     "name": "Jina",
@@ -3990,7 +4004,8 @@
     "deleteAccountRequest": "Omba kufutwa kwa akaunti au data",
     "reconnectCloud": "Unganisha tena na Posnic Cloud",
     "reconnectCloudHelp": "Ingia katika Posnic Cloud na uidhinishe simu hii kwenye kivinjari. Huhitaji anwani au nenosiri la seva ya ndani.",
-    "serverSignIn": "Ingia tena kwenye seva hii"
+    "serverSignIn": "Ingia tena kwenye seva hii",
+    "card": "Kadi"
   },
   "nl": {
     "name": "Naam",
@@ -4256,7 +4271,8 @@
     "deleteAccountRequest": "Verwijdering van account of gegevens aanvragen",
     "reconnectCloud": "Opnieuw verbinden met Posnic Cloud",
     "reconnectCloudHelp": "Meld u aan bij Posnic Cloud en geef deze telefoon toestemming in uw browser. Een lokaal serveradres of wachtwoord is niet nodig.",
-    "serverSignIn": "Opnieuw aanmelden bij deze server"
+    "serverSignIn": "Opnieuw aanmelden bij deze server",
+    "card": "Kaart"
   },
   "it": {
     "name": "Nome",
@@ -4522,6 +4538,7 @@
     "deleteAccountRequest": "Richiedi la cancellazione dell’account o dei dati",
     "reconnectCloud": "Riconnetti a Posnic Cloud",
     "reconnectCloudHelp": "Accedi a Posnic Cloud e autorizza questo telefono nel browser. Non servono indirizzo o password di un server locale.",
-    "serverSignIn": "Accedi di nuovo a questo server"
+    "serverSignIn": "Accedi di nuovo a questo server",
+    "card": "Carta"
   }
 }

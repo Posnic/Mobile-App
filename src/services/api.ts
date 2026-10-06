@@ -343,6 +343,7 @@ export const bootstrap = z.object({
       voidLine: z.boolean().default(false),
       receiptPrint: z.boolean().default(false),
     }),
+    paymentMethods: z.array(z.enum(["cash", "card", "upi"])).optional(),
     upiAccounts: z.array(
       z.object({
         id: z.string(),
@@ -380,7 +381,7 @@ const receiptPage = z.object({
         tax: minor,
         currency: z.string(),
         customer: z.string(),
-        method: z.enum(["cash", "upi"]),
+        method: z.enum(["cash", "card", "upi"]),
         lines: z
           .array(
             z.object({

@@ -298,5 +298,6 @@
   "photoChanged": "This draft changed. Reopen Photo tools to load the saved version.",
   "photoReviewRequired": "Confirm every included product and quantity before adding this draft.",
   "privacyPolicy": "Privacy policy",
-  "deleteAccountRequest": "Delete account or request data removal"
+  "deleteAccountRequest": "Delete account or request data removal",
+  "card": "Card"
 }

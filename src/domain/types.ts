@@ -93,6 +93,7 @@ export interface Shop {
     voidLine?: boolean;
     receiptPrint?: boolean;
   };
+  paymentMethods?: ("cash" | "card" | "upi")[];
   upiAccounts: UpiAccount[];
   defaultUpiAccountId?: string;
   capabilities: {
@@ -105,6 +106,7 @@ export interface Shop {
   };
 }
 export type Payment =
+  | { method: "card"; status: "staff-confirmed"; reference?: string }
   | { method: "cash"; received: number; change: number }
   | {
       method: "upi";
