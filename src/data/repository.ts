@@ -645,6 +645,8 @@ export class Repository {
         throw new Error("grantExpired");
       const amount = totals(cart.lines);
       if (amount.total <= 0) throw new Error("invalidAmount");
+      if (shop.paymentMethods && !shop.paymentMethods.includes(payment.method))
+        throw new Error("unavailable");
       if (payment.method === "cash") {
         if (
           !Number.isSafeInteger(payment.received) ||
@@ -656,6 +658,13 @@ export class Repository {
           received: payment.received,
           change: payment.received - amount.total,
         };
+      } else if (payment.method === "card") {
+        if (
+          !shop.paymentMethods?.includes("card") ||
+          payment.status !== "staff-confirmed" ||
+          (payment.reference && payment.reference.length > 100)
+        )
+          throw new Error("unavailable");
       } else {
         const accountId = payment.account.id;
         const account = shop.upiAccounts.find(

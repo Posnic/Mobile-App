@@ -91,6 +91,7 @@ type Screen =
   | "cart"
   | "quantity"
   | "payment"
+  | "card"
   | "cash"
   | "upi"
   | "done"
@@ -442,7 +443,7 @@ function Till() {
     setScanResult("");
     if (next === "scanner") scannerHandled.current = false;
     if (next === "cash") setCash("");
-    if (next === "upi") {
+    if (next === "upi" || next === "card") {
       setAccountId(undefined);
       setChecked(false);
       setReference("");
@@ -562,7 +563,7 @@ function Till() {
         ? "devices"
         : screen === "done" && receiptDetails
           ? "receipts"
-          : ["cash", "upi"].includes(screen)
+          : ["cash", "card", "upi"].includes(screen)
             ? "payment"
             : ["payment", "customer", "quantity"].includes(screen)
               ? "cart"
@@ -841,7 +842,7 @@ function Till() {
       addingItems.current = false;
     }
   }
-  async function finish(method: "cash" | "upi") {
+  async function finish(method: "cash" | "card" | "upi") {
     await run(async () => {
       if (!state || !repo || !shop) return;
       const payment =
@@ -851,12 +852,19 @@ function Till() {
               received: cash ? parseMoney(cash) : sum.total,
               change: 0,
             }
-          : {
-              method: "upi" as const,
-              account: account!,
-              status: "staff-confirmed" as const,
-              reference,
-            };
+          : method === "card"
+            ? {
+                method: "card" as const,
+                status: "staff-confirmed" as const,
+                reference,
+              }
+            : {
+                method: "upi" as const,
+                account: account!,
+                status: "staff-confirmed" as const,
+                reference,
+              };
+      if (method === "card" && !checked) throw new Error("unavailable");
       if (method === "upi" && (!checked || !account))
         throw new Error("upiUnavailable");
       const sale = await repo.checkout(state.cart.id, payment);
@@ -2162,26 +2170,66 @@ function Till() {
                 {state.cart.lines.length} {t("items")}
               </Text>
             </View>
-            {actionRow(
-              "dollar-sign",
-              t("cash") + " · " + money(sum.total),
-              t("cashReceived"),
-              () => go("cash"),
-              !state.cart.lines.length || sum.total <= 0,
-            )}
-            {actionRow(
-              "maximize",
-              t("upi"),
-              t("manualPayment"),
-              () => go("upi"),
-              !state.cart.lines.length ||
-                !shop.permissions.manualUpi ||
-                !shop.upiAccounts.some((a) => a.active),
-            )}
+            {(shop.paymentMethods ?? ["cash", "upi"]).includes("cash") &&
+              actionRow(
+                "dollar-sign",
+                t("cash") + " · " + money(sum.total),
+                t("cashReceived"),
+                () => go("cash"),
+                !state.cart.lines.length || sum.total <= 0,
+              )}
+            {shop.paymentMethods?.includes("card") &&
+              actionRow(
+                "credit-card",
+                t("card"),
+                t("manualPayment"),
+                () => go("card"),
+                !state.cart.lines.length || sum.total <= 0,
+              )}
+            {(shop.paymentMethods ?? ["cash", "upi"]).includes("upi") &&
+              actionRow(
+                "maximize",
+                t("upi"),
+                t("manualPayment"),
+                () => go("upi"),
+                !state.cart.lines.length ||
+                  !shop.permissions.manualUpi ||
+                  !shop.upiAccounts.some((a) => a.active),
+              )}
             <View style={styles.message}>
               <Text style={styles.fieldLabel}>{t("paymentDevices")}</Text>
               <Text style={styles.small}>{t("unavailable")}</Text>
             </View>
+          </>
+        );
+      case "card":
+        return (
+          <>
+            {back("payment")}
+            {heading(t("card"))}
+            <Text style={styles.amount}>{money(sum.total)}</Text>
+            {help(t("manualPayment"))}
+            {field(
+              t("reference") + " · " + t("optional"),
+              reference,
+              setReference,
+            )}
+            <View style={styles.row}>
+              <Text style={[styles.body, { flex: 1 }]}>
+                {t("confirmPayment")}
+              </Text>
+              <Switch
+                accessibilityLabel={t("confirmPayment")}
+                value={checked}
+                onValueChange={setChecked}
+              />
+            </View>
+            {button(
+              t("recordPayment"),
+              () => void finish("card"),
+              true,
+              !checked || !shop.paymentMethods?.includes("card"),
+            )}
           </>
         );
       case "cash":
@@ -3667,6 +3715,7 @@ function Till() {
                       "cart",
                       "payment",
                       "cash",
+                      "card",
                       "upi",
                       "quick",
                       "code",

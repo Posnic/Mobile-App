@@ -688,3 +688,25 @@ test("favourites persist independently of the cart and stay scoped to cashier an
   assert.deepEqual((await restarted.load()).favourites, []);
   await assert.rejects(restarted.toggleFavourite("missing"), /notFound/);
 });
+
+test("synced disabled methods cannot check out, and confirmed card retains its tender", async () => {
+  const { repo, storage } = setup();
+  await repo.startTraining();
+  const state = await repo.load();
+  await storage.batch([
+    { key: "shop", value: { ...state.shop, paymentMethods: ["card"] } },
+  ]);
+  await repo.addItem(trainingItems[0]!);
+  const cart = (await repo.load()).cart;
+  await assert.rejects(
+    () => repo.checkout(cart.id, { method: "cash", received: 5000, change: 0 }),
+    /unavailable/,
+  );
+  const sale = await repo.checkout(cart.id, {
+    method: "card",
+    status: "staff-confirmed",
+    reference: "terminal-42",
+  });
+  assert.equal(sale.payment.method, "card");
+  assert.equal((await repo.load()).cart.lines.length, 0);
+});
