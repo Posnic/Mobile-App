@@ -1383,7 +1383,7 @@ function Till() {
                           });
                           setPin("");
                           setPinConfirm("");
-                          go("pin");
+                          go("sell");
                         } finally {
                           setAuthorizationCode("");
                           accountRequest.current = null;
@@ -1639,7 +1639,7 @@ function Till() {
                             setPairCode("");
                             setPin("");
                             setPinConfirm("");
-                            go("pin");
+                            go("sell");
                           }),
                         true,
                         !server ||
