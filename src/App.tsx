@@ -67,6 +67,7 @@ import {
 import type { DirectPrintJob } from "./domain/types";
 import { vault } from "./platform/vault";
 import { GestureScroll } from "./components/GestureScroll";
+import { Inventory } from "./components/Inventory";
 import { adjacentRecord } from "./domain/gestures";
 import { deviceOptions, receiptJobMessage } from "./domain/devices";
 import { ScanQueue } from "./domain/scanQueue";
@@ -85,6 +86,7 @@ import { openAccountBrowser } from "./platform/authBrowser";
 import { foreground } from "./platform/foreground";
 
 type Screen =
+  | "inventory"
   | "photoOrders"
   | "sell"
   | "quick"
@@ -1758,6 +1760,29 @@ function Till() {
         </>
       );
     if (!shop) return null;
+    if (screen === "inventory" && !shop.capabilities.inventory)
+      return (
+        <>
+          {heading(t("inventory"))}
+          {help(t("permissionDenied"))}
+          {button(t("back"), () => go("sell"))}
+        </>
+      );
+    if (
+      screen === "inventory" ||
+      (!shop.permissions.sell &&
+        shop.capabilities.inventory &&
+        (screen === "sell" || screen === "quick"))
+    )
+      return (
+        <Inventory
+          repo={repo}
+          shop={shop}
+          t={t}
+          back={() => go("sell")}
+          colors={{ ...palette, surface: palette.paper, tint: palette.soft }}
+        />
+      );
     if (screen === "photoOrders")
       return (
         <PhotoOrders
@@ -1782,6 +1807,9 @@ function Till() {
         return (
           <>
             <View style={styles.segments}>
+              {shop.mode === "live" &&
+                shop.capabilities.inventory &&
+                iconButton("package", t("inventory"), () => go("inventory"))}
               {(["sell", "quick"] as const).map((tab) => (
                 <Pressable
                   key={tab}
@@ -3528,7 +3556,17 @@ function Till() {
     }
   }
   const navs: { target: Screen; label: string; glyph: IconName }[] = [
-    { target: "sell", label: "sell", glyph: "shopping-bag" },
+    {
+      target: "sell",
+      label:
+        shop && !shop.permissions.sell && shop.capabilities.inventory
+          ? "inventory"
+          : "sell",
+      glyph:
+        shop && !shop.permissions.sell && shop.capabilities.inventory
+          ? "package"
+          : "shopping-bag",
+    },
     { target: "receipts", label: "receipts", glyph: "file-text" },
     { target: "more", label: "more", glyph: "menu" },
   ];

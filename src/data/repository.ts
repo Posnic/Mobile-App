@@ -4,6 +4,7 @@ import {
   type CatalogueResult,
 } from "./catalogueQuery";
 import type { Storage, Change, CatalogueInput } from "./storage";
+import { InventoryStore } from "./inventory";
 import type {
   Cart,
   Customer,
@@ -24,6 +25,9 @@ import { receiptsToPrune, printNeedsAttention } from "../domain/retention";
 import { photoReady, photoScore, type PhotoDraft } from "../domain/photoOrders";
 
 export class Repository {
+  inventory(shop: Shop) {
+    return new InventoryStore(this.store, shop);
+  }
   private tail: Promise<unknown> = Promise.resolve();
   private catalogueCache: CatalogueResult | null = null;
   constructor(
