@@ -55,19 +55,24 @@ export class PosnicApi {
         const details = await response.json().catch(() => null);
         const serverMessage = details?.error?.message ?? details?.message;
         throw new ApiError(
-          typeof serverMessage === "string" &&
-            serverMessage.startsWith("Your session security token")
-            ? "signInFailed"
-            : typeof serverMessage === "string" &&
-                serverMessage.startsWith("Enable Mobile POS")
-              ? "mobileDisabled"
-              : response.status === 401
+          path.startsWith("/mobile/v1/inventory/") && response.status === 409
+            ? "inventoryConflict"
+            : path.startsWith("/mobile/v1/inventory/") &&
+                response.status === 400
+              ? "inventoryInvalid"
+              : typeof serverMessage === "string" &&
+                  serverMessage.startsWith("Your session security token")
                 ? "signInFailed"
-                : response.status === 403
-                  ? "permissionDenied"
-                  : response.status === 404
-                    ? "serverUpgrade"
-                    : "networkError",
+                : typeof serverMessage === "string" &&
+                    serverMessage.startsWith("Enable Mobile POS")
+                  ? "mobileDisabled"
+                  : response.status === 401
+                    ? "signInFailed"
+                    : response.status === 403
+                      ? "permissionDenied"
+                      : response.status === 404
+                        ? "serverUpgrade"
+                        : "networkError",
           response.status,
         );
       }
@@ -334,6 +339,8 @@ export const bootstrap = z.object({
     quickTaxBps: z.number().int().min(0).max(10000),
     quickTaxInclusive: z.boolean(),
     permissions: z.object({
+      inventoryWrite: z.boolean().optional(),
+      supplierRead: z.boolean().optional(),
       sell: z.boolean(),
       quickSale: z.boolean(),
       customerWrite: z.boolean(),
@@ -355,6 +362,7 @@ export const bootstrap = z.object({
     ),
     defaultUpiAccountId: z.string().optional(),
     capabilities: z.object({
+      inventory: z.boolean().optional(),
       saleSync: z.boolean(),
       devicePairing: z.boolean(),
       tillPrint: z.boolean(),

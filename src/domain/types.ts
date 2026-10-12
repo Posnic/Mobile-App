@@ -84,6 +84,8 @@ export interface Shop {
   quickTaxBps: number;
   quickTaxInclusive: boolean;
   permissions: {
+    inventoryWrite?: boolean;
+    supplierRead?: boolean;
     sell: boolean;
     quickSale: boolean;
     customerWrite: boolean;
@@ -97,6 +99,7 @@ export interface Shop {
   upiAccounts: UpiAccount[];
   defaultUpiAccountId?: string;
   capabilities: {
+    inventory?: boolean;
     saleSync: boolean;
     devicePairing: boolean;
     tillPrint: boolean;
