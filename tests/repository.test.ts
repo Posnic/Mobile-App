@@ -710,3 +710,73 @@ test("synced disabled methods cannot check out, and confirmed card retains its t
   assert.equal(sale.payment.method, "card");
   assert.equal((await repo.load()).cart.lines.length, 0);
 });
+
+const localConnection = {
+  ...trainingShop,
+  mode: "live" as const,
+  baseUrl: "http://192.168.1.200:5555/api",
+  capabilities: { ...trainingShop.capabilities, saleSync: true },
+};
+const internetConnection = {
+  ...localConnection,
+  baseUrl: "https://same-shop.posnic.io/api",
+};
+test("connection switching isolates receipt history and restores it when returning", async () => {
+  const { repo } = setup();
+  await repo.pair(localConnection, trainingItems);
+  await repo.addItem(trainingItems[0]!);
+  const sale = await repo.checkout((await repo.load()).cart.id, {
+    method: "cash",
+    received: 5000,
+    change: 0,
+  });
+  await assert.rejects(
+    repo.switchConnection(internetConnection, trainingItems),
+    /connectionPending/,
+  );
+  assert.equal((await repo.load()).outbox.length, 1);
+  await repo.acknowledge(sale.id, "local-sale");
+  await repo.switchConnection(internetConnection, trainingItems);
+  assert.equal((await repo.load()).sales.length, 0);
+  assert.deepEqual(await repo.connections(internetConnection), [
+    internetConnection.baseUrl,
+    localConnection.baseUrl,
+  ]);
+  await repo.switchConnection(localConnection, trainingItems);
+  assert.equal((await repo.load()).sales[0]!.serverId, "local-sale");
+  assert.equal((await repo.load()).outbox.length, 0);
+});
+test("switching rejects another identity or an unfinished basket without changing the active shop", async () => {
+  const { repo } = setup();
+  await repo.pair(localConnection, trainingItems);
+  for (const field of ["id", "branchId", "staffId"] as const)
+    await assert.rejects(
+      repo.switchConnection(
+        { ...internetConnection, [field]: "other" },
+        trainingItems,
+      ),
+      /connectionWrongShop/,
+    );
+  await repo.addItem(trainingItems[0]!);
+  await assert.rejects(
+    repo.switchConnection(internetConnection, trainingItems),
+    /connectionCart/,
+  );
+  assert.equal((await repo.load()).shop!.baseUrl, localConnection.baseUrl);
+  assert.equal((await repo.load()).cart.lines.length, 1);
+  // Expired-login recovery to the original authority is always allowed.
+  await repo.switchConnection(localConnection, trainingItems);
+  assert.equal((await repo.load()).cart.lines.length, 1);
+});
+test("a failed connection transaction leaves the original catalogue and history active", async () => {
+  const { repo, storage } = setup();
+  await repo.pair(localConnection, trainingItems);
+  storage.fail = true;
+  await assert.rejects(
+    repo.switchConnection(internetConnection, []),
+    /disk full/,
+  );
+  storage.fail = false;
+  assert.equal((await repo.load()).shop!.baseUrl, localConnection.baseUrl);
+  assert.ok((await repo.load()).items.length);
+});

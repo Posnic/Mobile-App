@@ -53,40 +53,18 @@ for (const destination of ["local", "cloud"] as const) {
       page.getByRole("textbox", { name: "Password", exact: true }),
     ).toHaveCount(0);
     await expect(
-      page.getByRole("button", {
-        name: "Reconnect with Posnic Cloud",
-        exact: true,
-      }),
+      page.getByRole("button", { name: "Internet", exact: true }),
+    ).toBeEnabled();
+    await expect(
+      page.getByRole("button", { name: "Find server on Wi-Fi", exact: true }),
     ).toBeEnabled();
     await page
-      .getByRole("button", {
-        name:
-          destination === "local"
-            ? "Change server"
-            : "Reconnect with Posnic Cloud",
-        exact: true,
-      })
+      .getByRole("button", { name: "Server address", exact: true })
       .click();
     await expect(
-      page.getByRole("button", { name: "Sign out", exact: true }),
-    ).toBeDisabled();
+      page.getByRole("textbox", { name: "Server address", exact: true }),
+    ).toBeEditable();
     release();
-    await expect(
-      page.getByRole("button", { name: "Sign out", exact: true }),
-    ).toBeEnabled();
-    // Periodic retries must stay paused while choosing to disconnect.
-    await page.clock.fastForward(61000);
-    expect(requests).toBe(1);
-    await page.getByRole("button", { name: "Sign out", exact: true }).click();
-    await expect(
-      page.getByRole("button", {
-        name:
-          destination === "local"
-            ? "Find server on Wi-Fi"
-            : "Create account · Free trial",
-        exact: true,
-      }),
-    ).toBeVisible();
   });
 }
 
@@ -287,13 +265,44 @@ test("server settings refuse to disconnect an unfinished basket", async ({
   await expect(
     page.getByText("http://127.0.0.1:5999/api", { exact: true }),
   ).toBeVisible();
+  const connectedShop = await page.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>((resolve) => {
+      const r = indexedDB.open("posnic-preview");
+      r.onsuccess = () => resolve(r.result);
+    });
+    const shop = await new Promise<any>((resolve) => {
+      const r = db.transaction("records").objectStore("records").get("shop");
+      r.onsuccess = () => resolve(r.result);
+    });
+    db.close();
+    return shop;
+  });
+  await page.route("https://same-shop.posnic.io/api/**", (route) =>
+    route.fulfill({
+      json: route.request().url().includes("runtime-info")
+        ? { edition: "cloud", apiSchema: 1, features: { mobilePosV1: true } }
+        : route.request().url().includes("bootstrap")
+          ? { shop: connectedShop, items: [] }
+          : { token: "target-token" },
+    }),
+  );
   await page
-    .getByRole("button", { name: "Change server", exact: true })
+    .getByRole("button", { name: "Server address", exact: true })
     .click();
-  await page.getByRole("button", { name: "Sign out", exact: true }).click();
-  await expect(
-    page.getByText(/There is an unfinished or held cart/),
-  ).toBeVisible();
+  await page
+    .getByRole("textbox", { name: "Server address", exact: true })
+    .fill("same-shop.posnic.io");
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page
+    .getByRole("textbox", { name: "Username", exact: true })
+    .fill("cashier");
+  await page
+    .getByRole("textbox", { name: "Password", exact: true })
+    .fill("password");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText(
+    "Finish or clear the current and parked carts",
+  );
   await page.getByRole("tab", { name: "Sell", exact: true }).click();
   await expect(page.getByTestId("view-cart")).toContainText("35");
   await page.getByTestId("view-cart").click();
@@ -301,15 +310,11 @@ test("server settings refuse to disconnect an unfinished basket", async ({
     .getByRole("button", { name: "Remove one Filter coffee", exact: true })
     .click();
   await page.getByRole("tab", { name: "More", exact: true }).click();
-  await page.getByText("Connection & sync", { exact: true }).last().click();
   await page
-    .getByRole("button", { name: "Server settings", exact: true })
+    .getByRole("button", { name: "Connection & sync", exact: true })
+    .first()
     .click();
-  await page
-    .getByRole("button", { name: "Change server", exact: true })
-    .click();
-  await page.getByRole("button", { name: "Sign out", exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Find server on Wi-Fi", exact: true }),
+    page.getByText("http://127.0.0.1:5999/api", { exact: true }),
   ).toBeVisible();
 });

@@ -30,6 +30,27 @@ iOS uses the same source but requires macOS/Xcode and device testing. Native
 project directories are generated from app.json and are not committed.
 Do not uninstall or clear storage on a device with unsynced sales.
 
+## Connection setup and switching
+
+Cloud sign-in opens the account browser for approval and returns directly to Sell.
+A PIN is optional. Community shops can use Wi-Fi discovery, a shop QR code, a
+pairing code with a server address, or a typed server address. Login fields appear
+only after selecting a compatible server.
+
+Tap the Wi-Fi/globe icon beside the shop name to choose **Shop Wi-Fi** or
+**Internet**. Authenticate once for each endpoint; subsequent switches reuse that
+endpoint's own saved session. The destination must identify the same shop,
+branch and cashier. Expired sessions require authorization again. LAN discovery
+requires shop Wi-Fi; if the phone hosts a hotspot, use the till QR/address.
+
+Switching between independent till/cloud ledgers requires all pending sales and
+print requests to be resolved and current/parked baskets to be finished or cleared.
+Receipts remain associated with the endpoint that accepted them; switching back
+restores its history. Stock drafts remain scoped to their original endpoint.
+The app does not silently move queued sales to a different ledger. Updating an
+unreachable till address with pending sales requires server identity and shared
+idempotency support; do not uninstall or clear app storage to work around it.
+
 ## Implemented
 
 - Persistent cashier/branch favourites with compact star controls.

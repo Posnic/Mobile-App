@@ -138,7 +138,7 @@ export class PosnicApi {
         await this.request(
           "/mobile/v1/sales",
           { idempotencyKey: sale.id, sale: payload },
-          await credentials.get(),
+          await credentials.get(this.base),
         ),
       );
     if (
@@ -150,7 +150,7 @@ export class PosnicApi {
     return response;
   }
   async catalogue(): Promise<{ shop: Shop; items: CatalogueInput }> {
-    const data = await this.readCatalogue(await credentials.get());
+    const data = await this.readCatalogue(await credentials.get(this.base));
     return {
       shop: { ...data.shop, mode: "live", baseUrl: this.base },
       items: data.items,
@@ -177,7 +177,7 @@ export class PosnicApi {
         await this.request(
           "/mobile/v1/delivery-status",
           { ids: sales.map((sale) => sale.id) },
-          await credentials.get(),
+          await credentials.get(this.base),
         ),
       );
     if (
@@ -241,7 +241,7 @@ export class PosnicApi {
           encodeURIComponent(query) +
           (before ? "&before=" + encodeURIComponent(before) : ""),
         undefined,
-        await credentials.get(),
+        await credentials.get(this.base),
       ),
     );
     if (
@@ -256,7 +256,7 @@ export class PosnicApi {
     return this.request(
       "/mobile/v1/print-jobs",
       { id: "receipt:" + saleId, saleId, document: "receipt" },
-      await credentials.get(),
+      await credentials.get(this.base),
     );
   }
   async printReceiptStatus(saleId: string) {
@@ -276,7 +276,7 @@ export class PosnicApi {
         await this.request(
           `/mobile/v1/print-jobs/${encodeURIComponent(saleId)}`,
           undefined,
-          await credentials.get(),
+          await credentials.get(this.base),
         ),
       );
     if (result.saleId !== saleId) throw new ApiError("invalidServer", 409);

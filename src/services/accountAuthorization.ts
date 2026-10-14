@@ -86,7 +86,20 @@ export async function authorizeAccount(
   if (url.origin !== ACCOUNT_ORIGIN || url.pathname !== "/api/mobile/authorize")
     throw new Error("invalidServer");
   const expires = Date.now() + request.expiresIn * 1000;
-  await openBrowser(url.href, request.request.slice(-6).toUpperCase());
+  let browserClosed = false;
+  try {
+    await openBrowser(url.href, request.request.slice(-6).toUpperCase());
+  } catch (error) {
+    // Android may report dismissal when the user returns manually after approval.
+    // Only the PKCE-bound exchange can establish whether approval actually happened.
+    if (
+      signal.aborted ||
+      !(error instanceof Error) ||
+      error.message !== "authorizationCancelled"
+    )
+      throw error;
+    browserClosed = true;
+  }
   let firstPoll = true;
   while (Date.now() < expires && !signal.aborted) {
     if (!firstPoll)
@@ -106,7 +119,10 @@ export async function authorizeAccount(
       request: request.request,
       codeVerifier: verifier,
     });
-    if (data.error === "authorization_pending") continue;
+    if (data.error === "authorization_pending") {
+      if (browserClosed) throw Error("authorizationCancelled");
+      continue;
+    }
     const grant = cloudGrant(data);
     return { ...grant, verifier };
   }

@@ -67,6 +67,7 @@ import {
 import type { DirectPrintJob } from "./domain/types";
 import { vault } from "./platform/vault";
 import { GestureScroll } from "./components/GestureScroll";
+import { Connections } from "./components/Connections";
 import { Inventory } from "./components/Inventory";
 import { adjacentRecord } from "./domain/gestures";
 import { deviceOptions, receiptJobMessage } from "./domain/devices";
@@ -2935,78 +2936,46 @@ function Till() {
         );
       case "serverSettings":
         return (
-          <>
-            {back("connection")}
-            {heading(t("serverSettings"))}
-            {row(t("server"), shop.baseUrl ?? "")}
-            {row(t("username"), shop.staffName)}
-            {shop.baseUrl &&
-              isLocalServer(shop.baseUrl) &&
-              help(t("wifiRequired"))}
-            {connectionError && message(t(connectionError))}
-            {button(
-              t(syncing ? "reconnecting" : "syncNow"),
-              () => void syncNow(true),
-              true,
-              syncing,
-            )}
-            {button(t("reconnectCloud"), () => {
-              setError("");
-              setCloudReconnect(true);
-              setChangingServer(false);
-              setConfirmSignOut(true);
-            })}
-            {button(t("changeServer"), () => {
-              setError("");
-              setCloudReconnect(false);
-              setChangingServer(true);
-              setConfirmSignOut(true);
-            })}
-            {button(t(showServerLogin ? "cancel" : "serverSignIn"), () => {
-              setPassword("");
-              setShowServerLogin(!showServerLogin);
-            })}
-            {showServerLogin && (
-              <>
-                {field(t("username"), username, setUsername)}
-                {field(t("password"), password, setPassword, { secret: true })}
-                {button(
-                  t("signIn"),
-                  () =>
-                    void run(async () => {
-                      if (syncLock.current || !shop.baseUrl)
-                        throw Error("signOutSyncing");
-                      syncLock.current = true;
-                      try {
-                        const data = await new PosnicApi(shop.baseUrl).connect(
-                          username,
-                          password,
-                          undefined,
-                          false,
-                        );
-                        // Refresh enforces the same shop, branch, cashier and endpoint.
-                        // A login cannot redirect this device's saved outbox elsewhere.
-                        await repo.refreshCatalogue(data.shop, data.items);
-                        await vault.remember({
-                          token: data.token,
-                          username,
-                          password,
-                          server: shop.baseUrl,
-                        });
-                        setConnectionError("");
-                        setPassword("");
-                        setShowServerLogin(false);
-                      } finally {
-                        syncLock.current = false;
-                      }
-                      void syncNow(true);
-                    }),
-                  false,
-                  busy || syncing || !username || !password,
-                )}
-              </>
-            )}
-          </>
+          <Connections
+            shop={shop}
+            repo={repo}
+            t={t}
+            colors={palette}
+            back={() => go("connection")}
+            apply={async (data, loginName) => {
+              if (syncLock.current || actionLock.current)
+                throw Error("signOutSyncing");
+              syncLock.current = true;
+              actionLock.current = true;
+              try {
+                const previous = await vault.account();
+                await vault.rememberConnection({
+                  token: data.token,
+                  username: loginName,
+                  password: "",
+                  server: data.shop.baseUrl!,
+                });
+                try {
+                  await repo.switchConnection(data.shop, data.items);
+                } catch (error) {
+                  if (previous) await vault.remember(previous);
+                  else await vault.clear();
+                  throw error;
+                }
+                setServer(data.shop.baseUrl!);
+                setUsername(loginName);
+                setPassword("");
+                setConnectionError("");
+                setQuery("");
+                setCategory("");
+                await refresh();
+                go("sell");
+              } finally {
+                syncLock.current = false;
+                actionLock.current = false;
+              }
+            }}
+          />
         );
       case "connection":
         return (
@@ -3586,6 +3555,13 @@ function Till() {
               </Text>
             </View>
             {!shop && iconButton("globe", t("language"), () => go("language"))}
+            {shop?.mode === "live" &&
+              !locked &&
+              iconButton(
+                shop.baseUrl && isLocalServer(shop.baseUrl) ? "wifi" : "globe",
+                t("connection"),
+                () => go("serverSettings"),
+              )}
             {shop && !locked && (
               <Pressable
                 accessibilityRole="button"
