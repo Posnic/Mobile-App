@@ -28,6 +28,95 @@ export class Repository {
   inventory(shop: Shop) {
     return new InventoryStore(this.store, shop);
   }
+  private connectionKey(shop: Shop) {
+    return `connections:${shop.id}:${shop.branchId}:${shop.staffId}`;
+  }
+  async connections(shop: Shop): Promise<string[]> {
+    return [
+      ...new Set([
+        shop.baseUrl!,
+        ...((await this.store.get<string[]>(this.connectionKey(shop))) ?? []),
+      ]),
+    ].filter(Boolean);
+  }
+  async switchConnection(shop: Shop, items: CatalogueInput) {
+    return this.serial(async () => {
+      const current = await this.store.get<Shop>("shop");
+      if (
+        !current ||
+        current.mode !== "live" ||
+        shop.mode !== "live" ||
+        current.id !== shop.id ||
+        current.branchId !== shop.branchId ||
+        current.staffId !== shop.staffId ||
+        !shop.baseUrl
+      )
+        throw Error("connectionWrongShop");
+      // Reauthentication to the same endpoint must remain possible with an outbox.
+      if (current.baseUrl === shop.baseUrl) {
+        await this.replaceCatalogue(items, [
+          { key: "shop", value: shop },
+          {
+            key: "catalogue-updated-at",
+            value: new Date(this.now()).toISOString(),
+          },
+        ]);
+        this.catalogueCache = null;
+        return;
+      }
+      const sales = await this.store.list<Sale>("sale:");
+      const prints = await this.store.list<DirectPrintJob>("print:");
+      if (
+        (await this.store.list<Outbox>("outbox:")).length ||
+        sales.some((s) => s.sync !== "synced" || s.tillPrint === "pending") ||
+        prints.some(printNeedsAttention)
+      )
+        throw Error("connectionPending");
+      if (
+        (await this.store.get<Cart>("cart"))?.lines.length ||
+        (await this.store.list<Cart>("held:")).length
+      )
+        throw Error("connectionCart");
+      const changes: Change[] = [];
+      if (current.baseUrl !== shop.baseUrl) {
+        const prefix = (s: Shop) =>
+          `connection-history:${encodeURIComponent(s.baseUrl!)}:${s.id}:${s.branchId}:${s.staffId}:`;
+        for (const sale of sales) {
+          changes.push(
+            { key: prefix(current) + sale.id, value: sale },
+            { key: "sale:" + sale.id, value: null },
+          );
+        }
+        for (const sale of await this.store.list<Sale>(prefix(shop)))
+          changes.push({ key: "sale:" + sale.id, value: sale });
+        for (const job of prints)
+          changes.push(
+            {
+              key: `connection-print:${encodeURIComponent(current.baseUrl!)}:${job.id}`,
+              value: job,
+            },
+            { key: "print:" + job.id, value: null },
+          );
+        for (const customer of await this.store.list<Customer>("customer:"))
+          changes.push({ key: "customer:" + customer.id, value: null });
+      }
+      await this.replaceCatalogue(items, [
+        ...changes,
+        { key: "shop", value: shop },
+        {
+          key: this.connectionKey(shop),
+          value: [
+            ...new Set([...(await this.connections(current)), shop.baseUrl]),
+          ],
+        },
+        {
+          key: "catalogue-updated-at",
+          value: new Date(this.now()).toISOString(),
+        },
+      ]);
+      this.catalogueCache = null;
+    });
+  }
   private tail: Promise<unknown> = Promise.resolve();
   private catalogueCache: CatalogueResult | null = null;
   constructor(

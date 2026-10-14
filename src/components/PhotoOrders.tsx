@@ -185,7 +185,7 @@ export function PhotoOrders({ repo, shop, t, back, imported, money }: Props) {
       if (shop.mode !== "live" || !shop.baseUrl)
         throw Error("photoCloudUnavailable");
       const api = new PosnicApi(shop.baseUrl, fetch, 90000);
-      const token = await credentials.get();
+      const token = await credentials.get(shop.baseUrl);
       const options = (await api.request(
         "/mobile/v1/photo-orders/options",
         undefined,

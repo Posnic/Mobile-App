@@ -11,6 +11,7 @@ export interface RememberedAccount {
   username: string;
   password: string;
   server: string;
+  connections?: Record<string, { token: string; username: string }>;
 }
 export type NativePinDeriver = (
   pin: string,
@@ -102,6 +103,28 @@ export class SessionVault {
       (await this.account())?.token ?? (await this.store.get("posnic.token"))
     );
   }
+  async accountFor(server: string): Promise<RememberedAccount | null> {
+    const account = await this.account();
+    if (account?.server === server) return account;
+    const saved = account?.connections?.[server];
+    return saved ? { ...saved, server, password: "" } : null;
+  }
+  rememberConnection(account: RememberedAccount) {
+    return this.serial(async () => {
+      const current = await this.account();
+      const connections = { ...current?.connections };
+      if (current?.server && current.token)
+        connections[current.server] = {
+          token: current.token,
+          username: current.username,
+        };
+      connections[account.server] = {
+        token: account.token,
+        username: account.username,
+      };
+      await this.writeAccount({ ...account, connections });
+    });
+  }
   async setToken(token: string) {
     const previous = await this.account();
     await this.remember({
@@ -113,19 +136,20 @@ export class SessionVault {
     });
   }
   remember(account: RememberedAccount) {
-    return this.serial(async () => {
-      const record = await this.record();
-      if (record) {
-        if (!this.key) throw new Error("pinLocked");
-        await this.seal(record, this.key, account);
-      } else await this.store.set("posnic.account", JSON.stringify(account));
-      this.active = account;
-      await this.store.set(
-        "posnic.profile",
-        JSON.stringify({ username: account.username, server: account.server }),
-      );
-      await this.store.remove("posnic.token");
-    });
+    return this.serial(() => this.writeAccount(account));
+  }
+  private async writeAccount(account: RememberedAccount) {
+    const record = await this.record();
+    if (record) {
+      if (!this.key) throw new Error("pinLocked");
+      await this.seal(record, this.key, account);
+    } else await this.store.set("posnic.account", JSON.stringify(account));
+    this.active = account;
+    await this.store.set(
+      "posnic.profile",
+      JSON.stringify({ username: account.username, server: account.server }),
+    );
+    await this.store.remove("posnic.token");
   }
   private async record(): Promise<PinRecord | null> {
     const value = await this.store.get("posnic.pin");

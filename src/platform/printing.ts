@@ -23,7 +23,7 @@ export async function printTest(
   await new PosnicApi(shop.baseUrl).request(
     "/mobile/v1/print-jobs",
     { id: Crypto.randomUUID(), document: "test" },
-    await credentials.get(),
+    await credentials.get(shop.baseUrl),
   );
 }
 export async function printSale(
@@ -51,6 +51,6 @@ export async function printSale(
   await new PosnicApi(shop.baseUrl).request(
     "/mobile/v1/print-jobs",
     { id: `receipt:${sale.id}`, saleId: sale.id, document: "receipt" },
-    await credentials.get(),
+    await credentials.get(shop.baseUrl),
   );
 }

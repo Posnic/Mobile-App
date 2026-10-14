@@ -339,5 +339,12 @@
   "inventoryLineLimit": "Use at most 200 items per operation.",
   "inventoryComplete": "Complete",
   "inventoryReviewRequired": "Check the items, quantities and reason.",
-  "inventoryRemoveLine": "Remove item"
+  "inventoryRemoveLine": "Remove item",
+  "connectionCurrent": "Connected through",
+  "connectionWifi": "Shop Wi-Fi",
+  "connectionInternet": "Internet",
+  "connectionHelp": "Choose how to reach this shop. Sign in once for each connection; this phone remembers it.",
+  "connectionWrongShop": "This connection belongs to another shop, branch or user. Use the same shop and account.",
+  "connectionPending": "Sync pending sales and resolve print requests before switching connections.",
+  "connectionCart": "Finish or clear the current and parked carts before switching connections."
 }

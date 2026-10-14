@@ -57,7 +57,7 @@ export class InventoryApi {
     this.api = new PosnicApi(shop.baseUrl);
   }
   private async request(path: string, body?: unknown) {
-    const account = await vault.account();
+    const account = await vault.accountFor(this.shop.baseUrl!);
     if (!account || account.server !== this.shop.baseUrl)
       throw Error("signInFailed");
     return this.api.request(
