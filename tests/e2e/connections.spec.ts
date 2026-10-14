@@ -186,3 +186,47 @@ test("cancelling an unreachable endpoint releases the screen and ignores late re
     page.getByRole("textbox", { name: "Password", exact: true }),
   ).toHaveCount(0);
 });
+
+test("switch waits for the current sync and resumes without another tap", async ({
+  page,
+}) => {
+  await mock(page);
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  let started = false;
+  await page.route(local + "/mobile/v1/bootstrap**", async (route) => {
+    started = true;
+    await pending;
+    await route.abort();
+  });
+  await page
+    .getByRole("button", { name: "Connection & sync", exact: true })
+    .last()
+    .click();
+  await page.getByRole("button", { name: "Sync now", exact: true }).click();
+  await expect.poll(() => started).toBe(true);
+  await openConnections(page);
+  await page
+    .getByRole("button", { name: "Server address", exact: true })
+    .click();
+  await page
+    .getByRole("textbox", { name: "Server address", exact: true })
+    .fill(cloud);
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page
+    .getByRole("textbox", { name: "Username", exact: true })
+    .fill("cashier");
+  await page
+    .getByRole("textbox", { name: "Password", exact: true })
+    .fill("password");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Cancel", exact: true }),
+  ).toBeVisible();
+  release();
+  await expect(
+    page.getByRole("textbox", { name: "Search items", exact: true }),
+  ).toBeVisible();
+});

@@ -513,9 +513,17 @@ function Till() {
       active = false;
     };
   }, [bootAttempt]);
+  const choosingConnection = screen === "serverSettings";
   const syncNow = useCallback(
     async (force = false) => {
-      if (!worker || !repo || locked || confirmSignOut || syncLock.current)
+      if (
+        !worker ||
+        !repo ||
+        locked ||
+        confirmSignOut ||
+        choosingConnection ||
+        syncLock.current
+      )
         return;
       syncLock.current = true;
       setSyncing(true);
@@ -534,7 +542,7 @@ function Till() {
         }
       }
     },
-    [worker, repo, locked, confirmSignOut],
+    [worker, repo, locked, confirmSignOut, choosingConnection],
   );
   const refreshList = useCallback(async () => {
     if (actionLock.current || locked || syncLock.current) return;
@@ -2942,12 +2950,22 @@ function Till() {
             t={t}
             colors={palette}
             back={() => go("connection")}
-            apply={async (data, loginName) => {
-              if (syncLock.current || actionLock.current)
-                throw Error("signOutSyncing");
-              syncLock.current = true;
+            apply={async (data, loginName, signal) => {
+              if (actionLock.current) throw Error("signOutSyncing");
               actionLock.current = true;
+              let ownsSync = false;
               try {
+                const deadline = Date.now() + 30000;
+                while (
+                  syncLock.current &&
+                  Date.now() < deadline &&
+                  !signal.aborted
+                )
+                  await new Promise((resolve) => setTimeout(resolve, 100));
+                if (signal.aborted) throw Error("authorizationCancelled");
+                if (syncLock.current) throw Error("signOutSyncing");
+                syncLock.current = true;
+                ownsSync = true;
                 const previous = await vault.account();
                 await vault.rememberConnection({
                   token: data.token,
@@ -2971,7 +2989,7 @@ function Till() {
                 await refresh();
                 go("sell");
               } finally {
-                syncLock.current = false;
+                if (ownsSync) syncLock.current = false;
                 actionLock.current = false;
               }
             }}

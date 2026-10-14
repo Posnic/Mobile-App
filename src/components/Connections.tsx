@@ -23,7 +23,7 @@ type Props = {
   repo: Repository;
   t: (key: string) => string;
   back: () => void;
-  apply: (data: Data, username: string) => Promise<void>;
+  apply: (data: Data, username: string, signal: AbortSignal) => Promise<void>;
   colors: {
     ink: string;
     muted: string;
@@ -159,7 +159,7 @@ export function Connections({ shop, repo, t, back, apply, colors: c }: Props) {
       data.shop.staffId !== shop.staffId
     )
       throw Error("connectionWrongShop");
-    await apply(data, loginName);
+    await apply(data, loginName, signal);
   }
   async function choose(raw: string, signal: AbortSignal) {
     const parsed = parseServerInput(raw);
