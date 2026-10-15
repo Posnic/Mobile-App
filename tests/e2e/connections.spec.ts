@@ -1,3 +1,4 @@
+import { createHash, createHmac } from "node:crypto";
 import { test, expect, type Page } from "@playwright/test";
 const shop = {
   id: "optional-pin-shop",
@@ -229,4 +230,121 @@ test("switch waits for the current sync and resumes without another tap", async 
   await expect(
     page.getByRole("textbox", { name: "Search items", exact: true }),
   ).toBeVisible();
+});
+
+test("cloud approval links its advertised till without local login, then offers internet after Wi-Fi failure", async ({
+  page,
+}) => {
+  const code = "123456ABCDEF",
+    enrolmentId = "12345678-1234-1234-1234-123456789012";
+  let verifier = "",
+    challenge = "",
+    localPairs = 0,
+    passwordLogins = 0,
+    outage = false;
+  await page.route("https://www.posnic.com/api/mobile/**", async (route) => {
+    if (route.request().url().endsWith("/requests")) {
+      challenge = route.request().postDataJSON().codeChallenge;
+      return route.fulfill({
+        json: {
+          request: "a".repeat(43),
+          expiresIn: 120,
+          authorizationUrl: "https://www.posnic.com/api/mobile/authorize",
+        },
+      });
+    }
+    verifier = route.request().postDataJSON().codeVerifier;
+    expect(createHash("sha256").update(verifier).digest("base64url")).toBe(
+      challenge,
+    );
+    await route.fulfill({
+      json: {
+        baseUrl: cloud,
+        code: "ABCDEF123456",
+        connectionToken: "c".repeat(43),
+        localServers: [
+          {
+            deviceId: "till-one",
+            name: "Main till",
+            addresses: [local],
+            code,
+            enrolmentId,
+          },
+        ],
+      },
+    });
+  });
+  for (const base of [cloud, local])
+    await page.route(base + "/**", async (route) => {
+      const path = route.request().url().slice(base.length);
+      if (base === local && outage) return route.abort();
+      if (path.includes("Login")) passwordLogins++;
+      if (path.includes("enrolment-proof")) {
+        expect(route.request().headers().authorization).toBeUndefined();
+        const body = route.request().postDataJSON();
+        expect(body.enrolmentId).toBe(enrolmentId);
+        expect(body.codeVerifier).toBeUndefined();
+        return route.fulfill({
+          json: {
+            proof: createHmac(
+              "sha256",
+              createHash("sha256").update(code).digest("hex"),
+            )
+              .update(body.nonce)
+              .digest("hex"),
+          },
+        });
+      }
+      if (base === local && path.includes("/pair")) {
+        localPairs++;
+        expect(route.request().postDataJSON().code).toBe(code);
+        expect(route.request().postDataJSON().codeVerifier).toBe(verifier);
+      }
+      await route.fulfill({
+        json: path.includes("runtime-info")
+          ? {
+              edition: "community",
+              apiSchema: 1,
+              features: { mobilePosV1: true },
+            }
+          : path.includes("bootstrap")
+            ? { shop, items: [] }
+            : { token: base === local ? "local-token" : "cloud-token" },
+      });
+    });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(
+    page.getByRole("textbox", { name: "Search items", exact: true }),
+  ).toBeVisible();
+  await openConnections(page);
+  await page
+    .getByRole("button", { name: "Main till · Shop Wi-Fi", exact: true })
+    .click();
+  await expect(
+    page.getByRole("textbox", { name: "Search items", exact: true }),
+  ).toBeVisible();
+  expect(localPairs).toBe(1);
+  expect(passwordLogins).toBe(0);
+  outage = true;
+  await page
+    .getByRole("button", { name: "Connection & sync", exact: true })
+    .last()
+    .click();
+  await page.getByRole("button", { name: "Sync now", exact: true }).click();
+  await expect(
+    page.getByText(/Cannot reach the shop server/).first(),
+  ).toBeVisible();
+  await page.getByRole("tab", { name: "Sell", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Switch to internet?", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Internet", exact: true }).click();
+  await expect(
+    page.getByRole("textbox", { name: "Search items", exact: true }),
+  ).toBeVisible();
+  await openConnections(page);
+  await expect(page.getByText(cloud, { exact: true })).toBeVisible();
+  expect(localPairs).toBe(1);
+  expect(passwordLogins).toBe(0);
 });

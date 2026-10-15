@@ -1,3 +1,4 @@
+import type { CloudAuthorization } from "./cloudGrant";
 import { scryptAsync } from "@noble/hashes/scrypt.js";
 import { gcm } from "@noble/ciphers/aes.js";
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
@@ -11,6 +12,7 @@ export interface RememberedAccount {
   username: string;
   password: string;
   server: string;
+  cloudAuthorization?: CloudAuthorization;
   connections?: Record<string, { token: string; username: string }>;
 }
 export type NativePinDeriver = (
@@ -122,7 +124,21 @@ export class SessionVault {
         token: account.token,
         username: account.username,
       };
-      await this.writeAccount({ ...account, connections });
+      await this.writeAccount({
+        ...account,
+        cloudAuthorization:
+          account.cloudAuthorization ?? current?.cloudAuthorization,
+        connections,
+      });
+    });
+  }
+  updateCloudAuthorization(value: CloudAuthorization) {
+    return this.serial(async () => {
+      const current = await this.account();
+      if (!current) throw Error("pinLocked");
+      if (current.cloudAuthorization?.baseUrl !== value.baseUrl)
+        throw Error("invalidServer");
+      await this.writeAccount({ ...current, cloudAuthorization: value });
     });
   }
   async setToken(token: string) {

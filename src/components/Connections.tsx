@@ -1,3 +1,12 @@
+import * as Crypto from "expo-crypto";
+import {
+  cloudAuthorization,
+  type CloudAuthorization,
+} from "../services/cloudGrant";
+import {
+  refreshLocalAuthorizations,
+  verifyEnrolment,
+} from "../services/localAuthorization";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -10,12 +19,12 @@ import { Feather } from "@expo/vector-icons";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import type { Shop } from "../domain/types";
 import type { Repository } from "../data/repository";
-import { PosnicApi } from "../services/api";
+import { PosnicApi, ApiError } from "../services/api";
 import { discoverServers, type DiscoveredServer } from "../services/discovery";
 import { isLocalServer, parseServerInput } from "../services/serverAddress";
 import { wifiAddress } from "../platform/wifi";
 import { vault } from "../platform/vault";
-import { authorizeAccount } from "../services/accountAuthorization";
+import { authorizeAccount, base64url } from "../services/accountAuthorization";
 import { openAccountBrowser } from "../platform/authBrowser";
 type Data = Awaited<ReturnType<PosnicApi["connect"]>>;
 type Props = {
@@ -23,7 +32,13 @@ type Props = {
   repo: Repository;
   t: (key: string) => string;
   back: () => void;
-  apply: (data: Data, username: string, signal: AbortSignal) => Promise<void>;
+  apply: (
+    data: Data,
+    username: string,
+    signal: AbortSignal,
+    authorization?: CloudAuthorization,
+  ) => Promise<void>;
+  internet?: boolean;
   colors: {
     ink: string;
     muted: string;
@@ -33,7 +48,15 @@ type Props = {
     soft: string;
   };
 };
-export function Connections({ shop, repo, t, back, apply, colors: c }: Props) {
+export function Connections({
+  shop,
+  repo,
+  t,
+  back,
+  apply,
+  colors: c,
+  internet,
+}: Props) {
   const [saved, setSaved] = useState<string[]>([]),
     [view, setView] = useState("home"),
     [address, setAddress] = useState(""),
@@ -47,6 +70,8 @@ export function Connections({ shop, repo, t, back, apply, colors: c }: Props) {
     [found, setFound] = useState<DiscoveredServer[]>([]),
     [progress, setProgress] = useState(""),
     [match, setMatch] = useState("");
+  const [authorization, setAuthorization] = useState<CloudAuthorization>();
+  const autoStarted = useRef(false);
   const [permission, requestPermission] = useCameraPermissions();
   const operation = useRef<AbortController | null>(null),
     alive = useRef(true),
@@ -59,7 +84,37 @@ export function Connections({ shop, repo, t, back, apply, colors: c }: Props) {
         if (alive.current) setSaved(value);
       })
       .catch(() => setError("storageUnavailable"));
+    const ctrl = new AbortController();
+    void (async () => {
+      const account = await vault.account();
+      if (!alive.current) return;
+      if (account?.cloudAuthorization) {
+        setAuthorization(account.cloudAuthorization);
+        try {
+          const updated = await refreshLocalAuthorizations(
+            account.cloudAuthorization,
+            ctrl.signal,
+          );
+          if (!alive.current || ctrl.signal.aborted) return;
+          await vault.updateCloudAuthorization(updated);
+          setAuthorization(updated);
+        } catch {
+          /* Internet may be unavailable; saved local sessions still work. */
+        }
+      }
+      if (internet && !autoStarted.current && alive.current) {
+        autoStarted.current = true;
+        void run((signal) =>
+          account?.cloudAuthorization
+            ? choose(account.cloudAuthorization.baseUrl, signal)
+            : cloud(signal),
+        );
+      }
+    })().catch(() => {
+      if (alive.current) setError("storageUnavailable");
+    });
     return () => {
+      ctrl.abort();
       alive.current = false;
       operation.current?.abort();
     };
@@ -151,6 +206,7 @@ export function Connections({ shop, repo, t, back, apply, colors: c }: Props) {
     data: Data,
     signal: AbortSignal,
     loginName = data.shop.staffName,
+    authorization?: CloudAuthorization,
   ) {
     if (signal.aborted || !alive.current) return;
     if (
@@ -159,7 +215,7 @@ export function Connections({ shop, repo, t, back, apply, colors: c }: Props) {
       data.shop.staffId !== shop.staffId
     )
       throw Error("connectionWrongShop");
-    await apply(data, loginName, signal);
+    await apply(data, loginName, signal, authorization);
   }
   async function choose(raw: string, signal: AbortSignal) {
     const parsed = parseServerInput(raw);
@@ -192,6 +248,43 @@ export function Connections({ shop, repo, t, back, apply, colors: c }: Props) {
       }
     }
     if (signal.aborted || !alive.current) return;
+    const context = (await vault.account())?.cloudAuthorization;
+    const target = context?.localServers.find((row) =>
+      row.addresses.includes(parsed.address),
+    );
+    if (context && target) {
+      if (!target.code || !target.enrolmentId)
+        throw Error("authorizationExpired");
+      const nonce = base64url(await Crypto.getRandomBytesAsync(32));
+      const proofApi = new PosnicApi(parsed.address, fetch, 2500);
+      for (let attempt = 0; attempt < 12; attempt++) {
+        if (signal.aborted || !alive.current) return;
+        let answer: unknown;
+        try {
+          answer = await proofApi.request("/mobile/v1/enrolment-proof", {
+            enrolmentId: target.enrolmentId,
+            nonce,
+          });
+        } catch (e) {
+          if (!(e instanceof ApiError) || ![0, 404, 503].includes(e.status))
+            throw e;
+          if (attempt === 11) throw Error("localApprovalWaiting");
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          continue;
+        }
+        verifyEnrolment(target, nonce, answer);
+        if (signal.aborted || !alive.current) return;
+        await accept(
+          await api.connect("", "", target.code, false, context.verifier),
+          signal,
+        );
+        return;
+      }
+    }
+    if (context?.baseUrl === parsed.address) {
+      await cloud(signal);
+      return;
+    }
     setUsername(account?.username ?? "");
     setView("login");
   }
@@ -214,6 +307,8 @@ export function Connections({ shop, repo, t, back, apply, colors: c }: Props) {
         grant.verifier,
       ),
       signal,
+      undefined,
+      cloudAuthorization(grant),
     );
   }
   async function search(signal: AbortSignal) {
@@ -249,6 +344,12 @@ export function Connections({ shop, repo, t, back, apply, colors: c }: Props) {
           {t(error)}
         </Text>
       )}
+      {error === "authorizationExpired" &&
+        button(
+          t("cloudAccount") + " · " + t("signIn"),
+          () => void run(cloud),
+          "globe",
+        )}
       {busy && (
         <View style={{ gap: 10 }}>
           <ActivityIndicator color={c.accent} />
@@ -287,6 +388,20 @@ export function Connections({ shop, repo, t, back, apply, colors: c }: Props) {
             </Text>
           </View>
           <Text style={{ color: c.muted }}>{t("connectionHelp")}</Text>
+          {authorization?.localServers
+            .filter((target) => !target.addresses.includes(shop.baseUrl!))
+            .map((target) => (
+              <View key={target.deviceId}>
+                {button(
+                  (target.name || t("connectionWifi")) +
+                    " · " +
+                    t("connectionWifi"),
+                  () =>
+                    void run((signal) => choose(target.addresses[0]!, signal)),
+                  "wifi",
+                )}
+              </View>
+            ))}
           {saved
             .filter((s) => s !== shop.baseUrl)
             .map((url) => (
@@ -309,7 +424,16 @@ export function Connections({ shop, repo, t, back, apply, colors: c }: Props) {
             () => void run((s) => choose(shop.baseUrl!, s)),
             "refresh-cw",
           )}
-          {button(t("connectionInternet"), () => void run(cloud), "globe")}
+          {button(
+            t("connectionInternet"),
+            () =>
+              void run((signal) =>
+                authorization
+                  ? choose(authorization.baseUrl, signal)
+                  : cloud(signal),
+              ),
+            "globe",
+          )}
           {button(t("searchWifi"), () => void run(search), "wifi")}
           {button(
             t("shopQr"),

@@ -38,10 +38,17 @@ pairing code with a server address, or a typed server address. Login fields appe
 only after selecting a compatible server.
 
 Tap the Wi-Fi/globe icon beside the shop name to choose **Shop Wi-Fi** or
-**Internet**. Authenticate once for each endpoint; subsequent switches reuse that
-endpoint's own saved session. The destination must identify the same shop,
-branch and cashier. Expired sessions require authorization again. LAN discovery
-requires shop Wi-Fi; if the phone hosts a hotspot, use the till QR/address.
+**Internet**. Cloud approval includes nearby tills reported by the shop: choose
+one to authorize it without entering a local password. The app verifies the till's
+one-time enrollment proof before sending the approval. Saved connections reuse
+that endpoint's own session and must identify the same shop, branch and cashier.
+If Wi-Fi fails, an explicit Internet offer lets you switch to your saved cloud
+connection. Background address refresh never reauthorizes a revoked phone; a new
+or expired authorization requires browser approval again.
+
+Discovery checks private network interfaces, including a phone-hosted hotspot
+when the operating system exposes it. Router isolation and restricted phone
+interfaces can prevent scanning; shop QR and server-address entry remain available.
 
 Switching between independent till/cloud ledgers requires all pending sales and
 print requests to be resolved and current/parked baskets to be finished or cleared.
