@@ -1,3 +1,4 @@
+import { cloudAuthorization } from "./services/cloudGrant";
 import type { CatalogueResult } from "./data/catalogueQuery";
 import React, {
   useCallback,
@@ -214,6 +215,9 @@ function Till() {
       scans?.cancel();
     };
   }, [scans]);
+  const [internetRequested, setInternetRequested] = useState(false);
+  const [internetOfferDismissed, setInternetOfferDismissed] = useState(false);
+  const [hasCloudConnection, setHasCloudConnection] = useState(false);
   const [screen, setScreen] = useState<Screen>("sell"),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
@@ -513,6 +517,21 @@ function Till() {
       active = false;
     };
   }, [bootAttempt]);
+  useEffect(() => {
+    let active = true;
+    void vault.account().then((account) => {
+      if (active) setHasCloudConnection(!!account?.cloudAuthorization);
+    });
+    return () => {
+      active = false;
+    };
+  }, [shop?.baseUrl, locked]);
+  useEffect(() => {
+    if (!connectionError) setInternetOfferDismissed(false);
+  }, [connectionError]);
+  useEffect(() => {
+    if (screen !== "serverSettings") setInternetRequested(false);
+  }, [screen]);
   const choosingConnection = screen === "serverSettings";
   const syncNow = useCallback(
     async (force = false) => {
@@ -1391,6 +1410,7 @@ function Till() {
                             username: data.shop.staffName,
                             password: "",
                             server: grant.baseUrl,
+                            cloudAuthorization: cloudAuthorization(grant),
                           });
                           setPin("");
                           setPinConfirm("");
@@ -1815,6 +1835,26 @@ function Till() {
           dimensions.width > 700 ? 4 : dimensions.width > 520 ? 3 : 2;
         return (
           <>
+            {shop.mode === "live" &&
+              shop.baseUrl &&
+              isLocalServer(shop.baseUrl) &&
+              connectionError === "networkError" &&
+              hasCloudConnection &&
+              !internetOfferDismissed && (
+                <View style={styles.setupCard}>
+                  {heading(t("switchInternet"))}
+                  {help(t("switchInternetHelp"))}
+                  {button(
+                    t("connectionInternet"),
+                    () => {
+                      setInternetRequested(true);
+                      go("serverSettings");
+                    },
+                    true,
+                  )}
+                  {button(t("stayWifi"), () => setInternetOfferDismissed(true))}
+                </View>
+              )}
             <View style={styles.segments}>
               {shop.mode === "live" &&
                 shop.capabilities.inventory &&
@@ -2948,9 +2988,13 @@ function Till() {
             shop={shop}
             repo={repo}
             t={t}
+            internet={internetRequested}
             colors={palette}
-            back={() => go("connection")}
-            apply={async (data, loginName, signal) => {
+            back={() => {
+              setInternetRequested(false);
+              go("connection");
+            }}
+            apply={async (data, loginName, signal, authorization) => {
               if (actionLock.current) throw Error("signOutSyncing");
               actionLock.current = true;
               let ownsSync = false;
@@ -2972,6 +3016,9 @@ function Till() {
                   username: loginName,
                   password: "",
                   server: data.shop.baseUrl!,
+                  ...(authorization
+                    ? { cloudAuthorization: authorization }
+                    : {}),
                 });
                 try {
                   await repo.switchConnection(data.shop, data.items);
@@ -2987,6 +3034,7 @@ function Till() {
                 setQuery("");
                 setCategory("");
                 await refresh();
+                setInternetRequested(false);
                 go("sell");
               } finally {
                 if (ownsSync) syncLock.current = false;

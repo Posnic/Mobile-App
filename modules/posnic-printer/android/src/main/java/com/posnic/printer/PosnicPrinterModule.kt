@@ -41,6 +41,16 @@ class PosnicPrinterModule : Module() {
         finally { worker.shutdown() }
       }
     }
+    AsyncFunction("networkAddresses") {
+      // Android can report CELLULAR while this phone hosts the shop hotspot.
+      // Read only physical LAN/hotspot interfaces, never VPN or mobile carriers.
+      java.util.Collections.list(java.net.NetworkInterface.getNetworkInterfaces())
+        .filter { it.isUp && !it.isLoopback && Regex("^(wlan|ap|swlan|softap|bridge|br|rndis|usb|eth).*", RegexOption.IGNORE_CASE).matches(it.name) }
+        .flatMap { java.util.Collections.list(it.inetAddresses) }
+        .filterIsInstance<java.net.Inet4Address>()
+        .filter { it.isSiteLocalAddress && !it.isLoopbackAddress }
+        .mapNotNull { it.hostAddress }.distinct().take(4)
+    }
     AsyncFunction("pairedDevices") {
       val bluetooth = adapter()
       if (!bluetooth.isEnabled) error("deviceUnavailable")

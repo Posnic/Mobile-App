@@ -346,5 +346,9 @@
   "connectionHelp": "Choose how to reach this shop. Sign in once for each connection; this phone remembers it.",
   "connectionWrongShop": "This connection belongs to another shop, branch or user. Use the same shop and account.",
   "connectionPending": "Sync pending sales and resolve print requests before switching connections.",
-  "connectionCart": "Finish or clear the current and parked carts before switching connections."
+  "connectionCart": "Finish or clear the current and parked carts before switching connections.",
+  "switchInternet": "Switch to internet?",
+  "switchInternetHelp": "The shop Wi-Fi server is unavailable. Use the saved internet connection? Pending sales stay with their original server.",
+  "stayWifi": "Stay on Wi-Fi",
+  "localApprovalWaiting": "The till has not received authorization yet. Keep it online and try again, or continue using Internet."
 }
