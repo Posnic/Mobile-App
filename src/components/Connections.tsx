@@ -108,6 +108,7 @@ export function Connections({
           /* Internet may be unavailable; saved local sessions still work. */
         }
       }
+      if (ctrl.signal.aborted || !alive.current) return;
       if (wifi && !autoStarted.current && alive.current) {
         autoStarted.current = true;
         const known = await repo.connections(shop);
@@ -138,8 +139,10 @@ export function Connections({
       ctrl.abort();
       alive.current = false;
       operation.current?.abort();
+      operation.current = null;
+      autoStarted.current = false;
     };
-  }, [repo, shop.baseUrl]);
+  }, [repo, shop.baseUrl, internet, wifi]);
   const text = { color: c.ink, fontSize: 17 };
   const button = (
     label: string,
@@ -216,11 +219,13 @@ export function Connections({
       if (alive.current && !ctrl.signal.aborted)
         setError(e instanceof Error ? e.message : "unknownError");
     } finally {
-      if (alive.current) {
-        setBusy(false);
-        setMatch("");
+      if (operation.current === ctrl) {
+        if (alive.current) {
+          setBusy(false);
+          setMatch("");
+        }
+        operation.current = null;
       }
-      operation.current = null;
     }
   }
   async function accept(

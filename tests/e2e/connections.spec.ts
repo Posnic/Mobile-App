@@ -416,3 +416,49 @@ test("owner can create an item directly from the empty catalogue", async ({
     page.getByRole("heading", { name: "Create item", exact: true }),
   ).toBeVisible();
 });
+
+test("header route switch interrupts a pending manual connection without leaving the screen", async ({
+  page,
+}) => {
+  await mock(page);
+  await openConnections(page);
+  await page
+    .getByRole("button", { name: "Other ways to connect", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Server address", exact: true })
+    .click();
+  await page
+    .getByRole("textbox", { name: "Server address", exact: true })
+    .fill(cloud);
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page
+    .getByRole("textbox", { name: "Username", exact: true })
+    .fill("cashier");
+  await page
+    .getByRole("textbox", { name: "Password", exact: true })
+    .fill("password");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(
+    page.getByRole("textbox", { name: "Search items", exact: true }),
+  ).toBeVisible();
+  await openConnections(page);
+  await page
+    .getByRole("button", { name: "Other ways to connect", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Server address", exact: true })
+    .click();
+  await page
+    .getByRole("textbox", { name: "Server address", exact: true })
+    .fill("192.168.50.99");
+  await page.route("http://192.168.50.99:5555/api/**", async (route) => {
+    await new Promise((r) => setTimeout(r, 2000));
+    await route.abort();
+  });
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page.getByTestId("route-wifi").click();
+  await expect(
+    page.getByRole("textbox", { name: "Search items", exact: true }),
+  ).toBeVisible();
+});
