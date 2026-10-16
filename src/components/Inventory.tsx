@@ -9,11 +9,13 @@ import {
   View,
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import Feather from "@expo/vector-icons/Feather";
 import * as Crypto from "expo-crypto";
 import type { Repository } from "../data/repository";
 import type { Shop } from "../domain/types";
 import type {
   InventoryDraft,
+  InventoryFilter,
   InventoryItem,
   InventoryMode,
   InventoryOperation,
@@ -49,6 +51,7 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
   const [view, setView] = useState("home"),
     [kind, setKind] = useState("items"),
     [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<InventoryFilter | undefined>();
   const [rows, setRows] = useState<(InventoryItem | InventoryReference)[]>([]),
     [next, setNext] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<InventoryDraft[]>([]),
@@ -99,23 +102,70 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
       setBusy(false);
     }
   }
-  async function load(search = query, after = "", catalogue = kind) {
+  async function load(
+    search = query,
+    after = "",
+    catalogue = kind,
+    selectedFilter: InventoryFilter | null = filter || null,
+  ) {
     const request = ++sequence.current;
     const cachedPage = async (offset: number) => {
-      const found = await store.cached(catalogue, search, offset, 201);
+      const found = await store.cached(
+        catalogue,
+        search,
+        offset,
+        201,
+        catalogue === "items" ? selectedFilter || undefined : undefined,
+      );
       if (request !== sequence.current) return;
       setRows((old) =>
         offset ? [...old, ...found.slice(0, 200)] : found.slice(0, 200),
       );
       setNext(found.length > 200 ? "offline:" + (offset + 200) : null);
       setOffline(true);
-      setMessage(t("inventoryOffline"));
+      setMessage("");
     };
     if (after.startsWith("offline:")) return cachedPage(Number(after.slice(8)));
     try {
-      const page = await api.catalogue(catalogue, search, after);
+      let cursor = after;
+      let page;
+      do {
+        page = await api.catalogue(
+          catalogue,
+          catalogue === "items" ? search : "",
+          cursor,
+        );
+        if (request !== sequence.current) return;
+        await store.cache(
+          catalogue,
+          search + ":" + cursor,
+          page.rows,
+          page.asOf,
+        );
+        if (catalogue === "items" && selectedFilter) {
+          page.rows = page.rows.filter(
+            (r) =>
+              "tracked" in r &&
+              (selectedFilter.kind === "suppliers"
+                ? r.supplierId
+                : r.categoryId) === selectedFilter.id,
+          );
+        }
+        if (catalogue !== "items" && search.trim())
+          page.rows = page.rows.filter((r) =>
+            r.name
+              .toLocaleLowerCase()
+              .includes(search.trim().toLocaleLowerCase()),
+          );
+        cursor = page.next || "";
+      } while (
+        ((selectedFilter && catalogue === "items") ||
+          (catalogue !== "items" && search.trim())) &&
+        !page.rows.length &&
+        cursor
+      );
       if (request !== sequence.current) return;
-      await store.cache(catalogue, search + ":" + after, page.rows, page.asOf);
+
       setRows((old) => (after ? [...old, ...page.rows] : page.rows));
       setNext(page.next);
       setCanWrite(page.permissions.write);
@@ -131,13 +181,16 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
       await cachedPage(0);
     }
   }
-  async function browse(catalogue = "items") {
+  async function browse(
+    catalogue = "items",
+    selectedFilter: InventoryFilter | null = filter || null,
+  ) {
     setKind(catalogue);
     setQuery("");
     setRows([]);
     setNext(null);
     setView("find");
-    await load("", "", catalogue);
+    await load("", "", catalogue, selectedFilter);
   }
   async function download() {
     const generation = Crypto.randomUUID(),
@@ -168,7 +221,10 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
     setDraft(value);
     setDrafts(await store.drafts());
   }
-  async function start(mode: InventoryMode) {
+  async function start(
+    mode: InventoryMode,
+    selectedFilter: InventoryFilter | null = filter || null,
+  ) {
     const value: InventoryDraft = {
       id: Crypto.randomUUID(),
       mode,
@@ -176,9 +232,10 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
       state: "draft",
       createdAt: new Date().toISOString(),
       lines: [],
+      filter: selectedFilter || undefined,
     };
     await save(value);
-    await browse();
+    await browse("items", selectedFilter);
   }
   async function openItem(item: InventoryItem) {
     setSelected(item);
@@ -248,66 +305,190 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
       ),
     );
   }
+  type Glyph = React.ComponentProps<typeof Feather>["name"];
+  const modeIcon: Record<InventoryMode, Glyph> = {
+    count: "clipboard",
+    receive: "truck",
+    damage: "alert-triangle",
+    loss: "minus-circle",
+  };
+  const glyph = (name: Glyph, size = 20, color = colors.accent) => (
+    <Feather name={name} size={size} color={color} />
+  );
   const s = StyleSheet.create({
     root: { gap: 16 },
-    heading: { color: colors.ink, fontSize: 27, fontWeight: "700" },
-    text: { color: colors.ink, fontSize: 17 },
-    muted: { color: colors.muted, fontSize: 14 },
+    heading: { color: colors.ink, fontSize: 24, fontWeight: "700" },
+    text: { color: colors.ink, fontSize: 16 },
+    strong: { color: colors.ink, fontSize: 16, fontWeight: "600" },
+    muted: { color: colors.muted, fontSize: 13, lineHeight: 19 },
     row: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 12,
+      gap: 10,
       flexWrap: "wrap",
     },
     card: {
       backgroundColor: colors.surface,
       borderWidth: 1,
       borderColor: colors.line,
-      borderRadius: 18,
-      padding: 18,
+      borderRadius: 16,
+      padding: 16,
       gap: 8,
     },
-    button: {
-      borderRadius: 14,
-      padding: 15,
-      minHeight: 48,
+    list: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 16,
+      padding: 14,
+      minHeight: 70,
+    },
+    badge: {
+      width: 42,
+      height: 42,
+      borderRadius: 13,
       backgroundColor: colors.tint,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    button: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 9,
+      borderRadius: 13,
+      padding: 13,
+      minHeight: 48,
+      backgroundColor: colors.surface,
       borderColor: colors.line,
       borderWidth: 1,
+    },
+    tile: {
+      flex: 1,
+      minWidth: "44%",
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderRadius: 18,
+      padding: 16,
+      gap: 14,
+      backgroundColor: colors.surface,
     },
     input: {
       color: colors.ink,
       backgroundColor: colors.surface,
       borderWidth: 1,
       borderColor: colors.line,
-      borderRadius: 12,
-      padding: 14,
-      fontSize: 18,
-      minHeight: 52,
+      borderRadius: 13,
+      padding: 13,
+      fontSize: 16,
+      minHeight: 48,
     },
-    notice: { padding: 16, borderRadius: 14, backgroundColor: colors.tint },
-    image: { width: 72, height: 72, borderRadius: 12 },
+    notice: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      padding: 13,
+      borderRadius: 13,
+      backgroundColor: colors.tint,
+    },
+    image: { width: 64, height: 64, borderRadius: 12 },
   });
+  const actionIcon = (label: string): Glyph => {
+    if (label === t("inventoryDiscard") || label === t("inventoryRemoveLine"))
+      return "trash-2";
+    if (label === t("edit")) return "edit-2";
+    if (label === t("refresh") || label === t("retry")) return "refresh-cw";
+    if (label === t("inventoryHistory")) return "clock";
+    if (label === t("inventoryAddItems")) return "plus";
+    if (label === t("cancel")) return "x";
+    if (
+      [t("save"), t("inventoryConfirm"), t("inventoryApprove")].includes(label)
+    )
+      return "check";
+    return "arrow-right";
+  };
   const button = (
     label: string,
     action: () => Promise<void> | void,
     enabled = true,
+    icon?: Glyph,
+    primary = false,
   ) => (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
       disabled={busy || !enabled}
       accessibilityState={{ disabled: busy || !enabled }}
-      style={[s.button, (!enabled || busy) && { opacity: 0.45 }]}
+      style={[
+        s.button,
+        primary && {
+          backgroundColor: colors.accent,
+          borderColor: colors.accent,
+        },
+        (!enabled || busy) && { opacity: 0.45 },
+      ]}
       onPress={() =>
         void run(async () => {
           await action();
         })
       }
     >
-      <Text style={s.text}>{label}</Text>
+      {glyph(icon || actionIcon(label), 19, primary ? "#fff" : colors.accent)}
+      <Text style={[s.strong, primary && { color: "#fff" }]}>{label}</Text>
     </Pressable>
   );
+  const iconButton = (
+    label: string,
+    icon: Glyph,
+    action: () => Promise<void> | void,
+  ) => (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      disabled={busy}
+      style={[s.button, { width: 48, padding: 0 }, busy && { opacity: 0.45 }]}
+      onPress={() =>
+        void run(async () => {
+          await action();
+        })
+      }
+    >
+      {glyph(icon)}
+    </Pressable>
+  );
+  const openReferences = async (referenceKind: "suppliers" | "categories") => {
+    await browse(referenceKind);
+  };
+  const chooseReference = async (r: InventoryReference) => {
+    const value: InventoryFilter = {
+      kind: kind as "suppliers" | "categories",
+      id: r.id,
+      name: r.name,
+    };
+    setFilter(value);
+    if (draft?.state === "draft") await save({ ...draft, filter: value });
+    await browse("items", value);
+  };
+  const goBack = () => {
+    setScanning(false);
+    if (view === "home") return back();
+    if (view === "item") {
+      setView("find");
+      return;
+    }
+    if (view === "review") {
+      void run(() => browse("items", draft?.filter || null));
+      return;
+    }
+    if (view === "itemHistory") {
+      setView("item");
+      return;
+    }
+    setView("home");
+  };
   const title = (key: string) => <Text style={s.heading}>{t(key)}</Text>;
   const lineText = (o: InventoryOperation) => (
     <View style={s.card}>
@@ -329,18 +510,27 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
   );
   return (
     <View style={s.root}>
-      <View style={s.row}>
-        {button(t("back"), () => {
-          setScanning(false);
-          setSelected(null);
-          if (view === "home") back();
-          else setView("home");
-        })}
-        {title("inventory")}
+      <View style={[s.row, { flexWrap: "nowrap" }]}>
+        {iconButton(t("back"), "arrow-left", goBack)}
+        <View style={{ flex: 1 }}>
+          {title(
+            view === "home"
+              ? "inventory"
+              : kind !== "items" && view === "find"
+                ? kind === "suppliers"
+                  ? "inventorySuppliers"
+                  : "categories"
+                : view === "review"
+                  ? "inventoryReview"
+                  : draft
+                    ? "inventory" + draft.mode
+                    : "inventoryFind",
+          )}
+          {view !== "home" && (
+            <Text style={s.muted}>{t("inventoryDraftHelp")}</Text>
+          )}
+        </View>
       </View>
-      <Text style={s.muted}>
-        {shop.branchName} · {shop.staffName}
-      </Text>
       {busy && <ActivityIndicator color={colors.accent} />}
       {!!message && (
         <View accessibilityLiveRegion="polite" style={s.notice}>
@@ -349,76 +539,157 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
       )}
       {view === "home" && (
         <>
-          {button(t("inventoryFind"), () => {
-            setDraft(null);
-            return browse();
-          })}
+          {button(
+            t("inventoryFind"),
+            () => {
+              setDraft(null);
+              setFilter(undefined);
+              return browse("items", null);
+            },
+            true,
+            "search",
+          )}
           <View style={s.row}>
             {(["count", "receive", "damage", "loss"] as InventoryMode[]).map(
               (mode) => (
-                <View key={mode}>
-                  {button(t("inventory" + mode), () => start(mode), canWrite)}
-                </View>
+                <Pressable
+                  key={mode}
+                  accessibilityRole="button"
+                  accessibilityLabel={t("inventory" + mode)}
+                  disabled={busy || !canWrite}
+                  style={[s.tile, (!canWrite || busy) && { opacity: 0.45 }]}
+                  onPress={() => {
+                    setFilter(undefined);
+                    void run(() => start(mode, null));
+                  }}
+                >
+                  <View style={s.row}>
+                    <View style={s.badge}>{glyph(modeIcon[mode], 23)}</View>
+                    <View style={{ flex: 1 }} />
+                    {glyph("arrow-up-right", 17)}
+                  </View>
+                  <Text style={s.strong}>{t("inventory" + mode)}</Text>
+                </Pressable>
               ),
             )}
           </View>
-          <Text style={s.muted}>{t("inventoryDraftHelp")}</Text>
           <View style={s.row}>
-            {button(t("categories"), () => {
-              setDraft(null);
-              return browse("categories");
-            })}
-            {shop.permissions.supplierRead &&
-              button(t("inventorySuppliers"), () => {
-                setDraft(null);
-                return browse("suppliers");
-              })}
-          </View>
-          {button(t("offlineData") + " · " + t("refresh"), download)}
-          {title("inventoryDrafts")}
-          {!drafts.length && (
-            <Text style={s.muted}>{t("inventoryNoDrafts")}</Text>
-          )}
-          {drafts.map((d) => (
-            <View key={d.id}>
+            <View style={{ flex: 1 }}>
               {button(
-                t("inventory" + d.mode) +
-                  " · " +
-                  d.lines.length +
-                  " · " +
-                  new Date(d.createdAt).toLocaleDateString(),
+                t("categories"),
                 () => {
-                  setDraft(d);
-                  setView("review");
+                  setDraft(null);
+                  return openReferences("categories");
                 },
+                true,
+                "grid",
               )}
             </View>
+            {shop.permissions.supplierRead && (
+              <View style={{ flex: 1 }}>
+                {button(
+                  t("inventorySuppliers"),
+                  () => {
+                    setDraft(null);
+                    return openReferences("suppliers");
+                  },
+                  true,
+                  "users",
+                )}
+              </View>
+            )}
+          </View>
+          <View style={[s.row, { justifyContent: "space-between" }]}>
+            {title("inventoryDrafts")}
+            <Text style={s.muted}>{drafts.length}</Text>
+          </View>
+          {!drafts.length && (
+            <View style={s.notice}>
+              {glyph("file-text")}
+              <Text style={s.muted}>{t("inventoryNoDrafts")}</Text>
+            </View>
+          )}
+          {drafts.map((d) => (
+            <Pressable
+              key={d.id}
+              accessibilityRole="button"
+              accessibilityLabel={
+                t("inventory" + d.mode) +
+                " · " +
+                d.lines.length +
+                " · " +
+                new Date(d.createdAt).toLocaleDateString()
+              }
+              style={s.list}
+              onPress={() => {
+                setDraft(d);
+                setFilter(d.filter);
+                setKind("items");
+                setView("review");
+              }}
+            >
+              <View style={s.badge}>{glyph(modeIcon[d.mode])}</View>
+              <View style={{ flex: 1, gap: 3 }}>
+                <Text style={s.strong}>{t("inventory" + d.mode)}</Text>
+                <Text style={s.muted}>
+                  {d.lines.length} ·{" "}
+                  {new Date(d.createdAt).toLocaleDateString()}
+                  {d.filter ? " · " + d.filter.name : ""}
+                </Text>
+              </View>
+              {glyph("chevron-right", 18)}
+            </Pressable>
           ))}
-          {button(t("inventoryHistory"), async () => {
-            const page = await api.operations();
-            setOperations(page.rows);
-            setNext(page.next);
-            setSelectedOperation(null);
-            setView("history");
-          })}
+          <View style={s.row}>
+            <View style={{ flex: 1 }}>
+              {button(
+                t("inventoryHistory"),
+                async () => {
+                  const page = await api.operations();
+                  setOperations(page.rows);
+                  setNext(page.next);
+                  setSelectedOperation(null);
+                  setView("history");
+                },
+                true,
+                "clock",
+              )}
+            </View>
+            {iconButton(
+              t("offlineData") + " · " + t("refresh"),
+              "download-cloud",
+              download,
+            )}
+          </View>
+          <Text style={s.muted}>{t("inventoryDraftHelp")}</Text>
         </>
       )}
       {view === "find" && (
         <>
-          <TextInput
-            accessibilityLabel={t("search")}
-            value={query}
-            onChangeText={setQuery}
-            onSubmitEditing={() => void run(() => load())}
-            placeholder={t("search")}
-            placeholderTextColor={colors.muted}
-            style={s.input}
-          />
-          <View style={s.row}>
-            {button(t("search"), () => load())}
-            {button(t("refresh"), () => load())}
+          <View style={[s.row, { flexWrap: "nowrap" }]}>
+            <View style={{ flex: 1 }}>
+              <TextInput
+                accessibilityLabel={t("search")}
+                value={query}
+                onChangeText={setQuery}
+                onSubmitEditing={() => void run(() => load())}
+                returnKeyType="search"
+                placeholder={
+                  kind === "items"
+                    ? t("search")
+                    : t(
+                        kind === "suppliers"
+                          ? "inventorySuppliers"
+                          : "categories",
+                      )
+                }
+                placeholderTextColor={colors.muted}
+                style={s.input}
+              />
+            </View>
+            {iconButton(t("search"), "search", () => load())}
             {kind === "items" &&
-              button(t("scan"), async () => {
+              iconButton(t("scan"), "maximize", async () => {
                 const p = permission?.granted
                   ? permission
                   : await requestPermission();
@@ -426,6 +697,47 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
                 else setMessage(t("cameraPermission"));
               })}
           </View>
+          {kind === "items" && (
+            <View style={s.row}>
+              {button(
+                t("categories"),
+                () => openReferences("categories"),
+                true,
+                "grid",
+              )}
+              {shop.permissions.supplierRead &&
+                button(
+                  t("inventorySuppliers"),
+                  () => openReferences("suppliers"),
+                  true,
+                  "users",
+                )}
+              {iconButton(t("refresh"), "refresh-cw", () => load())}
+            </View>
+          )}
+          {filter && kind === "items" && (
+            <View style={s.notice}>
+              {glyph(filter.kind === "suppliers" ? "users" : "grid")}
+              <Text style={[s.strong, { flex: 1 }]}>{filter.name}</Text>
+              {iconButton(t("cancel"), "x", async () => {
+                setFilter(undefined);
+                if (draft?.state === "draft")
+                  await save({ ...draft, filter: undefined });
+                await load(query, "", "items", null);
+              })}
+            </View>
+          )}
+          {!draft &&
+            filter &&
+            kind === "items" &&
+            canWrite &&
+            button(
+              t("inventoryreceive"),
+              () => start("receive"),
+              true,
+              "truck",
+              true,
+            )}
           {scanning && (
             <CameraView
               style={{ height: 240 }}
@@ -448,35 +760,61 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
               }}
             />
           )}
-          <Text style={s.muted}>
-            {offline
-              ? t("inventoryOffline")
-              : asOf
-                ? new Date(asOf).toLocaleString()
-                : ""}
-          </Text>
+          {offline && (
+            <View style={s.notice}>
+              {glyph("wifi-off")}
+              <Text style={[s.muted, { flex: 1 }]}>
+                {t("inventoryOffline")}
+              </Text>
+            </View>
+          )}
           {draft &&
-            button(t("inventoryReview") + " · " + draft.lines.length, () =>
-              setView("review"),
+            button(
+              t("inventoryReview") + " · " + draft.lines.length,
+              () => setView("review"),
+              true,
+              "shopping-bag",
+              true,
             )}
           {rows.map((r) => (
             <Pressable
               key={r.id}
               accessibilityRole="button"
-              style={s.card}
-              onPress={() => {
-                if ("tracked" in r) void run(() => openItem(r));
-              }}
+              disabled={busy}
+              style={s.list}
+              onPress={() =>
+                void run(() =>
+                  "tracked" in r ? openItem(r) : chooseReference(r),
+                )
+              }
             >
-              <Text style={s.text}>{r.name}</Text>
-              {"tracked" in r && (
-                <Text style={s.muted}>
-                  {r.barcode || r.sku} ·{" "}
-                  {r.quantity === null ? "—" : r.quantity / 1000} {r.unit} ·{" "}
-                  {r.supplierName}
-                  {!r.active ? " · " + t("inventoryInactive") : ""}
-                </Text>
+              {"tracked" in r && r.image ? (
+                <Image
+                  source={{ uri: r.image }}
+                  style={{ width: 44, height: 44, borderRadius: 12 }}
+                />
+              ) : (
+                <View style={s.badge}>
+                  {glyph(
+                    "tracked" in r
+                      ? "package"
+                      : kind === "suppliers"
+                        ? "users"
+                        : "grid",
+                  )}
+                </View>
               )}
+              <View style={{ flex: 1, gap: 4 }}>
+                <Text style={s.strong}>{r.name}</Text>
+                {"tracked" in r && (
+                  <Text style={s.muted}>
+                    {r.quantity === null ? "—" : r.quantity / 1000} {r.unit}
+                    {r.supplierName ? " · " + r.supplierName : ""}
+                    {!r.active ? " · " + t("inventoryInactive") : ""}
+                  </Text>
+                )}
+              </View>
+              {glyph("chevron-right", 18)}
             </Pressable>
           ))}
           {!rows.length && <Text style={s.muted}>{t("noItems")}</Text>}
@@ -513,21 +851,49 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
               <Text style={s.text}>
                 {t(draft.mode === "count" ? "inventoryCounted" : "quantity")}
               </Text>
-              <TextInput
-                accessibilityLabel={t("quantity")}
-                style={s.input}
-                keyboardType="decimal-pad"
-                value={quantity}
-                onChangeText={setQuantity}
-              />
-              {button(t("save"), add)}
+              <View style={[s.card, { gap: 12 }]}>
+                <View style={[s.row, { flexWrap: "nowrap" }]}>
+                  {iconButton(t("inventoryDecrease"), "minus", () =>
+                    setQuantity(String(Math.max(0, Number(quantity || 0) - 1))),
+                  )}
+                  <TextInput
+                    accessibilityLabel={t("quantity")}
+                    style={[
+                      s.input,
+                      {
+                        flex: 1,
+                        minWidth: 0,
+                        width: 0,
+                        fontSize: 30,
+                        textAlign: "center",
+                        fontWeight: "600",
+                      },
+                    ]}
+                    keyboardType="decimal-pad"
+                    value={quantity}
+                    onChangeText={setQuantity}
+                  />
+                  {iconButton(t("inventoryIncrease"), "plus", () =>
+                    setQuantity(String(Number(quantity || 0) + 1)),
+                  )}
+                </View>
+                <Text style={[s.muted, { textAlign: "center" }]}>
+                  {selected.unit}
+                </Text>
+              </View>
+              {button(t("save"), add, true, "check", true)}
             </>
           )}
         </>
       )}
       {view === "review" && draft && (
         <>
-          {title("inventory" + draft.mode)}
+          <View style={s.notice}>
+            {glyph(modeIcon[draft.mode])}
+            <Text style={s.strong}>{t("inventory" + draft.mode)}</Text>
+            <View style={{ flex: 1 }} />
+            <Text style={s.muted}>{draft.lines.length}</Text>
+          </View>
           {draft.operation
             ? lineText(draft.operation)
             : draft.lines.map((l) => (
@@ -537,8 +903,8 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
                   </Text>
                   {draft.state === "draft" && (
                     <View style={s.row}>
-                      {button(t("edit"), () => openItem(l.item))}
-                      {button(t("inventoryRemoveLine"), () =>
+                      {iconButton(t("edit"), "edit-2", () => openItem(l.item))}
+                      {iconButton(t("inventoryRemoveLine"), "trash-2", () =>
                         save({
                           ...draft,
                           lines: draft.lines.filter(
@@ -553,6 +919,7 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
           {draft.state === "draft" ? (
             <>
               {button(t("inventoryAddItems"), () => browse())}
+              <Text style={s.strong}>{t("inventoryReason")}</Text>
               <TextInput
                 accessibilityLabel={t("inventoryReason")}
                 placeholder={t("inventoryReason")}
@@ -573,6 +940,8 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
                 t("inventorySubmit"),
                 submit,
                 !!draft.lines.length && !!draft.reason.trim(),
+                "arrow-right",
+                true,
               )}
               {button(t("inventoryDiscard"), async () => {
                 await store.discard(draft);
@@ -610,6 +979,9 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
                       : "inventoryConfirm",
                   ),
                   confirm,
+                  true,
+                  "check-circle",
+                  true,
                 )}
               {draft.operation?.state === "applying" &&
                 button(t("retry"), confirm)}

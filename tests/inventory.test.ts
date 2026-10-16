@@ -112,3 +112,36 @@ test("an unsubmitted request reopens under a new identity without moving authori
   assert.equal((await store.drafts())[0]!.id, "replacement-request");
   assert.deepEqual(reopened.lines, draft.lines);
 });
+
+test("offline supplier and category filters run before pagination and remain draft-local", async () => {
+  const store = new InventoryStore(new Memory(), trainingShop);
+  await store.cache(
+    "items",
+    "all",
+    [
+      { ...item, id: "other", supplierId: "other", categoryId: "other" },
+      { ...item, id: "match", supplierId: "supplier-a", categoryId: "food" },
+    ],
+    new Date().toISOString(),
+  );
+  assert.deepEqual(
+    (
+      await store.cached("items", "", 0, 1, {
+        kind: "suppliers",
+        id: "supplier-a",
+        name: "Market",
+      })
+    ).map((r) => r.id),
+    ["match"],
+  );
+  assert.deepEqual(
+    (
+      await store.cached("items", "", 0, 1, {
+        kind: "categories",
+        id: "food",
+        name: "Food",
+      })
+    ).map((r) => r.id),
+    ["match"],
+  );
+});
