@@ -317,7 +317,11 @@
     "switchInternet": "இணையத்திற்கு மாறவா?",
     "switchInternetHelp": "கடை வைஃபை சேவையகம் கிடைக்கவில்லை. சேமித்த இணைய இணைப்பைப் பயன்படுத்தவா? நிலுவை விற்பனைகள் பழைய சேவையகத்துடன் இணைந்திருக்கும்.",
     "stayWifi": "வைஃபையிலேயே இரு",
-    "localApprovalWaiting": "காசாளர் கணினிக்கு இன்னும் அனுமதி கிடைக்கவில்லை. அதை இணையத்தில் வைத்து மீண்டும் முயற்சிக்கவும் அல்லது இணைய இணைப்பைப் பயன்படுத்தவும்."
+    "localApprovalWaiting": "காசாளர் கணினிக்கு இன்னும் அனுமதி கிடைக்கவில்லை. அதை இணையத்தில் வைத்து மீண்டும் முயற்சிக்கவும் அல்லது இணைய இணைப்பைப் பயன்படுத்தவும்.",
+    "connectionOther": "இணைவதற்கான பிற வழிகள்",
+    "catalogueEmpty": "உங்கள் பொருள் பட்டியல் காலியாக உள்ளது",
+    "catalogueEmptyHelp": "முதல் பொருளைச் சேர்க்கவும் அல்லது கடையின் பொருட்களைப் பெற புதுப்பிக்கவும். விரைவு விற்பனையும் செய்யலாம்.",
+    "nearbyShop": "அருகிலுள்ள Posnic கடை"
   },
   "hi": {
     "name": "नाम",
@@ -635,7 +639,11 @@
     "switchInternet": "इंटरनेट पर जाएँ?",
     "switchInternetHelp": "दुकान का वाई-फाई सर्वर उपलब्ध नहीं है। सहेजा गया इंटरनेट कनेक्शन इस्तेमाल करें? लंबित बिक्री मूल सर्वर से जुड़ी रहेगी।",
     "stayWifi": "वाई-फाई पर रहें",
-    "localApprovalWaiting": "टिल को अभी अनुमति नहीं मिली है। उसे ऑनलाइन रखकर फिर कोशिश करें या इंटरनेट इस्तेमाल करें।"
+    "localApprovalWaiting": "टिल को अभी अनुमति नहीं मिली है। उसे ऑनलाइन रखकर फिर कोशिश करें या इंटरनेट इस्तेमाल करें।",
+    "connectionOther": "जुड़ने के अन्य तरीके",
+    "catalogueEmpty": "आपकी वस्तु सूची खाली है",
+    "catalogueEmptyHelp": "पहली वस्तु जोड़ें या दुकान की वस्तुएँ पाने के लिए रिफ्रेश करें। त्वरित बिक्री भी कर सकते हैं।",
+    "nearbyShop": "पास की Posnic दुकान"
   },
   "ml": {
     "name": "പേര്",
@@ -953,7 +961,11 @@
     "switchInternet": "ഇന്റർനെറ്റിലേക്ക് മാറണോ?",
     "switchInternetHelp": "കടയുടെ വൈഫൈ സെർവർ ലഭ്യമല്ല. സേവ് ചെയ്ത ഇന്റർനെറ്റ് കണക്ഷൻ ഉപയോഗിക്കണോ? ശേഷിക്കുന്ന വിൽപ്പനകൾ പഴയ സെർവറുമായി ബന്ധപ്പെട്ടു തുടരും.",
     "stayWifi": "വൈഫൈയിൽ തുടരുക",
-    "localApprovalWaiting": "ടില്ലിന് ഇതുവരെ അനുമതി ലഭിച്ചിട്ടില്ല. ഓൺലൈനിൽ നിർത്തി വീണ്ടും ശ്രമിക്കുക അല്ലെങ്കിൽ ഇന്റർനെറ്റ് ഉപയോഗിക്കുക."
+    "localApprovalWaiting": "ടില്ലിന് ഇതുവരെ അനുമതി ലഭിച്ചിട്ടില്ല. ഓൺലൈനിൽ നിർത്തി വീണ്ടും ശ്രമിക്കുക അല്ലെങ്കിൽ ഇന്റർനെറ്റ് ഉപയോഗിക്കുക.",
+    "connectionOther": "ബന്ധിപ്പിക്കാനുള്ള മറ്റു വഴികൾ",
+    "catalogueEmpty": "നിങ്ങളുടെ ഉൽപ്പന്ന പട്ടിക ശൂന്യമാണ്",
+    "catalogueEmptyHelp": "ആദ്യ ഉൽപ്പന്നം ചേർക്കുക അല്ലെങ്കിൽ കടയിലെ ഉൽപ്പന്നങ്ങൾ ലഭിക്കാൻ പുതുക്കുക. വേഗത്തിലുള്ള വിൽപ്പനയും നടത്താം.",
+    "nearbyShop": "അടുത്തുള്ള Posnic കട"
   },
   "kn": {
     "name": "ಹೆಸರು",
@@ -1271,7 +1283,11 @@
     "switchInternet": "ಇಂಟರ್ನೆಟ್‌ಗೆ ಬದಲಿಸಬೇಕೇ?",
     "switchInternetHelp": "ಅಂಗಡಿಯ ವೈ-ಫೈ ಸರ್ವರ್ ಲಭ್ಯವಿಲ್ಲ. ಉಳಿಸಿದ ಇಂಟರ್ನೆಟ್ ಸಂಪರ್ಕ ಬಳಸಬೇಕೇ? ಬಾಕಿ ಮಾರಾಟಗಳು ಮೂಲ ಸರ್ವರ್‌ಗೆ ಸಂಬಂಧಿಸಿರುತ್ತವೆ.",
     "stayWifi": "ವೈ-ಫೈನಲ್ಲೇ ಇರಿ",
-    "localApprovalWaiting": "ಟಿಲ್‌ಗೆ ಇನ್ನೂ ಅನುಮತಿ ಬಂದಿಲ್ಲ. ಅದನ್ನು ಆನ್‌ಲೈನ್‌ನಲ್ಲಿ ಇರಿಸಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ಇಂಟರ್ನೆಟ್ ಬಳಸಿ."
+    "localApprovalWaiting": "ಟಿಲ್‌ಗೆ ಇನ್ನೂ ಅನುಮತಿ ಬಂದಿಲ್ಲ. ಅದನ್ನು ಆನ್‌ಲೈನ್‌ನಲ್ಲಿ ಇರಿಸಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ಇಂಟರ್ನೆಟ್ ಬಳಸಿ.",
+    "connectionOther": "ಸಂಪರ್ಕಿಸಲು ಇತರ ಮಾರ್ಗಗಳು",
+    "catalogueEmpty": "ನಿಮ್ಮ ಉತ್ಪನ್ನ ಪಟ್ಟಿ ಖಾಲಿಯಾಗಿದೆ",
+    "catalogueEmptyHelp": "ಮೊದಲ ವಸ್ತುವನ್ನು ಸೇರಿಸಿ ಅಥವಾ ಅಂಗಡಿಯ ವಸ್ತುಗಳನ್ನು ಪಡೆಯಲು ರಿಫ್ರೆಶ್ ಮಾಡಿ. ತ್ವರಿತ ಮಾರಾಟವನ್ನೂ ಮಾಡಬಹುದು.",
+    "nearbyShop": "ಹತ್ತಿರದ Posnic ಅಂಗಡಿ"
   },
   "te": {
     "name": "పేరు",
@@ -1589,7 +1605,11 @@
     "switchInternet": "ఇంటర్నెట్‌కు మారాలా?",
     "switchInternetHelp": "దుకాణం వై-ఫై సర్వర్ అందుబాటులో లేదు. సేవ్ చేసిన ఇంటర్నెట్ కనెక్షన్ వాడాలా? పెండింగ్ అమ్మకాలు అసలు సర్వర్‌తోనే ఉంటాయి.",
     "stayWifi": "వై-ఫైలోనే ఉండండి",
-    "localApprovalWaiting": "టిల్‌కు ఇంకా అనుమతి అందలేదు. ఆన్‌లైన్‌లో ఉంచి మళ్లీ ప్రయత్నించండి లేదా ఇంటర్నెట్ వాడండి."
+    "localApprovalWaiting": "టిల్‌కు ఇంకా అనుమతి అందలేదు. ఆన్‌లైన్‌లో ఉంచి మళ్లీ ప్రయత్నించండి లేదా ఇంటర్నెట్ వాడండి.",
+    "connectionOther": "కనెక్ట్ కావడానికి ఇతర మార్గాలు",
+    "catalogueEmpty": "మీ ఉత్పత్తుల జాబితా ఖాళీగా ఉంది",
+    "catalogueEmptyHelp": "మొదటి వస్తువును జోడించండి లేదా షాపు వస్తువుల కోసం రిఫ్రెష్ చేయండి. త్వరిత విక్రయం కూడా చేయవచ్చు.",
+    "nearbyShop": "సమీపంలోని Posnic షాపు"
   },
   "si": {
     "name": "නම",
@@ -1907,7 +1927,11 @@
     "switchInternet": "අන්තර්ජාලයට මාරු වන්නද?",
     "switchInternetHelp": "වෙළඳසැලේ Wi-Fi සේවාදායකය නොමැත. සුරැකි අන්තර්ජාල සම්බන්ධතාව භාවිත කරන්නද? පොරොත්තු විකුණුම් මුල් සේවාදායකයට සම්බන්ධව පවතී.",
     "stayWifi": "Wi-Fi මත රැඳෙන්න",
-    "localApprovalWaiting": "ටර්මිනලයට තවම අනුමැතිය ලැබී නැත. සබැඳිව තබා නැවත උත්සාහ කරන්න හෝ අන්තර්ජාලය භාවිත කරන්න."
+    "localApprovalWaiting": "ටර්මිනලයට තවම අනුමැතිය ලැබී නැත. සබැඳිව තබා නැවත උත්සාහ කරන්න හෝ අන්තර්ජාලය භාවිත කරන්න.",
+    "connectionOther": "සම්බන්ධ වීමට වෙනත් ක්‍රම",
+    "catalogueEmpty": "ඔබගේ භාණ්ඩ ලැයිස්තුව හිස්ය",
+    "catalogueEmptyHelp": "පළමු භාණ්ඩය එක් කරන්න හෝ කඩයේ භාණ්ඩ ලබා ගැනීමට යළි පූරණය කරන්න. ඉක්මන් අලෙවියක්ද කළ හැක.",
+    "nearbyShop": "අසල Posnic වෙළඳසැල"
   },
   "ne": {
     "name": "नाम",
@@ -2225,7 +2249,11 @@
     "switchInternet": "इन्टरनेटमा बदल्ने?",
     "switchInternetHelp": "पसलको वाइफाइ सर्भर उपलब्ध छैन। सुरक्षित इन्टरनेट जडान प्रयोग गर्ने? बाँकी बिक्री मूल सर्भरसँगै रहन्छन्।",
     "stayWifi": "वाइफाइमै रहने",
-    "localApprovalWaiting": "टिलले अझै अनुमति पाएको छैन। अनलाइन राखेर फेरि प्रयास गर्नुहोस् वा इन्टरनेट प्रयोग गर्नुहोस्।"
+    "localApprovalWaiting": "टिलले अझै अनुमति पाएको छैन। अनलाइन राखेर फेरि प्रयास गर्नुहोस् वा इन्टरनेट प्रयोग गर्नुहोस्।",
+    "connectionOther": "जोडिने अन्य तरिकाहरू",
+    "catalogueEmpty": "तपाईंको वस्तु सूची खाली छ",
+    "catalogueEmptyHelp": "पहिलो वस्तु थप्नुहोस् वा पसलका वस्तुहरू पाउन रिफ्रेस गर्नुहोस्। छिटो बिक्री पनि गर्न सकिन्छ।",
+    "nearbyShop": "नजिकको Posnic पसल"
   },
   "ar": {
     "name": "الاسم",
@@ -2544,7 +2572,11 @@
     "switchInternet": "التبديل إلى الإنترنت؟",
     "switchInternetHelp": "خادم واي فاي غير متاح. هل تريد استخدام اتصال الإنترنت المحفوظ؟ تبقى المبيعات المعلقة مرتبطة بالخادم الأصلي.",
     "stayWifi": "البقاء على واي فاي",
-    "localApprovalWaiting": "لم تتلق نقطة البيع التفويض بعد. أبقها متصلة وأعد المحاولة أو استخدم الإنترنت."
+    "localApprovalWaiting": "لم تتلق نقطة البيع التفويض بعد. أبقها متصلة وأعد المحاولة أو استخدم الإنترنت.",
+    "connectionOther": "طرق أخرى للاتصال",
+    "catalogueEmpty": "قائمة المنتجات فارغة",
+    "catalogueEmptyHelp": "أضف أول منتج أو حدّث لجلب منتجات متجرك. يمكنك أيضًا إجراء بيع سريع.",
+    "nearbyShop": "متجر Posnic قريب"
   },
   "fr": {
     "name": "Nom",
@@ -2862,7 +2894,11 @@
     "switchInternet": "Passer à Internet ?",
     "switchInternetHelp": "Le serveur Wi-Fi est indisponible. Utiliser la connexion Internet enregistrée ? Les ventes en attente restent liées au serveur initial.",
     "stayWifi": "Rester sur le Wi-Fi",
-    "localApprovalWaiting": "La caisse n’a pas encore reçu l’autorisation. Gardez-la connectée et réessayez, ou utilisez Internet."
+    "localApprovalWaiting": "La caisse n’a pas encore reçu l’autorisation. Gardez-la connectée et réessayez, ou utilisez Internet.",
+    "connectionOther": "Autres moyens de connexion",
+    "catalogueEmpty": "Votre catalogue est vide",
+    "catalogueEmptyHelp": "Ajoutez un article ou actualisez les articles du magasin. Vous pouvez aussi effectuer une vente rapide.",
+    "nearbyShop": "Magasin Posnic à proximité"
   },
   "es": {
     "name": "Nombre",
@@ -3180,7 +3216,11 @@
     "switchInternet": "¿Cambiar a Internet?",
     "switchInternetHelp": "El servidor Wi-Fi no está disponible. ¿Usar la conexión de Internet guardada? Las ventas pendientes siguen vinculadas al servidor original.",
     "stayWifi": "Seguir en Wi-Fi",
-    "localApprovalWaiting": "La caja aún no ha recibido autorización. Manténgala conectada y reintente, o use Internet."
+    "localApprovalWaiting": "La caja aún no ha recibido autorización. Manténgala conectada y reintente, o use Internet.",
+    "connectionOther": "Otras formas de conectarse",
+    "catalogueEmpty": "Tu catálogo está vacío",
+    "catalogueEmptyHelp": "Añade un artículo o actualiza para obtener los de tu tienda. También puedes hacer una venta rápida.",
+    "nearbyShop": "Tienda Posnic cercana"
   },
   "pt": {
     "name": "Nome",
@@ -3498,7 +3538,11 @@
     "switchInternet": "Mudar para Internet?",
     "switchInternetHelp": "O servidor Wi-Fi está indisponível. Usar a ligação à Internet guardada? As vendas pendentes ficam no servidor original.",
     "stayWifi": "Manter Wi-Fi",
-    "localApprovalWaiting": "A caixa ainda não recebeu autorização. Mantenha-a ligada e tente novamente, ou use Internet."
+    "localApprovalWaiting": "A caixa ainda não recebeu autorização. Mantenha-a ligada e tente novamente, ou use Internet.",
+    "connectionOther": "Outras formas de conexão",
+    "catalogueEmpty": "O seu catálogo está vazio",
+    "catalogueEmptyHelp": "Adicione um artigo ou atualize para obter os artigos da loja. Também pode fazer uma venda rápida.",
+    "nearbyShop": "Loja Posnic próxima"
   },
   "id": {
     "name": "Nama",
@@ -3816,7 +3860,11 @@
     "switchInternet": "Beralih ke Internet?",
     "switchInternetHelp": "Server Wi-Fi tidak tersedia. Gunakan koneksi Internet tersimpan? Penjualan tertunda tetap terikat ke server asal.",
     "stayWifi": "Tetap di Wi-Fi",
-    "localApprovalWaiting": "Kasir belum menerima izin. Biarkan tetap online dan coba lagi, atau gunakan Internet."
+    "localApprovalWaiting": "Kasir belum menerima izin. Biarkan tetap online dan coba lagi, atau gunakan Internet.",
+    "connectionOther": "Cara lain untuk terhubung",
+    "catalogueEmpty": "Katalog Anda kosong",
+    "catalogueEmptyHelp": "Tambahkan barang pertama atau muat ulang barang toko. Anda juga dapat melakukan penjualan cepat.",
+    "nearbyShop": "Toko Posnic terdekat"
   },
   "th": {
     "name": "ชื่อ",
@@ -4134,7 +4182,11 @@
     "switchInternet": "เปลี่ยนไปใช้อินเทอร์เน็ตหรือไม่?",
     "switchInternetHelp": "เซิร์ฟเวอร์ Wi-Fi ของร้านไม่พร้อมใช้งาน ใช้การเชื่อมต่ออินเทอร์เน็ตที่บันทึกไว้หรือไม่? ยอดขายที่ค้างยังผูกกับเซิร์ฟเวอร์เดิม",
     "stayWifi": "ใช้ Wi-Fi ต่อ",
-    "localApprovalWaiting": "เครื่องขายยังไม่ได้รับอนุญาต ให้เชื่อมต่อออนไลน์แล้วลองอีกครั้ง หรือใช้อินเทอร์เน็ต"
+    "localApprovalWaiting": "เครื่องขายยังไม่ได้รับอนุญาต ให้เชื่อมต่อออนไลน์แล้วลองอีกครั้ง หรือใช้อินเทอร์เน็ต",
+    "connectionOther": "วิธีเชื่อมต่ออื่น",
+    "catalogueEmpty": "แค็ตตาล็อกของคุณว่างเปล่า",
+    "catalogueEmptyHelp": "เพิ่มสินค้าแรกหรือรีเฟรชเพื่อรับสินค้าจากร้าน คุณยังสามารถขายด่วนได้",
+    "nearbyShop": "ร้าน Posnic ใกล้เคียง"
   },
   "de": {
     "name": "Name",
@@ -4452,7 +4504,11 @@
     "switchInternet": "Zum Internet wechseln?",
     "switchInternetHelp": "Der WLAN-Server ist nicht erreichbar. Gespeicherte Internetverbindung verwenden? Offene Verkäufe bleiben dem ursprünglichen Server zugeordnet.",
     "stayWifi": "Im WLAN bleiben",
-    "localApprovalWaiting": "Die Kasse hat noch keine Freigabe erhalten. Lassen Sie sie online und versuchen Sie es erneut oder nutzen Sie Internet."
+    "localApprovalWaiting": "Die Kasse hat noch keine Freigabe erhalten. Lassen Sie sie online und versuchen Sie es erneut oder nutzen Sie Internet.",
+    "connectionOther": "Weitere Verbindungsmöglichkeiten",
+    "catalogueEmpty": "Ihr Katalog ist leer",
+    "catalogueEmptyHelp": "Fügen Sie einen Artikel hinzu oder laden Sie die Artikel Ihres Geschäfts neu. Ein Schnellverkauf ist ebenfalls möglich.",
+    "nearbyShop": "Posnic-Geschäft in der Nähe"
   },
   "sw": {
     "name": "Jina",
@@ -4770,7 +4826,11 @@
     "switchInternet": "Badili kwenda intaneti?",
     "switchInternetHelp": "Seva ya Wi-Fi haipatikani. Utumie intaneti iliyohifadhiwa? Mauzo yanayosubiri yanabaki kwa seva ya awali.",
     "stayWifi": "Baki kwenye Wi-Fi",
-    "localApprovalWaiting": "Kituo bado hakijapokea idhini. Kiweke mtandaoni na ujaribu tena, au tumia intaneti."
+    "localApprovalWaiting": "Kituo bado hakijapokea idhini. Kiweke mtandaoni na ujaribu tena, au tumia intaneti.",
+    "connectionOther": "Njia nyingine za kuunganisha",
+    "catalogueEmpty": "Orodha yako ya bidhaa ni tupu",
+    "catalogueEmptyHelp": "Ongeza bidhaa ya kwanza au onyesha upya bidhaa za duka. Unaweza pia kufanya mauzo ya haraka.",
+    "nearbyShop": "Duka la Posnic lililo karibu"
   },
   "nl": {
     "name": "Naam",
@@ -5088,7 +5148,11 @@
     "switchInternet": "Overschakelen naar internet?",
     "switchInternetHelp": "De wifi-server is niet bereikbaar. De opgeslagen internetverbinding gebruiken? Openstaande verkopen blijven bij de oorspronkelijke server.",
     "stayWifi": "Op wifi blijven",
-    "localApprovalWaiting": "De kassa heeft nog geen toestemming ontvangen. Houd deze online en probeer opnieuw, of gebruik internet."
+    "localApprovalWaiting": "De kassa heeft nog geen toestemming ontvangen. Houd deze online en probeer opnieuw, of gebruik internet.",
+    "connectionOther": "Andere verbindingsmogelijkheden",
+    "catalogueEmpty": "Je catalogus is leeg",
+    "catalogueEmptyHelp": "Voeg een artikel toe of vernieuw de artikelen van je winkel. Je kunt ook een snelle verkoop doen.",
+    "nearbyShop": "Posnic-winkel in de buurt"
   },
   "it": {
     "name": "Nome",
@@ -5406,6 +5470,10 @@
     "switchInternet": "Passare a Internet?",
     "switchInternetHelp": "Il server Wi-Fi non è disponibile. Usare la connessione Internet salvata? Le vendite in sospeso restano associate al server originale.",
     "stayWifi": "Resta su Wi-Fi",
-    "localApprovalWaiting": "La cassa non ha ancora ricevuto l’autorizzazione. Lasciala online e riprova, oppure usa Internet."
+    "localApprovalWaiting": "La cassa non ha ancora ricevuto l’autorizzazione. Lasciala online e riprova, oppure usa Internet.",
+    "connectionOther": "Altri modi per connettersi",
+    "catalogueEmpty": "Il catalogo è vuoto",
+    "catalogueEmptyHelp": "Aggiungi un articolo o aggiorna per caricare quelli del negozio. Puoi anche effettuare una vendita rapida.",
+    "nearbyShop": "Negozio Posnic nelle vicinanze"
   }
 }

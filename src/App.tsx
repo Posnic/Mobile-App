@@ -215,6 +215,7 @@ function Till() {
       scans?.cancel();
     };
   }, [scans]);
+  const [wifiRequested, setWifiRequested] = useState(false);
   const [internetRequested, setInternetRequested] = useState(false);
   const [internetOfferDismissed, setInternetOfferDismissed] = useState(false);
   const [hasCloudConnection, setHasCloudConnection] = useState(false);
@@ -530,7 +531,10 @@ function Till() {
     if (!connectionError) setInternetOfferDismissed(false);
   }, [connectionError]);
   useEffect(() => {
-    if (screen !== "serverSettings") setInternetRequested(false);
+    if (screen !== "serverSettings") {
+      setInternetRequested(false);
+      setWifiRequested(false);
+    }
   }, [screen]);
   const choosingConnection = screen === "serverSettings";
   const syncNow = useCallback(
@@ -1558,8 +1562,9 @@ function Till() {
                         <View key={hit.address}>
                           {actionRow(
                             "server",
-                            t("useServer") + " · " + new URL(hit.address).host,
-                            "Posnic POS · " +
+                            hit.name || t("nearbyShop"),
+                            new URL(hit.address).host +
+                              " · " +
                               (hit.compatible
                                 ? hit.version
                                 : t("serverUpgrade")),
@@ -1971,7 +1976,26 @@ function Till() {
                   contentContainerStyle={{ gap: 8 }}
                   ListEmptyComponent={
                     catalogueView ? (
-                      help(t(favouritesOnly ? "favouritesHelp" : "noMatch"))
+                      <View style={{ gap: 12, paddingVertical: 20 }}>
+                        {heading(
+                          t(
+                            favouritesOnly
+                              ? "favouritesHelp"
+                              : query || category
+                                ? "noMatch"
+                                : "catalogueEmpty",
+                          ),
+                        )}
+                        {!query &&
+                          !category &&
+                          !favouritesOnly &&
+                          help(t("catalogueEmptyHelp"))}
+                        {shop.permissions.itemWrite &&
+                          button(t("newItem"), () => go("item"), true)}
+                        {button(t("refresh"), () => void refreshList())}
+                        {shop.permissions.quickSale &&
+                          button(t("quickSale"), () => go("quick"))}
+                      </View>
                     ) : (
                       <ActivityIndicator color={palette.accent} />
                     )
@@ -2989,10 +3013,11 @@ function Till() {
             repo={repo}
             t={t}
             internet={internetRequested}
+            wifi={wifiRequested}
             colors={palette}
             back={() => {
               setInternetRequested(false);
-              go("connection");
+              go("sell");
             }}
             apply={async (data, loginName, signal, authorization) => {
               if (actionLock.current) throw Error("signOutSyncing");
@@ -3617,17 +3642,71 @@ function Till() {
             <View style={{ flex: 1, minWidth: 0 }}>
               <Brand dark={dark} />
               <Text style={styles.small} numberOfLines={1}>
-                {shop ? shop.name + " · " + shop.branchName : t("connect")}
+                {shop
+                  ? shop.name +
+                    (shop.branchName !== shop.name
+                      ? " · " + shop.branchName
+                      : "")
+                  : t("connect")}
               </Text>
             </View>
             {!shop && iconButton("globe", t("language"), () => go("language"))}
-            {shop?.mode === "live" &&
-              !locked &&
-              iconButton(
-                shop.baseUrl && isLocalServer(shop.baseUrl) ? "wifi" : "globe",
-                t("connection"),
-                () => go("serverSettings"),
-              )}
+            {shop?.mode === "live" && !locked && (
+              <View style={{ flexDirection: "row", gap: 4 }}>
+                {([true, false] as const).map((local) => (
+                  <Pressable
+                    key={String(local)}
+                    testID={local ? "route-wifi" : "route-internet"}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      t("connection") +
+                      " · " +
+                      t(local ? "connectionWifi" : "connectionInternet")
+                    }
+                    accessibilityState={{
+                      selected: isLocalServer(shop.baseUrl!) === local,
+                    }}
+                    aria-pressed={isLocalServer(shop.baseUrl!) === local}
+                    onPress={() => {
+                      if (
+                        isLocalServer(shop.baseUrl!) === local &&
+                        !connectionError
+                      )
+                        return;
+                      setWifiRequested(local);
+                      setInternetRequested(!local);
+                      go("serverSettings");
+                    }}
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 14,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor:
+                        isLocalServer(shop.baseUrl!) === local
+                          ? palette.soft
+                          : "transparent",
+                      borderWidth: 1,
+                      borderColor:
+                        isLocalServer(shop.baseUrl!) === local
+                          ? palette.accent
+                          : palette.line,
+                    }}
+                  >
+                    <Feather
+                      name={local ? "wifi" : "globe"}
+                      size={21}
+                      color={
+                        isLocalServer(shop.baseUrl!) === local
+                          ? palette.accent
+                          : palette.muted
+                      }
+                    />
+                  </Pressable>
+                ))}
+              </View>
+            )}
             {shop && !locked && (
               <Pressable
                 accessibilityRole="button"

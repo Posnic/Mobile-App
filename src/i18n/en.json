@@ -350,5 +350,9 @@
   "switchInternet": "Switch to internet?",
   "switchInternetHelp": "The shop Wi-Fi server is unavailable. Use the saved internet connection? Pending sales stay with their original server.",
   "stayWifi": "Stay on Wi-Fi",
-  "localApprovalWaiting": "The till has not received authorization yet. Keep it online and try again, or continue using Internet."
+  "localApprovalWaiting": "The till has not received authorization yet. Keep it online and try again, or continue using Internet.",
+  "connectionOther": "Other ways to connect",
+  "catalogueEmpty": "Your catalogue is empty",
+  "catalogueEmptyHelp": "Add your first item, or refresh to get items from your shop. You can also make a quick sale.",
+  "nearbyShop": "Nearby Posnic shop"
 }
