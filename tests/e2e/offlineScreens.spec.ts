@@ -56,8 +56,11 @@ for (const destination of ["local", "cloud"] as const) {
       page.getByRole("button", { name: "Internet", exact: true }),
     ).toBeEnabled();
     await expect(
-      page.getByRole("button", { name: "Find server on Wi-Fi", exact: true }),
+      page.getByRole("button", { name: "Shop Wi-Fi", exact: true }),
     ).toBeEnabled();
+    await page
+      .getByRole("button", { name: "Other ways to connect", exact: true })
+      .click();
     await page
       .getByRole("button", { name: "Server address", exact: true })
       .click();
@@ -262,9 +265,7 @@ test("server settings refuse to disconnect an unfinished basket", async ({
   await page
     .getByRole("button", { name: "Server settings", exact: true })
     .click();
-  await expect(
-    page.getByText("http://127.0.0.1:5999/api", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByTestId("connection-panel")).toBeVisible();
   const connectedShop = await page.evaluate(async () => {
     const db = await new Promise<IDBDatabase>((resolve) => {
       const r = indexedDB.open("posnic-preview");
@@ -286,6 +287,9 @@ test("server settings refuse to disconnect an unfinished basket", async ({
           : { token: "target-token" },
     }),
   );
+  await page
+    .getByRole("button", { name: "Other ways to connect", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Server address", exact: true })
     .click();

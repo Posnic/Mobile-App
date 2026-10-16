@@ -38,7 +38,7 @@ test("LAN scan probes only the phone subnet, recognizes Posnic and sends no cred
     fetcher,
     [5555],
   );
-  assert.equal(calls.length, 254);
+  assert.equal(calls.length, 256);
   assert.ok(calls.every((u) => u.startsWith("http://192.168.12.")));
   assert.deepEqual(found, ["http://192.168.12.27:5555/api"]);
   assert.equal(final, 254);
@@ -70,4 +70,43 @@ test("cancelled or non-private scans never send probes", async () => {
     /wifiRequired/,
   );
   assert.equal(calls, 0);
+});
+
+test("discovery reads only public shop names and falls back for older tills", async () => {
+  for (const legacy of [false, true]) {
+    const found: any[] = [];
+    await discoverServers(
+      "192.168.12.5",
+      new AbortController().signal,
+      (s) => found.push(s),
+      () => {},
+      async (url, options) => {
+        assert.equal(
+          (options?.headers as Record<string, string>).Authorization,
+          undefined,
+        );
+        const path = String(url);
+        if (!path.includes(".27:")) return new Response("{}", { status: 404 });
+        if (path.endsWith("runtime-info"))
+          return new Response(
+            JSON.stringify({
+              edition: "community",
+              apiSchema: 1,
+              syncProtocol: 1,
+              features: { mobilePosV1: true },
+            }),
+          );
+        if (path.endsWith("mobile/v1/discovery"))
+          return new Response(JSON.stringify({ shopName: "South Avenue" }), {
+            status: legacy ? 404 : 200,
+          });
+        return new Response(
+          JSON.stringify({ connections: { shopName: "South Avenue" } }),
+        );
+      },
+      [5555],
+    );
+    assert.equal(found.length, 1);
+    assert.equal(found[0].name, "South Avenue");
+  }
 });

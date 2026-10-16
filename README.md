@@ -37,8 +37,11 @@ A PIN is optional. Community shops can use Wi-Fi discovery, a shop QR code, a
 pairing code with a server address, or a typed server address. Login fields appear
 only after selecting a compatible server.
 
-Tap the Wi-Fi/globe icon beside the shop name to choose **Shop Wi-Fi** or
-**Internet**. Cloud approval includes nearby tills reported by the shop: choose
+The header shows separate Wi-Fi and globe buttons; tap either to switch directly
+to a remembered connection. The connection page contains **Shop Wi-Fi** and
+**Internet**, with QR/code/address entry under **Other ways to connect**.
+Discovery displays public shop names with addresses as secondary information.
+Cloud approval includes nearby tills reported by the shop: choose
 one to authorize it without entering a local password. The app verifies the till's
 one-time enrollment proof before sending the approval. Saved connections reuse
 that endpoint's own session and must identify the same shop, branch and cashier.
@@ -57,6 +60,9 @@ restores its history. Stock drafts remain scoped to their original endpoint.
 The app does not silently move queued sales to a different ledger. Updating an
 unreachable till address with pending sales requires server identity and shared
 idempotency support; do not uninstall or clear app storage to work around it.
+
+An empty catalogue offers refresh and quick sale, plus **New item** when the
+server grants item-write access.
 
 ## Implemented
 

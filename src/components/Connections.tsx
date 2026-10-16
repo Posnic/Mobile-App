@@ -39,6 +39,7 @@ type Props = {
     authorization?: CloudAuthorization,
   ) => Promise<void>;
   internet?: boolean;
+  wifi?: boolean;
   colors: {
     ink: string;
     muted: string;
@@ -56,6 +57,7 @@ export function Connections({
   apply,
   colors: c,
   internet,
+  wifi,
 }: Props) {
   const [saved, setSaved] = useState<string[]>([]),
     [view, setView] = useState("home"),
@@ -70,6 +72,7 @@ export function Connections({
     [found, setFound] = useState<DiscoveredServer[]>([]),
     [progress, setProgress] = useState(""),
     [match, setMatch] = useState("");
+  const [setup, setSetup] = useState(false);
   const [authorization, setAuthorization] = useState<CloudAuthorization>();
   const autoStarted = useRef(false);
   const [permission, requestPermission] = useCameraPermissions();
@@ -91,10 +94,13 @@ export function Connections({
       if (account?.cloudAuthorization) {
         setAuthorization(account.cloudAuthorization);
         try {
-          const updated = await refreshLocalAuthorizations(
-            account.cloudAuthorization,
-            ctrl.signal,
-          );
+          const updated =
+            internet || wifi
+              ? account.cloudAuthorization
+              : await refreshLocalAuthorizations(
+                  account.cloudAuthorization,
+                  ctrl.signal,
+                );
           if (!alive.current || ctrl.signal.aborted) return;
           await vault.updateCloudAuthorization(updated);
           setAuthorization(updated);
@@ -102,12 +108,28 @@ export function Connections({
           /* Internet may be unavailable; saved local sessions still work. */
         }
       }
+      if (ctrl.signal.aborted || !alive.current) return;
+      if (wifi && !autoStarted.current && alive.current) {
+        autoStarted.current = true;
+        const known = await repo.connections(shop);
+        const local = known.filter(isLocalServer);
+        if (local.length === 1) void run((signal) => choose(local[0]!, signal));
+        else {
+          setView("wifi");
+          if (
+            !local.length &&
+            !account?.cloudAuthorization?.localServers.length
+          )
+            void run(search);
+        }
+      }
       if (internet && !autoStarted.current && alive.current) {
         autoStarted.current = true;
+        const endpoint =
+          account?.cloudAuthorization?.baseUrl ||
+          (await repo.connections(shop)).find((url) => !isLocalServer(url));
         void run((signal) =>
-          account?.cloudAuthorization
-            ? choose(account.cloudAuthorization.baseUrl, signal)
-            : cloud(signal),
+          endpoint ? choose(endpoint, signal) : cloud(signal),
         );
       }
     })().catch(() => {
@@ -117,8 +139,10 @@ export function Connections({
       ctrl.abort();
       alive.current = false;
       operation.current?.abort();
+      operation.current = null;
+      autoStarted.current = false;
     };
-  }, [repo, shop.baseUrl]);
+  }, [repo, shop.baseUrl, internet, wifi]);
   const text = { color: c.ink, fontSize: 17 };
   const button = (
     label: string,
@@ -195,11 +219,13 @@ export function Connections({
       if (alive.current && !ctrl.signal.aborted)
         setError(e instanceof Error ? e.message : "unknownError");
     } finally {
-      if (alive.current) {
-        setBusy(false);
-        setMatch("");
+      if (operation.current === ctrl) {
+        if (alive.current) {
+          setBusy(false);
+          setMatch("");
+        }
+        operation.current = null;
       }
-      operation.current = null;
     }
   }
   async function accept(
@@ -331,8 +357,24 @@ export function Connections({
     );
   }
   return (
-    <View style={{ gap: 16 }}>
-      {button(t("back"), back, "arrow-left")}
+    <View testID="connection-panel" style={{ gap: 16 }}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t("back")}
+        onPress={() => {
+          operation.current?.abort();
+          back();
+        }}
+        style={{
+          paddingVertical: 12,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <Feather name="arrow-left" size={24} color={c.accent} />
+        <Text style={text}>{t("back")}</Text>
+      </Pressable>
       <Text
         accessibilityRole="header"
         style={{ ...text, fontSize: 28, fontWeight: "700" }}
@@ -367,97 +409,80 @@ export function Connections({
       )}
       {view === "home" && (
         <>
-          <View
-            style={{
-              padding: 16,
-              backgroundColor: c.soft,
-              borderRadius: 16,
-              gap: 8,
-            }}
-          >
-            <Text style={text}>{t("connectionCurrent")}</Text>
-            <Text style={{ ...text, fontWeight: "700" }}>
-              {t(
-                isLocalServer(shop.baseUrl!)
-                  ? "connectionWifi"
-                  : "connectionInternet",
-              )}
-            </Text>
-            <Text selectable style={{ color: c.muted }}>
-              {shop.baseUrl}
-            </Text>
-          </View>
-          <Text style={{ color: c.muted }}>{t("connectionHelp")}</Text>
-          {authorization?.localServers
-            .filter((target) => !target.addresses.includes(shop.baseUrl!))
-            .map((target) => (
-              <View key={target.deviceId}>
-                {button(
-                  (target.name || t("connectionWifi")) +
-                    " · " +
-                    t("connectionWifi"),
-                  () =>
-                    void run((signal) => choose(target.addresses[0]!, signal)),
-                  "wifi",
-                )}
-              </View>
-            ))}
-          {saved
-            .filter((s) => s !== shop.baseUrl)
-            .map((url) => (
-              <View key={url}>
-                {button(
-                  t(
-                    isLocalServer(url)
-                      ? "connectionWifi"
-                      : "connectionInternet",
-                  ) +
-                    " · " +
-                    url,
-                  () => void run((s) => choose(url, s)),
-                  isLocalServer(url) ? "wifi" : "globe",
-                )}
-              </View>
-            ))}
+          <Text style={{ ...text, color: c.muted }}>
+            {shop.name}
+            {shop.branchName !== shop.name ? " · " + shop.branchName : ""}
+          </Text>
           {button(
-            t("serverSignIn"),
-            () => void run((s) => choose(shop.baseUrl!, s)),
-            "refresh-cw",
+            t("connectionWifi"),
+            () => {
+              setView("wifi");
+              if (
+                !saved.some(isLocalServer) &&
+                !authorization?.localServers.length
+              )
+                void run(search);
+            },
+            "wifi",
           )}
           {button(
             t("connectionInternet"),
             () =>
-              void run((signal) =>
-                authorization
-                  ? choose(authorization.baseUrl, signal)
-                  : cloud(signal),
-              ),
+              void run(async (signal) => {
+                const endpoint =
+                  authorization?.baseUrl ||
+                  saved.find((s) => !isLocalServer(s));
+                if (endpoint) await choose(endpoint, signal);
+                else await cloud(signal);
+              }),
             "globe",
           )}
-          {button(t("searchWifi"), () => void run(search), "wifi")}
-          {button(
-            t("shopQr"),
-            () => {
-              scanLock.current = false;
-              setView("scan");
-            },
-            "maximize",
-          )}
-          {button(
-            t("pairCode"),
-            () => {
-              setUseCode(true);
-              setView("address");
-            },
-            "key",
-          )}
-          {button(
-            t("server"),
-            () => {
-              setUseCode(false);
-              setView("address");
-            },
-            "edit-3",
+        </>
+      )}
+      {(view === "home" || view === "wifi") && (
+        <>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("connectionOther")}
+            onPress={() => setSetup(!setup)}
+            style={{ paddingVertical: 12, flexDirection: "row", gap: 8 }}
+          >
+            <Text style={{ ...text, color: c.muted }}>
+              {t("connectionOther")}
+            </Text>
+            <Feather
+              name={setup ? "chevron-up" : "chevron-down"}
+              size={20}
+              color={c.muted}
+            />
+          </Pressable>
+          {setup && (
+            <>
+              {button(
+                t("shopQr"),
+                () => {
+                  scanLock.current = false;
+                  setView("scan");
+                },
+                "maximize",
+              )}
+              {button(
+                t("pairCode"),
+                () => {
+                  setUseCode(true);
+                  setView("address");
+                },
+                "key",
+              )}
+              {button(
+                t("server"),
+                () => {
+                  setUseCode(false);
+                  setView("address");
+                },
+                "edit-3",
+              )}
+            </>
           )}
         </>
       )}
@@ -466,28 +491,83 @@ export function Connections({
           <Text style={{ color: c.muted }}>
             {t("chooseServer")} · {progress}
           </Text>
-          {found.map((hit) => (
+          {Array.from(
+            new Map<
+              string,
+              { address: string; name: string; compatible: boolean }
+            >([
+              ...(authorization?.localServers ?? []).flatMap((row) =>
+                row.addresses.map(
+                  (address) =>
+                    [
+                      address,
+                      {
+                        address,
+                        name:
+                          shop.name +
+                          (shop.branchName !== shop.name
+                            ? " · " + shop.branchName
+                            : ""),
+                        compatible: true,
+                      },
+                    ] as const,
+                ),
+              ),
+              ...saved
+                .filter(isLocalServer)
+                .map(
+                  (address) =>
+                    [
+                      address,
+                      { address, name: shop.name, compatible: true },
+                    ] as const,
+                ),
+              ...found.map(
+                (hit) =>
+                  [
+                    hit.address,
+                    {
+                      ...hit,
+                      name:
+                        hit.name ||
+                        (saved.includes(hit.address)
+                          ? shop.name
+                          : t("nearbyShop")),
+                    },
+                  ] as const,
+              ),
+            ]).values(),
+          ).map((hit) => (
             <View key={hit.address}>
               {button(
-                hit.address +
-                  " · " +
-                  hit.edition +
-                  (hit.compatible ? "" : " · " + t("serverUpgrade")),
+                hit.name + " · " + t("useServer"),
                 () => {
                   operation.current?.abort();
-                  // Let the cancelled scan release its operation lock first.
-                  setTimeout(() => void run((s) => choose(hit.address, s)), 0);
+                  setTimeout(
+                    () => void run((signal) => choose(hit.address, signal)),
+                    0,
+                  );
                 },
-                "server",
+                "shopping-bag",
                 true,
               )}
+              <Text
+                style={{
+                  color: c.muted,
+                  fontSize: 12,
+                  paddingHorizontal: 16,
+                  paddingBottom: 6,
+                }}
+              >
+                {new URL(hit.address).host}
+                {!hit.compatible ? " · " + t("serverUpgrade") : ""}
+              </Text>
             </View>
           ))}
           {!busy && found.length === 0 && (
             <Text style={text}>{t("wifiNotFound")}</Text>
           )}
           {button(t("searchWifi"), () => void run(search), "refresh-cw")}
-          {button(t("server"), () => setView("address"), "edit-3")}
         </>
       )}
       {view === "address" && (
@@ -566,6 +646,7 @@ export function Connections({
         </>
       )}
       {view !== "home" &&
+        !busy &&
         button(
           t("connection"),
           () => {

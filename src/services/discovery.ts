@@ -1,6 +1,7 @@
 import { privateIpv4 } from "./serverAddress";
 export interface DiscoveredServer {
   address: string;
+  name?: string;
   edition: string;
   version: string;
   compatible: boolean;
@@ -42,13 +43,45 @@ export async function discoverServers(
               typeof data?.apiSchema === "number" &&
               typeof data?.syncProtocol === "number" &&
               !signal.aborted
-            )
+            ) {
+              let name =
+                typeof data.shopName === "string"
+                  ? data.shopName.slice(0, 160)
+                  : "";
+              if (!name) {
+                for (const path of [
+                  "/mobile/v1/discovery",
+                  "/captain/v1/discovery",
+                ]) {
+                  try {
+                    const named = await fetcher(address + path, {
+                      signal: controller.signal,
+                      redirect: "error",
+                      credentials: "omit",
+                      headers: { Accept: "application/json" },
+                    });
+                    if (named.ok) {
+                      const info = await named.json();
+                      const label = info.shopName || info.connections?.shopName;
+                      if (typeof label === "string" && label.trim()) {
+                        name = label.trim().slice(0, 160);
+                        break;
+                      }
+                    }
+                  } catch {
+                    break;
+                  }
+                }
+              }
+              if (signal.aborted) return;
               onFound({
+                ...(name ? { name } : {}),
                 address,
                 edition: data.edition,
                 version: typeof data.version === "string" ? data.version : "",
                 compatible: data.features?.mobilePosV1 === true,
               });
+            }
           }
         } catch {
         } finally {

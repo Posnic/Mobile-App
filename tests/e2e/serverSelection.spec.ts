@@ -18,7 +18,7 @@ test("Wi-Fi results require an explicit server choice before sign-in", async ({
   let credentialRequests = 0;
   await page.route(/^http:\/\/192\.168\.50\./, async (route) => {
     const req = route.request();
-    if (!req.url().endsWith("/runtime-info")) credentialRequests++;
+    if (req.method() !== "GET") credentialRequests++;
     expect(req.headers().authorization).toBeUndefined();
     const host = new URL(req.url()).host;
     const found = [
@@ -30,6 +30,12 @@ test("Wi-Fi results require an explicit server choice before sign-in", async ({
       status: found ? 200 : 404,
       json: found
         ? {
+            shopName:
+              host === "192.168.50.5:5555"
+                ? "South Avenue"
+                : host === "192.168.50.6:5555"
+                  ? "Older shop"
+                  : "Main shop",
             edition: "community",
             apiSchema: 1,
             syncProtocol: 1,
@@ -58,14 +64,14 @@ test("Wi-Fi results require an explicit server choice before sign-in", async ({
   ).toHaveCount(0);
   await expect(
     page.getByRole("button", {
-      name: "Use this server · 192.168.50.6:5555",
+      name: "Older shop",
       exact: true,
     }),
   ).toBeDisabled();
   await page.screenshot({ path: testInfo.outputPath("choose-server.png") });
   await page
     .getByRole("button", {
-      name: "Use this server · 192.168.50.5:5555",
+      name: "South Avenue",
       exact: true,
     })
     .click();
@@ -88,7 +94,7 @@ test("Wi-Fi results require an explicit server choice before sign-in", async ({
   ).toHaveCount(0);
   await page
     .getByRole("button", {
-      name: "Use this server · 192.168.50.4:5555",
+      name: "Main shop",
       exact: true,
     })
     .click();

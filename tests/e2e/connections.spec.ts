@@ -30,7 +30,7 @@ const shop = {
 };
 const local = "http://192.168.50.4:5555/api";
 const cloud = "https://same-shop.posnic.io/api";
-async function mock(page: Page) {
+async function mock(page: Page, itemWrite = false) {
   const logins: string[] = [];
   for (const base of [local, cloud])
     await page.route(base + "/**", async (route) => {
@@ -47,7 +47,13 @@ async function mock(page: Page) {
               features: { mobilePosV1: true },
             }
           : path.includes("bootstrap")
-            ? { shop, items: [] }
+            ? {
+                shop: {
+                  ...shop,
+                  permissions: { ...shop.permissions, itemWrite },
+                },
+                items: [],
+              }
             : { token },
       });
     });
@@ -78,9 +84,11 @@ async function openConnections(page: Page) {
     .getByRole("button", { name: "Connection & sync", exact: true })
     .first()
     .click();
-  await expect(
-    page.getByRole("heading", { name: "Connection & sync" }),
-  ).toBeVisible();
+  if (!(await page.getByTestId("connection-panel").count()))
+    await page
+      .getByRole("button", { name: "Server settings", exact: true })
+      .click();
+  await expect(page.getByTestId("connection-panel")).toBeVisible();
 }
 test("connect once to each endpoint and switch using remembered endpoint-specific tokens", async ({
   page,
@@ -91,9 +99,14 @@ test("connect once to each endpoint and switch using remembered endpoint-specifi
     page.getByRole("textbox", { name: "Password", exact: true }),
   ).toHaveCount(0);
   await expect(
-    page.getByRole("button", { name: "Internet", exact: true }),
+    page
+      .getByTestId("connection-panel")
+      .getByRole("button", { name: "Internet", exact: true }),
   ).toBeEnabled();
   await page.screenshot({ path: info.outputPath("connections.png") });
+  await page
+    .getByRole("button", { name: "Other ways to connect", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Server address", exact: true })
     .click();
@@ -111,17 +124,11 @@ test("connect once to each endpoint and switch using remembered endpoint-specifi
   await expect(
     page.getByRole("textbox", { name: "Search items", exact: true }),
   ).toBeVisible();
-  await openConnections(page);
-  await page
-    .getByRole("button", { name: "Shop Wi-Fi · " + local, exact: true })
-    .click();
+  await page.getByTestId("route-wifi").click();
   await expect(
     page.getByRole("textbox", { name: "Search items", exact: true }),
   ).toBeVisible();
-  await openConnections(page);
-  await page
-    .getByRole("button", { name: "Internet · " + cloud, exact: true })
-    .click();
+  await page.getByTestId("route-internet").click();
   await expect(
     page.getByRole("textbox", { name: "Search items", exact: true }),
   ).toBeVisible();
@@ -149,7 +156,10 @@ test("cloud approval returns directly to selling and stays on the internet endpo
     page.getByRole("textbox", { name: "Search items", exact: true }),
   ).toBeVisible();
   await openConnections(page);
-  await expect(page.getByText(cloud, { exact: true })).toBeVisible();
+  await expect(page.getByTestId("route-internet")).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
 });
 
 test("cancelling an unreachable endpoint releases the screen and ignores late replies", async ({
@@ -171,6 +181,9 @@ test("cancelling an unreachable endpoint releases the screen and ignores late re
       },
     });
   });
+  await page
+    .getByRole("button", { name: "Other ways to connect", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Server address", exact: true })
     .click();
@@ -209,6 +222,9 @@ test("switch waits for the current sync and resumes without another tap", async 
   await page.getByRole("button", { name: "Sync now", exact: true }).click();
   await expect.poll(() => started).toBe(true);
   await openConnections(page);
+  await page
+    .getByRole("button", { name: "Other ways to connect", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Server address", exact: true })
     .click();
@@ -319,7 +335,11 @@ test("cloud approval links its advertised till without local login, then offers 
   ).toBeVisible();
   await openConnections(page);
   await page
-    .getByRole("button", { name: "Main till · Shop Wi-Fi", exact: true })
+    .getByTestId("connection-panel")
+    .getByRole("button", { name: "Shop Wi-Fi", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: /PIN test shop.*Use this server/ })
     .click();
   await expect(
     page.getByRole("textbox", { name: "Search items", exact: true }),
@@ -344,7 +364,102 @@ test("cloud approval links its advertised till without local login, then offers 
     page.getByRole("textbox", { name: "Search items", exact: true }),
   ).toBeVisible();
   await openConnections(page);
-  await expect(page.getByText(cloud, { exact: true })).toBeVisible();
+  await expect(page.getByTestId("route-internet")).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
   expect(localPairs).toBe(1);
   expect(passwordLogins).toBe(0);
+});
+
+test("empty catalogue offers useful actions and both route icons remain visible", async ({
+  page,
+}) => {
+  await mock(page);
+  await expect(page.getByTestId("route-wifi")).toBeVisible();
+  await expect(page.getByTestId("route-internet")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Your catalogue is empty" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Create item", exact: true }),
+  ).toHaveCount(0);
+  await expect(page.getByText(/Add your first item/)).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Quick sale", exact: true }),
+  ).toBeVisible();
+  await openConnections(page);
+  const panel = page.getByTestId("connection-panel");
+  await expect(
+    panel.getByRole("button", { name: "Server address", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    panel.getByRole("button", { name: "Sign in again to this server" }),
+  ).toHaveCount(0);
+  await expect(
+    panel.getByRole("button", { name: "Shop Wi-Fi", exact: true }),
+  ).toBeVisible();
+  await expect(
+    panel.getByRole("button", { name: "Internet", exact: true }),
+  ).toBeVisible();
+});
+
+test("owner can create an item directly from the empty catalogue", async ({
+  page,
+}, info) => {
+  await mock(page, true);
+  await expect(
+    page.getByRole("button", { name: "Create item", exact: true }),
+  ).toBeVisible();
+  await page.screenshot({ path: info.outputPath("empty-catalogue.png") });
+  await page.getByRole("button", { name: "Create item", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Create item", exact: true }),
+  ).toBeVisible();
+});
+
+test("header route switch interrupts a pending manual connection without leaving the screen", async ({
+  page,
+}) => {
+  await mock(page);
+  await openConnections(page);
+  await page
+    .getByRole("button", { name: "Other ways to connect", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Server address", exact: true })
+    .click();
+  await page
+    .getByRole("textbox", { name: "Server address", exact: true })
+    .fill(cloud);
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page
+    .getByRole("textbox", { name: "Username", exact: true })
+    .fill("cashier");
+  await page
+    .getByRole("textbox", { name: "Password", exact: true })
+    .fill("password");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(
+    page.getByRole("textbox", { name: "Search items", exact: true }),
+  ).toBeVisible();
+  await openConnections(page);
+  await page
+    .getByRole("button", { name: "Other ways to connect", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Server address", exact: true })
+    .click();
+  await page
+    .getByRole("textbox", { name: "Server address", exact: true })
+    .fill("192.168.50.99");
+  await page.route("http://192.168.50.99:5555/api/**", async (route) => {
+    await new Promise((r) => setTimeout(r, 2000));
+    await route.abort();
+  });
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page.getByTestId("route-wifi").click();
+  await expect(
+    page.getByRole("textbox", { name: "Search items", exact: true }),
+  ).toBeVisible();
 });
