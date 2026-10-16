@@ -384,6 +384,7 @@ test("empty catalogue offers useful actions and both route icons remain visible"
   await expect(
     page.getByRole("button", { name: "Create item", exact: true }),
   ).toHaveCount(0);
+  await expect(page.getByText(/Add your first item/)).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "Quick sale", exact: true }),
   ).toBeVisible();

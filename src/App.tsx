@@ -1989,6 +1989,7 @@ function Till() {
                         {!query &&
                           !category &&
                           !favouritesOnly &&
+                          shop.permissions.itemWrite &&
                           help(t("catalogueEmptyHelp"))}
                         {shop.permissions.itemWrite &&
                           button(t("newItem"), () => go("item"), true)}
