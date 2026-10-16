@@ -321,7 +321,9 @@
     "connectionOther": "இணைவதற்கான பிற வழிகள்",
     "catalogueEmpty": "உங்கள் பொருள் பட்டியல் காலியாக உள்ளது",
     "catalogueEmptyHelp": "முதல் பொருளைச் சேர்க்கவும் அல்லது கடையின் பொருட்களைப் பெற புதுப்பிக்கவும். விரைவு விற்பனையும் செய்யலாம்.",
-    "nearbyShop": "அருகிலுள்ள Posnic கடை"
+    "nearbyShop": "அருகிலுள்ள Posnic கடை",
+    "inventoryIncrease": "அளவை அதிகரி",
+    "inventoryDecrease": "அளவைக் குறை"
   },
   "hi": {
     "name": "नाम",
@@ -643,7 +645,9 @@
     "connectionOther": "जुड़ने के अन्य तरीके",
     "catalogueEmpty": "आपकी वस्तु सूची खाली है",
     "catalogueEmptyHelp": "पहली वस्तु जोड़ें या दुकान की वस्तुएँ पाने के लिए रिफ्रेश करें। त्वरित बिक्री भी कर सकते हैं।",
-    "nearbyShop": "पास की Posnic दुकान"
+    "nearbyShop": "पास की Posnic दुकान",
+    "inventoryIncrease": "मात्रा बढ़ाएँ",
+    "inventoryDecrease": "मात्रा घटाएँ"
   },
   "ml": {
     "name": "പേര്",
@@ -965,7 +969,9 @@
     "connectionOther": "ബന്ധിപ്പിക്കാനുള്ള മറ്റു വഴികൾ",
     "catalogueEmpty": "നിങ്ങളുടെ ഉൽപ്പന്ന പട്ടിക ശൂന്യമാണ്",
     "catalogueEmptyHelp": "ആദ്യ ഉൽപ്പന്നം ചേർക്കുക അല്ലെങ്കിൽ കടയിലെ ഉൽപ്പന്നങ്ങൾ ലഭിക്കാൻ പുതുക്കുക. വേഗത്തിലുള്ള വിൽപ്പനയും നടത്താം.",
-    "nearbyShop": "അടുത്തുള്ള Posnic കട"
+    "nearbyShop": "അടുത്തുള്ള Posnic കട",
+    "inventoryIncrease": "അളവ് കൂട്ടുക",
+    "inventoryDecrease": "അളവ് കുറയ്ക്കുക"
   },
   "kn": {
     "name": "ಹೆಸರು",
@@ -1287,7 +1293,9 @@
     "connectionOther": "ಸಂಪರ್ಕಿಸಲು ಇತರ ಮಾರ್ಗಗಳು",
     "catalogueEmpty": "ನಿಮ್ಮ ಉತ್ಪನ್ನ ಪಟ್ಟಿ ಖಾಲಿಯಾಗಿದೆ",
     "catalogueEmptyHelp": "ಮೊದಲ ವಸ್ತುವನ್ನು ಸೇರಿಸಿ ಅಥವಾ ಅಂಗಡಿಯ ವಸ್ತುಗಳನ್ನು ಪಡೆಯಲು ರಿಫ್ರೆಶ್ ಮಾಡಿ. ತ್ವರಿತ ಮಾರಾಟವನ್ನೂ ಮಾಡಬಹುದು.",
-    "nearbyShop": "ಹತ್ತಿರದ Posnic ಅಂಗಡಿ"
+    "nearbyShop": "ಹತ್ತಿರದ Posnic ಅಂಗಡಿ",
+    "inventoryIncrease": "ಪ್ರಮಾಣ ಹೆಚ್ಚಿಸಿ",
+    "inventoryDecrease": "ಪ್ರಮಾಣ ಕಡಿಮೆ ಮಾಡಿ"
   },
   "te": {
     "name": "పేరు",
@@ -1609,7 +1617,9 @@
     "connectionOther": "కనెక్ట్ కావడానికి ఇతర మార్గాలు",
     "catalogueEmpty": "మీ ఉత్పత్తుల జాబితా ఖాళీగా ఉంది",
     "catalogueEmptyHelp": "మొదటి వస్తువును జోడించండి లేదా షాపు వస్తువుల కోసం రిఫ్రెష్ చేయండి. త్వరిత విక్రయం కూడా చేయవచ్చు.",
-    "nearbyShop": "సమీపంలోని Posnic షాపు"
+    "nearbyShop": "సమీపంలోని Posnic షాపు",
+    "inventoryIncrease": "పరిమాణం పెంచండి",
+    "inventoryDecrease": "పరిమాణం తగ్గించండి"
   },
   "si": {
     "name": "නම",
@@ -1931,7 +1941,9 @@
     "connectionOther": "සම්බන්ධ වීමට වෙනත් ක්‍රම",
     "catalogueEmpty": "ඔබගේ භාණ්ඩ ලැයිස්තුව හිස්ය",
     "catalogueEmptyHelp": "පළමු භාණ්ඩය එක් කරන්න හෝ කඩයේ භාණ්ඩ ලබා ගැනීමට යළි පූරණය කරන්න. ඉක්මන් අලෙවියක්ද කළ හැක.",
-    "nearbyShop": "අසල Posnic වෙළඳසැල"
+    "nearbyShop": "අසල Posnic වෙළඳසැල",
+    "inventoryIncrease": "ප්‍රමාණය වැඩි කරන්න",
+    "inventoryDecrease": "ප්‍රමාණය අඩු කරන්න"
   },
   "ne": {
     "name": "नाम",
@@ -2253,7 +2265,9 @@
     "connectionOther": "जोडिने अन्य तरिकाहरू",
     "catalogueEmpty": "तपाईंको वस्तु सूची खाली छ",
     "catalogueEmptyHelp": "पहिलो वस्तु थप्नुहोस् वा पसलका वस्तुहरू पाउन रिफ्रेस गर्नुहोस्। छिटो बिक्री पनि गर्न सकिन्छ।",
-    "nearbyShop": "नजिकको Posnic पसल"
+    "nearbyShop": "नजिकको Posnic पसल",
+    "inventoryIncrease": "परिमाण बढाउनुहोस्",
+    "inventoryDecrease": "परिमाण घटाउनुहोस्"
   },
   "ar": {
     "name": "الاسم",
@@ -2576,7 +2590,9 @@
     "connectionOther": "طرق أخرى للاتصال",
     "catalogueEmpty": "قائمة المنتجات فارغة",
     "catalogueEmptyHelp": "أضف أول منتج أو حدّث لجلب منتجات متجرك. يمكنك أيضًا إجراء بيع سريع.",
-    "nearbyShop": "متجر Posnic قريب"
+    "nearbyShop": "متجر Posnic قريب",
+    "inventoryIncrease": "زيادة الكمية",
+    "inventoryDecrease": "تقليل الكمية"
   },
   "fr": {
     "name": "Nom",
@@ -2898,7 +2914,9 @@
     "connectionOther": "Autres moyens de connexion",
     "catalogueEmpty": "Votre catalogue est vide",
     "catalogueEmptyHelp": "Ajoutez un article ou actualisez les articles du magasin. Vous pouvez aussi effectuer une vente rapide.",
-    "nearbyShop": "Magasin Posnic à proximité"
+    "nearbyShop": "Magasin Posnic à proximité",
+    "inventoryIncrease": "Augmenter la quantité",
+    "inventoryDecrease": "Diminuer la quantité"
   },
   "es": {
     "name": "Nombre",
@@ -3220,7 +3238,9 @@
     "connectionOther": "Otras formas de conectarse",
     "catalogueEmpty": "Tu catálogo está vacío",
     "catalogueEmptyHelp": "Añade un artículo o actualiza para obtener los de tu tienda. También puedes hacer una venta rápida.",
-    "nearbyShop": "Tienda Posnic cercana"
+    "nearbyShop": "Tienda Posnic cercana",
+    "inventoryIncrease": "Aumentar cantidad",
+    "inventoryDecrease": "Reducir cantidad"
   },
   "pt": {
     "name": "Nome",
@@ -3542,7 +3562,9 @@
     "connectionOther": "Outras formas de conexão",
     "catalogueEmpty": "O seu catálogo está vazio",
     "catalogueEmptyHelp": "Adicione um artigo ou atualize para obter os artigos da loja. Também pode fazer uma venda rápida.",
-    "nearbyShop": "Loja Posnic próxima"
+    "nearbyShop": "Loja Posnic próxima",
+    "inventoryIncrease": "Aumentar quantidade",
+    "inventoryDecrease": "Diminuir quantidade"
   },
   "id": {
     "name": "Nama",
@@ -3864,7 +3886,9 @@
     "connectionOther": "Cara lain untuk terhubung",
     "catalogueEmpty": "Katalog Anda kosong",
     "catalogueEmptyHelp": "Tambahkan barang pertama atau muat ulang barang toko. Anda juga dapat melakukan penjualan cepat.",
-    "nearbyShop": "Toko Posnic terdekat"
+    "nearbyShop": "Toko Posnic terdekat",
+    "inventoryIncrease": "Tambah jumlah",
+    "inventoryDecrease": "Kurangi jumlah"
   },
   "th": {
     "name": "ชื่อ",
@@ -4186,7 +4210,9 @@
     "connectionOther": "วิธีเชื่อมต่ออื่น",
     "catalogueEmpty": "แค็ตตาล็อกของคุณว่างเปล่า",
     "catalogueEmptyHelp": "เพิ่มสินค้าแรกหรือรีเฟรชเพื่อรับสินค้าจากร้าน คุณยังสามารถขายด่วนได้",
-    "nearbyShop": "ร้าน Posnic ใกล้เคียง"
+    "nearbyShop": "ร้าน Posnic ใกล้เคียง",
+    "inventoryIncrease": "เพิ่มจำนวน",
+    "inventoryDecrease": "ลดจำนวน"
   },
   "de": {
     "name": "Name",
@@ -4508,7 +4534,9 @@
     "connectionOther": "Weitere Verbindungsmöglichkeiten",
     "catalogueEmpty": "Ihr Katalog ist leer",
     "catalogueEmptyHelp": "Fügen Sie einen Artikel hinzu oder laden Sie die Artikel Ihres Geschäfts neu. Ein Schnellverkauf ist ebenfalls möglich.",
-    "nearbyShop": "Posnic-Geschäft in der Nähe"
+    "nearbyShop": "Posnic-Geschäft in der Nähe",
+    "inventoryIncrease": "Menge erhöhen",
+    "inventoryDecrease": "Menge verringern"
   },
   "sw": {
     "name": "Jina",
@@ -4830,7 +4858,9 @@
     "connectionOther": "Njia nyingine za kuunganisha",
     "catalogueEmpty": "Orodha yako ya bidhaa ni tupu",
     "catalogueEmptyHelp": "Ongeza bidhaa ya kwanza au onyesha upya bidhaa za duka. Unaweza pia kufanya mauzo ya haraka.",
-    "nearbyShop": "Duka la Posnic lililo karibu"
+    "nearbyShop": "Duka la Posnic lililo karibu",
+    "inventoryIncrease": "Ongeza kiasi",
+    "inventoryDecrease": "Punguza kiasi"
   },
   "nl": {
     "name": "Naam",
@@ -5152,7 +5182,9 @@
     "connectionOther": "Andere verbindingsmogelijkheden",
     "catalogueEmpty": "Je catalogus is leeg",
     "catalogueEmptyHelp": "Voeg een artikel toe of vernieuw de artikelen van je winkel. Je kunt ook een snelle verkoop doen.",
-    "nearbyShop": "Posnic-winkel in de buurt"
+    "nearbyShop": "Posnic-winkel in de buurt",
+    "inventoryIncrease": "Aantal verhogen",
+    "inventoryDecrease": "Aantal verlagen"
   },
   "it": {
     "name": "Nome",
@@ -5474,6 +5506,8 @@
     "connectionOther": "Altri modi per connettersi",
     "catalogueEmpty": "Il catalogo è vuoto",
     "catalogueEmptyHelp": "Aggiungi un articolo o aggiorna per caricare quelli del negozio. Puoi anche effettuare una vendita rapida.",
-    "nearbyShop": "Negozio Posnic nelle vicinanze"
+    "nearbyShop": "Negozio Posnic nelle vicinanze",
+    "inventoryIncrease": "Aumenta quantità",
+    "inventoryDecrease": "Riduci quantità"
   }
 }

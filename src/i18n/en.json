@@ -300,6 +300,8 @@
   "privacyPolicy": "Privacy policy",
   "deleteAccountRequest": "Delete account or request data removal",
   "card": "Card",
+  "inventoryIncrease": "Increase quantity",
+  "inventoryDecrease": "Decrease quantity",
   "inventory": "Inventory",
   "inventoryFind": "Find stock",
   "inventorycount": "Count stock",

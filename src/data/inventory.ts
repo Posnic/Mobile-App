@@ -2,6 +2,7 @@ import type { Storage } from "./storage";
 import type { Shop } from "../domain/types";
 import type {
   InventoryDraft,
+  InventoryFilter,
   InventoryItem,
   InventoryReference,
 } from "../domain/inventory";
@@ -113,7 +114,13 @@ export class InventoryStore {
       { key: this.prefix + kind + ":" + page, value: { rows, asOf } },
     ]);
   }
-  async cached(kind: string, query: string, offset = 0, limit = 200) {
+  async cached(
+    kind: string,
+    query: string,
+    offset = 0,
+    limit = 200,
+    filter?: InventoryFilter,
+  ) {
     const active = await this.storage.get<{
       generation: string;
       count: number;
@@ -137,6 +144,13 @@ export class InventoryStore {
       for (const row of page.rows) rows.set(row.id, row);
     const q = query.toLocaleLowerCase();
     return [...rows.values()]
+      .filter(
+        (r) =>
+          !filter ||
+          ("tracked" in r &&
+            (filter.kind === "suppliers" ? r.supplierId : r.categoryId) ===
+              filter.id),
+      )
       .filter((r) =>
         [r.name, "barcode" in r ? r.barcode : "", "sku" in r ? r.sku : ""].some(
           (v) => v?.toLocaleLowerCase().includes(q),

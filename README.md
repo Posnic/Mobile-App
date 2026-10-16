@@ -151,3 +151,9 @@ remembered credentials, supported addresses and local PIN behavior.
 
 Licensed under [AGPL-3.0-only](LICENSE). Inherited language strings come from Posnic
 POS under the same license.
+
+### Mobile inventory navigation
+
+Inventory uses icon cards for Count stock, Receive stock, Damage and Loss. Suppliers and categories open selectable lists; selecting one filters products and keeps that selection in the local draft. Search scans subsequent reference pages, so a matching supplier is not limited to the first page. Existing servers are supported without an API upgrade: the app filters server catalogue pages by stable supplier/category IDs and caches the original records. Offline filters use downloaded records and apply before pagination. Supplier selection is a product filter, not a purchase-order or invoice association.
+
+Draft filters stay scoped to the current shop, branch, staff member and server on this phone. The stock submission payload, review/confirmation, approval rules and server synchronization are unchanged. The screen previews are captured by `tests/e2e/inventory.spec.ts` from the actual React Native components, including a supplier-receiving path, offline filter and draft reopening.

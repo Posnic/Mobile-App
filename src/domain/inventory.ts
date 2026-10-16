@@ -33,7 +33,13 @@ export interface InventoryOperation {
   applied: string[];
   conflicts: string[];
 }
+export type InventoryFilter = {
+  kind: "suppliers" | "categories";
+  id: string;
+  name: string;
+};
 export interface InventoryDraft {
+  filter?: InventoryFilter;
   id: string;
   mode: InventoryMode;
   reason: string;
