@@ -290,6 +290,7 @@ const item = z.object({
   price: minor,
   code: z.string().regex(/^\d{0,6}$/),
   barcode: z.string().optional(),
+  barcodes: z.array(z.string()).optional(),
   category: z.string(),
   visual: z.string(),
   image: z.string().max(2048).optional(),

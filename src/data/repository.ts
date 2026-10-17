@@ -415,6 +415,30 @@ export class Repository {
       this.catalogueCache = null;
     });
   }
+  async applyAvailability(shop: Shop, items: Item[]) {
+    return this.serial(async () => {
+      const current = await this.store.get<Shop>("shop");
+      if (
+        !current ||
+        current.id !== shop.id ||
+        current.branchId !== shop.branchId ||
+        current.baseUrl !== shop.baseUrl
+      )
+        throw Error("invalidServer");
+      const changes: Change[] = [];
+      for (const item of items) {
+        const old = await this.store.get<Item>("item:" + item.id);
+        // A restore needs a fresh signed catalogue before it becomes sellable.
+        if (old && !item.active)
+          changes.push({
+            key: "item:" + item.id,
+            value: { ...old, active: false },
+          });
+      }
+      await this.store.batch(changes);
+      this.catalogueCache = null;
+    });
+  }
   async addItem(item: Item, requestedQuantity?: number) {
     return this.serial(async () => {
       const shop = await this.authorized("sell");
@@ -726,6 +750,15 @@ export class Repository {
       const cart = await this.store.get<Cart>("cart");
       if (!cart?.lines.length || cart.id !== cartId)
         throw new Error("emptyCart");
+      for (const line of cart.lines) {
+        if (
+          line.itemId &&
+          (await this.store.get<Item>("item:" + line.itemId))?.active === false
+        )
+          throw Error(
+            "A product in this basket is no longer available for sale. Remove it or ask an authorised user to restore it. Your basket has not been changed.",
+          );
+      }
       if (cart.lines.some((line) => !line.itemId))
         await this.authorized("quickSale");
       if (cart.customer) await this.authorized("customerWrite");

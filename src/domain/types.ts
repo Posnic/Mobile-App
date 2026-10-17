@@ -23,6 +23,7 @@ export interface Item {
   price: number;
   code: string;
   barcode?: string;
+  barcodes?: string[];
   category: string;
   visual: string;
   image?: string;

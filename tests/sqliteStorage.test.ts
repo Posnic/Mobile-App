@@ -228,3 +228,31 @@ test("streamed catalogue activation is atomic across pages, grant, index and res
     db.close();
   }
 });
+
+test("alternate barcode SQL lookup excludes hidden records and restores without losing stock facts", async () => {
+  const { db, storage } = connect(":memory:");
+  try {
+    const item = {
+      id: "a",
+      name: "Beans",
+      code: "",
+      barcode: "main",
+      barcodes: ["00123"],
+      category: "Food",
+      price: 100,
+      taxBps: 0,
+      taxInclusive: true,
+      visual: "",
+      active: true,
+    };
+    await storage.batch([{ key: "item:a", value: item }]);
+    assert.equal((await storage.catalogue!({ barcode: "00123" })).total, 1);
+    assert.equal((await storage.catalogue!({ search: "00123" })).total, 1);
+    await storage.batch([{ key: "item:a", value: { ...item, active: false } }]);
+    assert.equal((await storage.catalogue!({ barcode: "00123" })).total, 0);
+    await storage.batch([{ key: "item:a", value: item }]);
+    assert.equal((await storage.catalogue!({ barcode: "00123" })).total, 1);
+  } finally {
+    db.close();
+  }
+});

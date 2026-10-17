@@ -75,7 +75,7 @@ export class InventoryApi {
       account.token,
     );
   }
-  async catalogue(kind = "items", q = "", after = "") {
+  async catalogue(kind = "items", q = "", after = "", barcode = "") {
     const page = z
       .object({
         shopId: z.string(),
@@ -99,7 +99,8 @@ export class InventoryApi {
             encodeURIComponent(kind) +
             "&q=" +
             encodeURIComponent(q) +
-            (after ? "&after=" + encodeURIComponent(after) : ""),
+            (after ? "&after=" + encodeURIComponent(after) : "") +
+            (barcode ? "&barcode=" + encodeURIComponent(barcode) : ""),
         ),
       );
     if (
@@ -125,6 +126,23 @@ export class InventoryApi {
       ...page,
       rows: rows as unknown as (InventoryItem | InventoryReference)[],
     };
+  }
+  async availability(
+    id: string,
+    changes: { itemId: string; available: boolean; revision: string }[],
+  ) {
+    return z
+      .object({
+        confirmedAt: z.string(),
+        results: z.array(
+          z.object({
+            itemId: z.string(),
+            state: z.enum(["confirmed", "conflict"]),
+            item: inventoryItem.optional(),
+          }),
+        ),
+      })
+      .parse(await this.request("availability", { id, changes }));
   }
   async prepare(draft: InventoryDraft): Promise<InventoryOperation> {
     return operation.parse(

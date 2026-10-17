@@ -152,9 +152,12 @@ export class InventoryStore {
               filter.id),
       )
       .filter((r) =>
-        [r.name, "barcode" in r ? r.barcode : "", "sku" in r ? r.sku : ""].some(
-          (v) => v?.toLocaleLowerCase().includes(q),
-        ),
+        [
+          r.name,
+          ...("barcodes" in r && Array.isArray(r.barcodes) ? r.barcodes : []),
+          "barcode" in r ? r.barcode : "",
+          "sku" in r ? r.sku : "",
+        ].some((v) => v?.toLocaleLowerCase().includes(q)),
       )
       .slice(offset, offset + limit);
   }
