@@ -780,3 +780,27 @@ test("a failed connection transaction leaves the original catalogue and history 
   assert.equal((await repo.load()).shop!.baseUrl, localConnection.baseUrl);
   assert.ok((await repo.load()).items.length);
 });
+
+test("newly hidden products invalidate sales lookup without mutating existing basket", async () => {
+  const { repo, storage } = setup();
+  const shop = {
+    ...trainingShop,
+    mode: "live" as const,
+    baseUrl: "https://shop.test/api",
+    offlineUntil: new Date(9999999999).toISOString(),
+    capabilities: { ...trainingShop.capabilities, saleSync: true },
+  };
+  const item = { ...trainingItems[0]!, barcodes: ["alternate-test"] };
+  await repo.pair(shop, [item]);
+  await repo.addItem(item);
+  const cart = await storage.get<any>("cart");
+  await repo.applyAvailability(shop, [{ ...item, active: false }]);
+  assert.deepEqual(await storage.get("cart"), cart);
+  await assert.rejects(
+    repo.checkout(cart.id, { method: "cash", received: 99999999, change: 0 }),
+    /no longer available/,
+  );
+  assert.deepEqual(await storage.get("cart"), cart);
+  await repo.refreshCatalogue(shop, [item]);
+  assert.equal((await storage.get<any>("item:" + item.id)).active, true);
+});

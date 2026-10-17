@@ -1,6 +1,8 @@
 import type { Item } from "./types";
 export type InventoryMode = "count" | "receive" | "damage" | "loss";
 export interface InventoryItem extends Item {
+  availableForSale?: boolean;
+  availabilityRevision?: string;
   tracked: boolean;
   quantity: number | null;
   revision: string;

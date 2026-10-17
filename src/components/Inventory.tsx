@@ -24,6 +24,7 @@ import type {
 import { inventoryPayload } from "../domain/inventory";
 import { normalizeDigits } from "../domain/money";
 import { InventoryApi } from "../services/inventory";
+import { ProductAvailability } from "./ProductAvailability";
 import { ApiError } from "../services/api";
 type Props = {
   repo: Repository;
@@ -51,6 +52,7 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
   const [view, setView] = useState("home"),
     [kind, setKind] = useState("items"),
     [query, setQuery] = useState("");
+  const [barcodeFilter, setBarcodeFilter] = useState("");
   const [filter, setFilter] = useState<InventoryFilter | undefined>();
   const [rows, setRows] = useState<(InventoryItem | InventoryReference)[]>([]),
     [next, setNext] = useState<string | null>(null);
@@ -107,6 +109,7 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
     after = "",
     catalogue = kind,
     selectedFilter: InventoryFilter | null = filter || null,
+    exactBarcode = barcodeFilter,
   ) {
     const request = ++sequence.current;
     const cachedPage = async (offset: number) => {
@@ -118,8 +121,16 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
         catalogue === "items" ? selectedFilter || undefined : undefined,
       );
       if (request !== sequence.current) return;
+      const exact = exactBarcode
+        ? found.filter(
+            (r) =>
+              "tracked" in r &&
+              (r.barcode === exactBarcode ||
+                r.barcodes?.includes(exactBarcode)),
+          )
+        : found;
       setRows((old) =>
-        offset ? [...old, ...found.slice(0, 200)] : found.slice(0, 200),
+        offset ? [...old, ...exact.slice(0, 200)] : exact.slice(0, 200),
       );
       setNext(found.length > 200 ? "offline:" + (offset + 200) : null);
       setOffline(true);
@@ -134,6 +145,7 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
           catalogue,
           catalogue === "items" ? search : "",
           cursor,
+          exactBarcode,
         );
         if (request !== sequence.current) return;
         await store.cache(
@@ -185,12 +197,13 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
     catalogue = "items",
     selectedFilter: InventoryFilter | null = filter || null,
   ) {
+    setBarcodeFilter("");
     setKind(catalogue);
     setQuery("");
     setRows([]);
     setNext(null);
     setView("find");
-    await load("", "", catalogue, selectedFilter);
+    await load("", "", catalogue, selectedFilter, "");
   }
   async function download() {
     const generation = Crypto.randomUUID(),
@@ -527,7 +540,11 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
                     : "inventoryFind",
           )}
           {view !== "home" && (
-            <Text style={s.muted}>{t("inventoryDraftHelp")}</Text>
+            <Text style={s.muted}>
+              {view === "availability"
+                ? "Review first. Changes apply only after server confirmation."
+                : t("inventoryDraftHelp")}
+            </Text>
           )}
         </View>
       </View>
@@ -671,7 +688,10 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
               <TextInput
                 accessibilityLabel={t("search")}
                 value={query}
-                onChangeText={setQuery}
+                onChangeText={(value) => {
+                  setBarcodeFilter("");
+                  setQuery(value);
+                }}
                 onSubmitEditing={() => void run(() => load())}
                 returnKeyType="search"
                 placeholder={
@@ -756,7 +776,11 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
               onBarcodeScanned={({ data }) => {
                 setScanning(false);
                 setQuery(data);
-                void run(() => load(data));
+                setBarcodeFilter(data);
+                void run(async () => {
+                  await load(data, "", "items", null, data);
+                  if (!draft) setView("availability");
+                });
               }}
             />
           )}
@@ -775,6 +799,15 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
               true,
               "shopping-bag",
               true,
+            )}
+          {!draft &&
+            kind === "items" &&
+            rows.some((r) => "tracked" in r) &&
+            button(
+              t("availabilityOpen"),
+              () => setView("availability"),
+              true,
+              "eye",
             )}
           {rows.map((r) => (
             <Pressable
@@ -821,6 +854,23 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
           {next && button(t("loadMore"), () => load(query, next))}
         </>
       )}
+      {view === "availability" && (
+        <>
+          <ProductAvailability
+            t={t}
+            items={rows.filter((r): r is InventoryItem => "tracked" in r)}
+            shop={shop}
+            api={api}
+            repo={repo}
+            canWrite={canWrite}
+            offline={offline}
+            colors={colors}
+            done={() => load()}
+          />
+          {!rows.length && <Text style={s.muted}>{t("noItems")}</Text>}
+          {next && button(t("loadMore"), () => load(query, next))}
+        </>
+      )}
       {view === "item" && selected && (
         <>
           <View style={s.card}>
@@ -837,6 +887,27 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
               {selected.barcode} · {selected.category} · {selected.supplierName}
             </Text>
           </View>
+          {!draft && (
+            <ProductAvailability
+              t={t}
+              key={selected.id}
+              items={[selected]}
+              shop={shop}
+              api={api}
+              repo={repo}
+              canWrite={canWrite}
+              offline={offline}
+              colors={colors}
+              done={async () => {
+                const page = await api.catalogue(
+                  "items",
+                  selected.sku || selected.barcode || selected.name,
+                );
+                const fresh = page.rows.find((r) => r.id === selected.id);
+                if (fresh && "tracked" in fresh) setSelected(fresh);
+              }}
+            />
+          )}
           {!selected.tracked && (
             <Text style={s.muted}>{t("inventoryNotTracked")}</Text>
           )}

@@ -314,3 +314,99 @@ test("supplier selection filters later catalogue pages and preserves the receivi
     fullPage: true,
   });
 });
+
+test("availability review hides selected duplicate and restores with server confirmation", async ({
+  page,
+}) => {
+  const products = [
+    { ...product, availableForSale: true, availabilityRevision: "" },
+    {
+      ...product,
+      id: "c".repeat(24),
+      name: "Premium beans",
+      price: 2000,
+      availableForSale: true,
+      availabilityRevision: "",
+    },
+  ];
+  let writes = 0;
+  await page.route("http://192.168.50.4:5555/api/**", async (route) => {
+    const url = route.request().url();
+    let json: any = { token: "test-token" };
+    if (url.includes("runtime-info"))
+      json = {
+        edition: "community",
+        apiSchema: 1,
+        features: { mobilePosV1: true },
+      };
+    else if (url.includes("bootstrap")) json = { shop, items: products };
+    else if (url.includes("inventory/catalogue"))
+      json = {
+        shopId: shop.id,
+        branchId: shop.branchId,
+        staffId: shop.staffId,
+        asOf: new Date().toISOString(),
+        permissions: { read: true, write: true, approvalActions: [] },
+        rows: products,
+        next: null,
+      };
+    else if (url.endsWith("inventory/availability")) {
+      writes++;
+      const body = route.request().postDataJSON();
+      expect(body.changes).toHaveLength(1);
+      json = {
+        confirmedAt: new Date().toISOString(),
+        results: body.changes.map((x: any) => {
+          const row = products.find((p) => p.id === x.itemId)!;
+          row.availableForSale = x.available;
+          row.active = x.available;
+          row.availabilityRevision = body.id;
+          return { itemId: row.id, state: "confirmed", item: row };
+        }),
+      };
+    }
+    await route.fulfill({ json });
+  });
+  await login(page);
+  await page.getByRole("button", { name: "Find stock", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Review product availability", exact: true })
+    .click();
+  await expect(
+    page.getByText("Different selling prices — check carefully"),
+  ).toBeVisible();
+  await page
+    .getByRole("switch", {
+      name: "Available for sale: Warehouse beans",
+      exact: true,
+    })
+    .click();
+  expect(writes).toBe(0);
+  await page.getByText("Review 1 changes", { exact: true }).click();
+  await expect(
+    page.getByText("Available → Hidden from sales", { exact: true }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: "test-results/availability-review.png",
+    fullPage: true,
+  });
+  await page.getByText("Confirm changes", { exact: true }).click();
+  await expect.poll(() => writes).toBe(1);
+  await expect(
+    page.getByRole("switch", {
+      name: "Available for sale: Warehouse beans",
+      exact: true,
+    }),
+  ).not.toBeChecked();
+  await page
+    .getByRole("switch", {
+      name: "Available for sale: Warehouse beans",
+      exact: true,
+    })
+    .click();
+  await page.getByText("Review 1 changes", { exact: true }).click();
+  await page.getByText("Confirm changes", { exact: true }).click();
+  await expect.poll(() => writes).toBe(2);
+  expect(products[0]!.quantity).toBe(10000);
+  expect(products[1]!.availableForSale).toBe(true);
+});
