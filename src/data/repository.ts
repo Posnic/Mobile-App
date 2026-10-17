@@ -391,7 +391,15 @@ export class Repository {
       ]);
     });
   }
-  async refreshCatalogue(shop: Shop, items: CatalogueInput) {
+  private availabilityGeneration = 0;
+  catalogueGeneration() {
+    return this.availabilityGeneration;
+  }
+  async refreshCatalogue(
+    shop: Shop,
+    items: CatalogueInput,
+    expectedGeneration?: number,
+  ) {
     return this.serial(async () => {
       const current = await this.store.get<Shop>("shop");
       if (
@@ -404,6 +412,13 @@ export class Repository {
         current.baseUrl !== shop.baseUrl
       )
         throw new Error("invalidServer");
+      // A download started before an acknowledged availability edit is stale,
+      // even when it arrives after that edit. The next sync fetches fresh data.
+      if (
+        expectedGeneration !== undefined &&
+        expectedGeneration !== this.availabilityGeneration
+      )
+        return;
       // Activate all pages and the grant together. Paid/held snapshots stay untouched.
       await this.replaceCatalogue(items, [
         { key: "shop", value: shop },
@@ -436,6 +451,7 @@ export class Repository {
           });
       }
       await this.store.batch(changes);
+      this.availabilityGeneration++;
       this.catalogueCache = null;
     });
   }
