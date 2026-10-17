@@ -804,7 +804,7 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
             kind === "items" &&
             rows.some((r) => "tracked" in r) &&
             button(
-              "Review product availability",
+              t("availabilityOpen"),
               () => setView("availability"),
               true,
               "eye",
@@ -857,6 +857,7 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
       {view === "availability" && (
         <>
           <ProductAvailability
+            t={t}
             items={rows.filter((r): r is InventoryItem => "tracked" in r)}
             shop={shop}
             api={api}
@@ -888,6 +889,7 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
           </View>
           {!draft && (
             <ProductAvailability
+              t={t}
               key={selected.id}
               items={[selected]}
               shop={shop}

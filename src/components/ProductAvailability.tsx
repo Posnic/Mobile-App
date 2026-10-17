@@ -16,7 +16,9 @@ export function ProductAvailability({
   offline,
   done,
   colors,
+  t,
 }: {
+  t: (key: string) => string;
   items: InventoryItem[];
   shop: Shop;
   api: InventoryApi;
@@ -63,11 +65,11 @@ export function ProductAvailability({
   async function confirm() {
     if (busy || offline || !canWrite) return;
     if (selected.length > 100) {
-      setMessage("Choose no more than 100 records per change.");
+      setMessage(t("availability0"));
       return;
     }
     setBusy(true);
-    setMessage("Sending changes. Waiting for server confirmation…");
+    setMessage(t("availability1"));
     try {
       const result = await api.availability(
         requestId,
@@ -95,14 +97,12 @@ export function ProductAvailability({
       await done().catch(() => undefined);
       setMessage(
         result.results.some((r) => r.state === "conflict")
-          ? "Some products changed on the server. Review the refreshed records before trying again."
-          : "Server confirmed. Other tills receive this change when they sync. Offline tills must reconnect. Restored products return after catalogue sync.",
+          ? t("availability2")
+          : t("availability3"),
       );
     } catch {
       // Retain the same operation identity after a lost response.
-      setMessage(
-        "Not confirmed. Check your connection and retry. The server may have received the request; retrying will not duplicate it.",
-      );
+      setMessage(t("availability4"));
     } finally {
       setBusy(false);
     }
@@ -110,15 +110,12 @@ export function ProductAvailability({
   return (
     <View style={{ gap: 12 }}>
       <Text style={{ ...text, fontSize: 20, fontWeight: "700" }}>
-        {review ? "Review availability changes" : "Product availability"}
+        {review ? t("availability5") : t("availability6")}
       </Text>
-      <Text style={{ color: colors.muted }}>
-        Choose each record explicitly. Hidden products retain stock, receipts
-        and history.
-      </Text>
+      <Text style={{ color: colors.muted }}>{t("availabilityHelp")}</Text>
       {different && (
         <Text style={{ ...text, fontWeight: "700" }}>
-          Different selling prices — check carefully
+          {t("availabilityPrices")}
         </Text>
       )}
       {(review ? selected : items).map((i) => (
@@ -148,25 +145,30 @@ export function ProductAvailability({
             <Text style={{ ...text, fontWeight: "700" }}>{money(i)}</Text>
           </View>
           <Text style={{ color: colors.muted }}>
-            Price includes tax · SKU {i.sku || "—"}
+            {t("availabilityPriceTax")} · SKU {i.sku || "—"}
           </Text>
           <Text style={{ color: colors.muted }}>
-            Barcode:{" "}
+            {t("availabilityBarcode")}:{" "}
             {[...new Set([i.barcode, ...(i.barcodes || [])])]
               .filter(Boolean)
               .join(" · ") || "—"}
           </Text>
           <Text style={{ color: colors.muted }}>
-            Stock: {i.quantity === null ? "—" : i.quantity / 1000} {i.unit} ·{" "}
-            {i.supplierName || "No supplier"}
+            {t("availabilityStock")}:{" "}
+            {i.quantity === null ? "—" : i.quantity / 1000} {i.unit} ·{" "}
+            {i.supplierName || t("availability11")}
           </Text>
           {review && (
-            <Text style={{ color: colors.muted }}>Record: {i.id}</Text>
+            <Text style={{ color: colors.muted }}>
+              {t("availabilityRecord")}: {i.id}
+            </Text>
           )}
           {review ? (
             <Text style={text}>
-              {i.availableForSale === false ? "Hidden" : "Available"} →{" "}
-              {changes[i.id] ? "Available for sale" : "Hidden from sales"}
+              {i.availableForSale === false
+                ? t("availability7")
+                : t("availability8")}{" "}
+              → {changes[i.id] ? t("availability9") : t("availability10")}
             </Text>
           ) : (
             <View
@@ -176,9 +178,9 @@ export function ProductAvailability({
                 justifyContent: "space-between",
               }}
             >
-              <Text style={text}>Available for sale</Text>
+              <Text style={text}>{t("availability9")}</Text>
               <Switch
-                accessibilityLabel={"Available for sale: " + i.name}
+                accessibilityLabel={t("availability9") + ": " + i.name}
                 value={changes[i.id] ?? i.availableForSale !== false}
                 disabled={!canWrite || busy || offline}
                 onValueChange={(value) => {
@@ -191,11 +193,7 @@ export function ProductAvailability({
           )}
         </View>
       ))}
-      {offline && (
-        <Text style={text}>
-          Offline snapshot. Reconnect to confirm availability changes.
-        </Text>
-      )}
+      {offline && <Text style={text}>{t("availabilityOffline")}</Text>}
       {!!message && (
         <Text accessibilityRole="alert" style={text}>
           {message}
@@ -204,7 +202,12 @@ export function ProductAvailability({
       {!review && selected.length > 0 && (
         <Pressable style={button} onPress={() => setReview(true)}>
           <Feather name="check-square" size={20} color={colors.accent} />
-          <Text style={text}>Review {selected.length} changes</Text>
+          <Text style={text}>
+            {t("availabilityReviewCount").replace(
+              "{count}",
+              String(selected.length),
+            )}
+          </Text>
         </Pressable>
       )}
       {review && (
@@ -216,7 +219,7 @@ export function ProductAvailability({
           >
             <Feather name="check" size={20} color={colors.accent} />
             <Text style={text}>
-              {busy ? "Waiting for server…" : "Confirm changes"}
+              {busy ? t("availability12") : t("availability13")}
             </Text>
           </Pressable>
           <Pressable
@@ -224,7 +227,7 @@ export function ProductAvailability({
             style={button}
             onPress={() => setReview(false)}
           >
-            <Text style={text}>Back to selection</Text>
+            <Text style={text}>{t("availabilityBack")}</Text>
           </Pressable>
         </>
       )}

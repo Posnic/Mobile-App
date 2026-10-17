@@ -386,7 +386,10 @@ test("availability review hides selected duplicate and restores with server conf
   await expect(
     page.getByText("Available → Hidden from sales", { exact: true }),
   ).toBeVisible();
-  await page.screenshot({ path: "test-results/availability-review.png", fullPage: true });
+  await page.screenshot({
+    path: "test-results/availability-review.png",
+    fullPage: true,
+  });
   await page.getByText("Confirm changes", { exact: true }).click();
   await expect.poll(() => writes).toBe(1);
   await expect(
