@@ -804,3 +804,40 @@ test("newly hidden products invalidate sales lookup without mutating existing ba
   await repo.refreshCatalogue(shop, [item]);
   assert.equal((await storage.get<any>("item:" + item.id)).active, true);
 });
+
+test("a slow catalogue cannot undo a hide confirmed while it was downloading", async () => {
+  const { repo, storage } = setup();
+  const shop = {
+    ...trainingShop,
+    mode: "live" as const,
+    baseUrl: "https://shop.test/api",
+    offlineUntil: new Date(9999999999).toISOString(),
+    capabilities: { ...trainingShop.capabilities, saleSync: true },
+  };
+  const item = trainingItems[0]!;
+  await repo.pair(shop, [item]);
+  await repo.addItem(item);
+  const basket = await storage.get("cart");
+  const worker = new SyncWorker(repo, () => ({
+    catalogue: async () => {
+      await repo.applyAvailability(shop, [{ ...item, active: false }]);
+      return { shop, items: [item] };
+    },
+    upload: async () => {
+      throw Error("no sales expected");
+    },
+  }));
+  await worker.run();
+  assert.equal((await storage.get<any>("item:" + item.id)).active, false);
+  assert.equal((await repo.catalogue()).items.length, 0);
+  assert.deepEqual(await storage.get("cart"), basket);
+  // A subsequent fresh signed catalogue can restore the product normally.
+  await new SyncWorker(repo, () => ({
+    catalogue: async () => ({ shop, items: [item] }),
+    upload: async () => {
+      throw Error("no sales expected");
+    },
+  })).run();
+  assert.equal((await storage.get<any>("item:" + item.id)).active, true);
+  assert.deepEqual(await storage.get("cart"), basket);
+});
