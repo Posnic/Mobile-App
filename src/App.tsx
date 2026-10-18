@@ -130,7 +130,7 @@ export default function App() {
 
 function Till() {
   const [imageReadyCount, setImageReadyCount] = useState(0);
-  const visibleImageIds = useRef(new Set<string>());
+  const visibleImageKeys = useRef(new Set<string>());
   const [cachedImages, setCachedImages] = useState<Record<string, string>>({});
   const [diskUsage, setDiskUsage] = useState<{
     used: number;
@@ -314,7 +314,7 @@ function Till() {
     const flush = () => {
       const batch = Object.fromEntries(
         Object.entries(pending).filter(([id]) =>
-          visibleImageIds.current.has(id),
+          visibleImageKeys.current.has(id),
         ),
       );
       pending = {};
@@ -325,8 +325,6 @@ function Till() {
           setCachedImages((previous) => ({ ...previous, ...batch }));
       }
     };
-    setCachedImages({});
-    setFailedImages({});
     setImageReadyCount(0);
     if (shop && state && repo && !locked) {
       void cacheProductImages(
@@ -334,9 +332,9 @@ function Till() {
         shop,
         imageFiles,
         controller.signal,
-        (id, uri) => {
+        (_id, uri, key) => {
           ready++;
-          if (visibleImageIds.current.has(id)) pending[id] = uri;
+          if (visibleImageKeys.current.has(key)) pending[key] = uri;
           if (!timer) timer = setTimeout(flush, 50);
         },
         imageFetch,
@@ -347,29 +345,44 @@ function Till() {
       if (timer) clearTimeout(timer);
     };
   }, [state?.items, repo, shop?.id, shop?.branchId, shop?.baseUrl, locked]);
+  // Image identity includes the server, branch, URL and revision. An unchanged
+  // catalogue refresh must not discard already displayed images.
+  const imageScope = JSON.stringify([shop?.baseUrl, shop?.id, shop?.branchId]);
+  const itemImageKey = (item: Item) => {
+    const url =
+      item.image && shop?.baseUrl && productImageUrl(item.image, shop.baseUrl);
+    return url ? imageKey(imageScope, url, item.imageRevision) : "";
+  };
+  const visibleImageSignature = JSON.stringify(
+    (catalogueView?.items ?? []).map(itemImageKey).filter(Boolean),
+  );
   useEffect(() => {
     let active = true;
-    const items = catalogueView?.items ?? [];
-    visibleImageIds.current = new Set(items.map((item) => item.id));
-    setCachedImages({});
-    setFailedImages({});
-    if (!shop?.baseUrl || locked) return;
-    const scope = JSON.stringify([shop.baseUrl, shop.id, shop.branchId]);
+    const keys: string[] = locked ? [] : JSON.parse(visibleImageSignature);
+    visibleImageKeys.current = new Set(keys);
+    const keepVisible = <T,>(previous: Record<string, T>) => {
+      const entries = Object.entries(previous).filter(([key]) =>
+        visibleImageKeys.current.has(key),
+      );
+      return entries.length === Object.keys(previous).length
+        ? previous
+        : Object.fromEntries(entries);
+    };
+    setCachedImages(keepVisible);
+    setFailedImages(keepVisible);
     void Promise.all(
-      items.map(async (item) => {
-        const url = item.image && productImageUrl(item.image, shop.baseUrl!);
-        if (!url) return;
-        const uri = await imageFiles
-          .get(imageKey(scope, url, item.imageRevision))
-          .catch(() => null);
+      keys.map(async (key) => {
+        const uri = await imageFiles.get(key).catch(() => null);
         if (uri && active)
-          setCachedImages((previous) => ({ ...previous, [item.id]: uri }));
+          setCachedImages((previous) =>
+            previous[key] === uri ? previous : { ...previous, [key]: uri },
+          );
       }),
     );
     return () => {
       active = false;
     };
-  }, [catalogueView, shop?.baseUrl, shop?.id, shop?.branchId, locked]);
+  }, [visibleImageSignature, locked]);
   const refresh = useCallback(async () => {
     if (repo) {
       setState(await repo.load());
@@ -383,9 +396,26 @@ function Till() {
   const catalogueFavouriteIds = JSON.stringify(
     favouritesOnly ? (state?.favourites ?? []) : [],
   );
+  const catalogueQueryKey = JSON.stringify([
+    shop?.baseUrl,
+    shop?.id,
+    shop?.branchId,
+    shop?.staffId,
+    query,
+    category,
+    itemPage,
+    favouritesOnly,
+    catalogueFavouriteIds,
+    locked,
+  ]);
+  const previousCatalogueQuery = useRef("");
   useEffect(() => {
     let active = true;
-    setCatalogueView(null);
+    // Clear on a different query/shop, but replace background updates atomically.
+    if (previousCatalogueQuery.current !== catalogueQueryKey) {
+      setCatalogueView(null);
+      previousCatalogueQuery.current = catalogueQueryKey;
+    }
     if (!repo || !shop || locked) return;
     const timer = setTimeout(
       () => {
@@ -399,7 +429,11 @@ function Till() {
           })
           .then((result) => {
             if (active) {
-              setCatalogueView(result);
+              setCatalogueView((previous) =>
+                JSON.stringify(previous) === JSON.stringify(result)
+                  ? previous
+                  : result,
+              );
               if (itemPage && itemPage * 48 >= result.total) setItemPage(0);
             }
           })
@@ -416,6 +450,7 @@ function Till() {
   }, [
     repo,
     shop?.snapshotVersion,
+    catalogueQueryKey,
     catalogueFavouriteIds,
     favouritesOnly,
     state?.items,
@@ -2025,13 +2060,14 @@ function Till() {
                             item.shape === "diamond" && { borderRadius: 12 },
                           ]}
                         >
-                          {cachedImages[item.id] && !failedImages[item.id] ? (
+                          {cachedImages[itemImageKey(item)] &&
+                          !failedImages[itemImageKey(item)] ? (
                             <Image
-                              source={{ uri: cachedImages[item.id] }}
+                              source={{ uri: cachedImages[itemImageKey(item)] }}
                               onError={() =>
                                 setFailedImages((previous) => ({
                                   ...previous,
-                                  [item.id]: true,
+                                  [itemImageKey(item)]: true,
                                 }))
                               }
                               style={{ width: "100%", height: "100%" }}
