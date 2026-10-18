@@ -323,6 +323,14 @@ export const bootstrap = z.object({
     staffId: z.string().min(1),
     staffName: z.string(),
     snapshotVersion: z.string().min(1),
+    receiptProfile: z
+      .object({
+        version: z.string(),
+        data: z.record(z.string(), z.unknown()),
+        assetsComplete: z.boolean(),
+      })
+      .nullable()
+      .optional(),
     offlineUntil: z.string().datetime(),
     historyPolicy: z
       .object({

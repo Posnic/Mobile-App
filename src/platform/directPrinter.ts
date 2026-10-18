@@ -3,11 +3,20 @@ import { PermissionsAndroid, Platform } from "react-native";
 import type { Sale, Settings } from "../domain/types";
 import type { Repository } from "../data/repository";
 import { receiptText } from "../services/receiptText";
+import { designedReceipt } from "../services/designedReceipt";
+import * as Print from "expo-print";
+import { File } from "expo-file-system";
 
 const native = requireOptionalNativeModule<{
   usbDevices(): Promise<{ address: string; name: string }[]>;
   requestUsbPermission(address: string): Promise<string | null>;
   pairedDevices(): Promise<{ address: string; name: string }[]>;
+  printPdf(
+    address: string,
+    uri: string,
+    width: number,
+    drawerPin: number,
+  ): Promise<{ state: "submitted" | "unknown" | "failed" }>;
   printReceipt(
     address: string,
     text: string,
@@ -89,19 +98,51 @@ export async function printDirect(
     !reprint && previous ? previous.printer : state.settings.directPrinter;
   if (!printer) throw new Error("deviceUnavailable");
   await printerPermission(printer.address);
-  const job = await repo.prepareDirectPrint(sale.id, reprint);
+  const html = designedReceipt(
+    sale,
+    state.shop,
+    t,
+    locale,
+    printer.width === 384 ? "58" : "80",
+  );
+  // Render before claiming the printer job. A PDF failure sends no paper and
+  // must not leave the job in the uncertain transport state.
+  const pdf = html
+    ? await Print.printToFileAsync({
+        html,
+        width: Math.round(((printer.width === 384 ? 58 : 80) * 72) / 25.4),
+        height: 1000,
+      })
+    : null;
   let result: "submitted" | "unknown" | "failed" = "unknown";
+  let claimed = false;
   try {
-    result = (
-      await native!.printReceipt(
-        job.printer.address,
-        receiptText(sale, name, locale, t),
-        job.printer.width,
-        job.drawerPulse ?? -1,
-      )
-    ).state;
+    const job = await repo.prepareDirectPrint(sale.id, reprint);
+    claimed = true;
+    result = pdf
+      ? (
+          await native!.printPdf(
+            job.printer.address,
+            pdf.uri,
+            job.printer.width,
+            job.drawerPulse ?? -1,
+          )
+        ).state
+      : (
+          await native!.printReceipt(
+            job.printer.address,
+            receiptText(sale, name, locale, t),
+            job.printer.width,
+            job.drawerPulse ?? -1,
+          )
+        ).state;
   } finally {
-    await repo.completeDirectPrint(sale.id, result);
+    if (claimed) await repo.completeDirectPrint(sale.id, result);
+    if (pdf) {
+      try {
+        new File(pdf.uri).delete();
+      } catch {}
+    }
   }
   if (result === "failed") throw new Error("deviceUnavailable");
   return result;
