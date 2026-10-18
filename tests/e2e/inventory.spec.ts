@@ -70,85 +70,138 @@ async function login(page: Page) {
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await page.getByRole("button", { name: "Inventory", exact: true }).click();
 }
-test("receive stock saves a draft, requires review, then confirms exactly one operation", async ({
-  page,
-}) => {
-  let writes = 0,
-    prepared: any;
-  await page.route("http://192.168.50.4:5555/api/**", async (route) => {
-    const url = route.request().url();
-    let json: any = { token: "test-token" };
-    if (url.includes("runtime-info"))
-      json = {
-        edition: "community",
-        apiSchema: 1,
-        features: { mobilePosV1: true },
-      };
-    else if (url.includes("bootstrap")) json = { shop, items: [product] };
-    else if (url.includes("inventory/catalogue"))
-      json = {
-        shopId: shop.id,
-        branchId: shop.branchId,
-        staffId: shop.staffId,
-        asOf: new Date().toISOString(),
-        permissions: { read: true, write: true, approvalActions: [] },
-        rows: [product],
-        next: null,
-      };
-    else if (url.endsWith("/confirm")) {
-      writes++;
-      json = { ...prepared, state: "complete", applied: [product.id] };
-    } else if (url.endsWith("inventory/operations")) {
-      const body = route.request().postDataJSON();
-      prepared = {
-        ...body,
-        operationId: "c".repeat(64),
-        state: "prepared",
-        approvalRequired: false,
-        conflicts: [],
-        applied: [],
-        lines: body.lines.map((l: any) => ({
-          ...l,
-          name: product.name,
-          expected: 10000,
-        })),
-      };
-      json = prepared;
-    }
-    await route.fulfill({ json });
-  });
-  await login(page);
-  await page
-    .getByRole("button", { name: "Receive stock", exact: true })
-    .click();
-  await page.getByRole("button").filter({ hasText: "Warehouse beans" }).click();
-  await page.getByRole("textbox", { name: "Quantity", exact: true }).fill("2");
-  await page.getByRole("button", { name: "Save", exact: true }).click();
-  await page.getByRole("button", { name: "Review · 1", exact: true }).click();
-  await page
-    .getByRole("textbox", { name: "Reason / reference", exact: true })
-    .fill("Delivery 123");
-  await page
-    .getByRole("button", { name: "Submit for review", exact: true })
-    .click();
-  await expect(
-    page.getByRole("button", { name: "Confirm stock changes", exact: true }),
-  ).toBeVisible();
-  expect(writes).toBe(0);
-  expect(prepared.lines[0].quantity).toBe(2000);
-  await page
-    .getByRole("button", { name: "Confirm stock changes", exact: true })
-    .click();
-  await expect(
-    page.getByText("Complete", { exact: true }).first(),
-  ).toBeVisible();
-  expect(writes).toBe(1);
-  await page.evaluate(() => window.scrollTo(0, 0));
-  await page.screenshot({
-    path: "test-results/inventory-confirmed.png",
-    fullPage: true,
-  });
-});
+for (const mode of ["Count stock", "Receive stock", "Damage", "Loss"])
+  for (const completedElsewhere of [false, true])
+    test(`${mode} review back works and clears completed drafts (${completedElsewhere ? "server status recovery" : "local confirmation"})`, async ({
+      page,
+    }) => {
+      let writes = 0,
+        prepared: any;
+      await page.route("http://192.168.50.4:5555/api/**", async (route) => {
+        const url = route.request().url();
+        let json: any = { token: "test-token" };
+        if (url.includes("runtime-info"))
+          json = {
+            edition: "community",
+            apiSchema: 1,
+            features: { mobilePosV1: true },
+          };
+        else if (url.includes("bootstrap")) json = { shop, items: [product] };
+        else if (url.includes("inventory/catalogue"))
+          json = {
+            shopId: shop.id,
+            branchId: shop.branchId,
+            staffId: shop.staffId,
+            asOf: new Date().toISOString(),
+            permissions: { read: true, write: true, approvalActions: [] },
+            rows: [product],
+            next: null,
+          };
+        else if (url.endsWith("/" + "c".repeat(64))) json = prepared;
+        else if (url.endsWith("/confirm")) {
+          writes++;
+          json = { ...prepared, state: "complete", applied: [product.id] };
+        } else if (url.endsWith("inventory/operations")) {
+          const body = route.request().postDataJSON();
+          prepared = {
+            ...body,
+            operationId: "c".repeat(64),
+            state: "prepared",
+            approvalRequired: false,
+            conflicts: [],
+            applied: [],
+            lines: body.lines.map((l: any) => ({
+              ...l,
+              name: product.name,
+              expected: 10000,
+            })),
+          };
+          json = prepared;
+        }
+        await route.fulfill({ json });
+      });
+      await login(page);
+      await page.getByRole("button", { name: mode, exact: true }).click();
+      await page
+        .getByRole("button")
+        .filter({ hasText: "Warehouse beans" })
+        .click();
+      await page
+        .getByRole("textbox", { name: "Quantity", exact: true })
+        .fill("2");
+      await page.getByRole("button", { name: "Save", exact: true }).click();
+      await page
+        .getByRole("button", { name: "Review · 1", exact: true })
+        .click();
+      // Back must navigate immediately, without recursively acquiring the action lock.
+      await page.getByRole("button", { name: "Back", exact: true }).click();
+      await expect(
+        page.getByRole("textbox", { name: "Search items", exact: true }),
+      ).toBeVisible();
+      await page
+        .getByRole("button", { name: "Review · 1", exact: true })
+        .click();
+      await page
+        .getByRole("textbox", { name: "Reason / reference", exact: true })
+        .fill("Delivery 123");
+      await page
+        .getByRole("button", { name: "Submit for review", exact: true })
+        .click();
+      await expect(
+        page.getByRole("button", {
+          name: "Confirm stock changes",
+          exact: true,
+        }),
+      ).toBeVisible();
+      expect(writes).toBe(0);
+      expect(prepared.lines[0].quantity).toBe(2000);
+      if (completedElsewhere) {
+        prepared = { ...prepared, state: "complete", applied: [product.id] };
+        await page.getByRole("button", { name: "Back", exact: true }).click();
+        await expect(
+          page.getByRole("button", { name: "Find stock", exact: true }),
+        ).toBeVisible();
+        await expect(
+          page.getByRole("button", { name: new RegExp("^" + mode + " ·") }),
+        ).toHaveCount(0);
+        await page.reload();
+        await page
+          .getByRole("button", { name: "Inventory", exact: true })
+          .click();
+        await expect(
+          page.getByRole("button", { name: new RegExp("^" + mode + " ·") }),
+        ).toHaveCount(0);
+        expect(writes).toBe(0);
+        return;
+      }
+      await page
+        .getByRole("button", { name: "Confirm stock changes", exact: true })
+        .click();
+      await expect(
+        page.getByText("Complete", { exact: true }).first(),
+      ).toBeVisible();
+      expect(writes).toBe(1);
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.screenshot({
+        path: "test-results/inventory-confirmed.png",
+        fullPage: true,
+      });
+      await page.getByRole("button", { name: "Back", exact: true }).click();
+      await expect(
+        page.getByRole("button", { name: "Find stock", exact: true }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: new RegExp("^" + mode + " ·") }),
+      ).toHaveCount(0);
+      await page.reload();
+      await page
+        .getByRole("button", { name: "Inventory", exact: true })
+        .click();
+      await expect(
+        page.getByRole("button", { name: new RegExp("^" + mode + " ·") }),
+      ).toHaveCount(0);
+      expect(writes).toBe(1);
+    });
 test("count requires explicit quantity and a saved zero survives app restart", async ({
   page,
 }) => {

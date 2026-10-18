@@ -18,8 +18,13 @@ export class InventoryStore {
       JSON.stringify([shop.baseUrl, shop.id, shop.branchId, shop.staffId]) +
       ":";
   }
-  drafts() {
-    return this.storage.list<InventoryDraft>(this.prefix + "draft:");
+  async drafts() {
+    const rows = await this.storage.list<InventoryDraft>(
+      this.prefix + "draft:",
+    );
+    return rows.filter(
+      (row) => !["complete", "cancelled"].includes(row.operation?.state || ""),
+    );
   }
   // Caller must first cancel the request identity on the original server.
   // A plain not-found read cannot exclude a late in-flight prepare.
@@ -39,6 +44,12 @@ export class InventoryStore {
     const work = this.tail.then(async () => {
       const key = this.prefix + "draft:" + copy.id;
       const previous = await this.storage.get<InventoryDraft>(key);
+      // A delayed status read must not resurrect an already finished operation.
+      if (
+        previous &&
+        ["complete", "cancelled"].includes(previous.operation?.state || "")
+      )
+        return;
       if (
         previous &&
         previous.state !== "draft" &&

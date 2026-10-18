@@ -48,6 +48,42 @@ const draft: InventoryDraft = {
   reason: "Count",
   lines: [{ item, quantity: 0 }],
 };
+
+test("completed and cancelled operations leave drafts durably without deleting their records", async () => {
+  const memory = new Memory();
+  const store = new InventoryStore(memory, trainingShop);
+  for (const state of ["complete", "cancelled"] as const) {
+    const saved: InventoryDraft = {
+      ...draft,
+      id: state,
+      state: "submitted",
+      operation: {
+        id: state,
+        operationId: state,
+        mode: "count",
+        state,
+        reason: "Count",
+        approvalRequired: false,
+        lines: [],
+        applied: [],
+        conflicts: [],
+      },
+    };
+    await store.save(saved);
+    await store.save({
+      ...saved,
+      operation: { ...saved.operation!, state: "prepared" },
+    });
+  }
+  await store.save(draft);
+  assert.deepEqual(
+    (await new InventoryStore(memory, trainingShop).drafts()).map(
+      (row) => row.id,
+    ),
+    [draft.id],
+  );
+  assert.equal(memory.records.size, 3);
+});
 test("zero is a valid explicit count; fractional unit and repeated identity are rejected", () => {
   assert.equal(inventoryPayload(draft).lines[0]!.quantity, 0);
   assert.throws(() => inventoryPayload({ ...draft, mode: "receive" }));

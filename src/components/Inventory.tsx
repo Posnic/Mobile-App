@@ -84,12 +84,38 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
     sequence = useRef(0);
   useEffect(() => {
     alive.current = true;
-    void store.drafts().then(setDrafts);
     return () => {
       alive.current = false;
       sequence.current++;
     };
   }, [store]);
+  useEffect(() => {
+    if (view !== "home") return;
+    let active = true;
+    void (async () => {
+      const pending = await store.drafts();
+      if (active) setDrafts(pending);
+      // Status reads recover confirmation performed elsewhere or whose reply was lost.
+      // Never prepare or confirm a stock change while refreshing the draft list.
+      for (const entry of pending) {
+        if (!active) break;
+        if (entry.state === "draft") continue;
+        try {
+          const operation = entry.operation
+            ? await api.status(entry.operation.operationId)
+            : await api.findRequest(entry.id);
+          if (active && operation)
+            await store.save({ ...entry, state: "submitted", operation });
+        } catch {
+          // Offline/failed reads retain the unresolved draft for explicit recovery.
+        }
+      }
+      if (active) setDrafts(await store.drafts());
+    })().catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [view, store, api]);
   async function run(work: () => Promise<void>) {
     if (lock.current) return;
     lock.current = true;
@@ -493,7 +519,15 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
       return;
     }
     if (view === "review") {
-      void run(() => browse("items", draft?.filter || null));
+      if (draft?.state === "draft") setView("find");
+      else {
+        setDraft(null);
+        setView("home");
+      }
+      return;
+    }
+    if (view === "history" && selectedOperation) {
+      setSelectedOperation(null);
       return;
     }
     if (view === "itemHistory") {
@@ -539,13 +573,16 @@ export function Inventory({ repo, shop, t, back, colors }: Props) {
                     ? "inventory" + draft.mode
                     : "inventoryFind",
           )}
-          {view !== "home" && (
-            <Text style={s.muted}>
-              {view === "availability"
-                ? "Review first. Changes apply only after server confirmation."
-                : t("inventoryDraftHelp")}
-            </Text>
-          )}
+          {view !== "home" &&
+            !["complete", "cancelled"].includes(
+              draft?.operation?.state || "",
+            ) && (
+              <Text style={s.muted}>
+                {view === "availability"
+                  ? "Review first. Changes apply only after server confirmation."
+                  : t("inventoryDraftHelp")}
+              </Text>
+            )}
         </View>
       </View>
       {busy && <ActivityIndicator color={colors.accent} />}
