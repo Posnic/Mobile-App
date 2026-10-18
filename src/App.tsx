@@ -69,6 +69,8 @@ import type { DirectPrintJob } from "./domain/types";
 import { vault } from "./platform/vault";
 import { GestureScroll } from "./components/GestureScroll";
 import { Connections } from "./components/Connections";
+import { emptyProduct } from "./domain/product";
+import { NewProduct } from "./components/NewProduct";
 import { Inventory } from "./components/Inventory";
 import { adjacentRecord } from "./domain/gestures";
 import { deviceOptions, receiptJobMessage } from "./domain/devices";
@@ -882,8 +884,17 @@ function Till() {
     setError("");
     setScreen("quantity");
   }
+  const [unmatchedBarcode, setUnmatchedBarcode] = useState("");
   async function acceptProductScan(value: string) {
-    const item = await repo!.scanItem(value);
+    let item: Item;
+    try {
+      item = await repo!.scanItem(value);
+      setUnmatchedBarcode("");
+    } catch (e) {
+      if (e instanceof Error && e.message === "noMatch")
+        setUnmatchedBarcode(value);
+      throw e;
+    }
     if (item.quantityScale === 1000 && !item.requiresConfiguration) {
       enterQuantity(item);
       return { name: item.name, prompt: true };
@@ -1850,6 +1861,27 @@ function Till() {
           t={t}
           back={() => go("sell")}
           colors={{ ...palette, surface: palette.paper, tint: palette.soft }}
+        />
+      );
+    if (screen === "item" && shop.mode === "live")
+      return (
+        <NewProduct
+          repo={repo}
+          shop={shop}
+          t={t}
+          back={() => go("more")}
+          openInventory={() => go("inventory")}
+          colors={{ ...palette, surface: palette.paper, tint: palette.soft }}
+          saved={async (item, add) => {
+            if (add) {
+              if (item.quantityScale === 1000) enterQuantity(item);
+              else {
+                await repo.addItem(item);
+                go("sell");
+              }
+            } else go("sell");
+            await refresh();
+          }}
         />
       );
     if (screen === "photoOrders")
@@ -3207,6 +3239,15 @@ function Till() {
           <>
             {back("more")}
             {heading(t("printer"))}
+            {help(
+              t(
+                !shop.receiptProfile
+                  ? "receiptDesignMissing"
+                  : shop.receiptProfile.assetsComplete
+                    ? "receiptDesignReady"
+                    : "receiptDesignAssets",
+              ),
+            )}
             {(
               [
                 "system",
@@ -3804,6 +3845,28 @@ function Till() {
               <Text style={[styles.body, { color: palette.danger, flex: 1 }]}>
                 {t(error)}
               </Text>
+              {error === "noMatch" &&
+                unmatchedBarcode &&
+                state.shop?.permissions.itemWrite &&
+                button(
+                  t("newItem"),
+                  () =>
+                    void run(async () => {
+                      const existing = await repo!.productDraft();
+                      if (!existing)
+                        await repo!.saveProductDraft({
+                          id: Crypto.randomUUID(),
+                          form: {
+                            ...emptyProduct(),
+                            barcode: unmatchedBarcode,
+                          },
+                          submitted: false,
+                        });
+                      setUnmatchedBarcode("");
+                      setError("");
+                      go("item");
+                    }),
+                )}
               {iconButton("x", t("dismiss"), () => setError(""))}
             </View>
           )}

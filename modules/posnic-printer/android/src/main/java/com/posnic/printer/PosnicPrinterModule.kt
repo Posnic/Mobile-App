@@ -61,8 +61,16 @@ class PosnicPrinterModule : Module() {
       UsbPrinter(appContext.reactContext ?: error("deviceUnavailable")).request(address,promise)
     }
     AsyncFunction("printReceipt") { address: String, text: String, width: Int, drawerPin: Int ->
+      printDocument(address, text, width, drawerPin, false)
+    }
+    AsyncFunction("printPdf") { address: String, uri: String, width: Int, drawerPin: Int ->
+      printDocument(address, uri, width, drawerPin, true)
+    }
+  }
+  private fun printDocument(address: String, text: String, width: Int, drawerPin: Int, pdf: Boolean): Map<String, Any> {
       if (!running.compareAndSet(false, true)) error("printCheckPaper")
       var sent = false
+      val pages = mutableListOf<Bitmap>()
       var socket: android.bluetooth.BluetoothSocket? = null
       var usbStream: java.io.OutputStream? = null
       val timer = Executors.newSingleThreadScheduledExecutor()
@@ -83,21 +91,53 @@ class PosnicPrinterModule : Module() {
           connect={target.connect();target.outputStream}
         }
         timer.schedule({try {socket?.close();usbStream?.close()} catch (_:Exception) {}},45,TimeUnit.SECONDS)
-        val paint = TextPaint().apply { color = Color.BLACK; textSize = 24f; isAntiAlias = true }
-        val layout = StaticLayout.Builder.obtain(text, 0, text.length, paint, width - 24)
-          .setAlignment(Layout.Alignment.ALIGN_NORMAL).setIncludePad(true).build()
-        require(layout.height <= 24000)
-        val bitmap = Bitmap.createBitmap(width, layout.height + 24, Bitmap.Config.ARGB_8888)
-        try {
+        if (pdf) {
+          val path = java.io.File(android.net.Uri.parse(text).path ?: error("invalidFile")).canonicalFile
+          val cache = (appContext.reactContext ?: error("deviceUnavailable")).cacheDir.canonicalFile
+          require(path.path.startsWith(cache.path + java.io.File.separator) && path.length() <= 10000000)
+          android.os.ParcelFileDescriptor.open(path, android.os.ParcelFileDescriptor.MODE_READ_ONLY).use { descriptor ->
+            android.graphics.pdf.PdfRenderer(descriptor).use { renderer ->
+              require(renderer.pageCount in 1..16)
+              var totalHeight = 0
+              for (index in 0 until renderer.pageCount) renderer.openPage(index).use { page ->
+                val height = kotlin.math.ceil(page.height.toDouble() * width / page.width).toInt()
+                totalHeight += height
+                require(height > 0 && totalHeight <= 24000)
+                val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                pages.add(bitmap)
+                Canvas(bitmap).drawColor(Color.WHITE)
+                page.render(bitmap, null, null, android.graphics.pdf.PdfRenderer.Page.RENDER_MODE_FOR_PRINT)
+              }
+            }
+          }
+        } else {
+          val paint = TextPaint().apply { color = Color.BLACK; textSize = 24f; isAntiAlias = true }
+          val layout = StaticLayout.Builder.obtain(text, 0, text.length, paint, width - 24)
+            .setAlignment(Layout.Alignment.ALIGN_NORMAL).setIncludePad(true).build()
+          require(layout.height <= 24000)
+          val bitmap = Bitmap.createBitmap(width, layout.height + 24, Bitmap.Config.ARGB_8888)
+          pages.add(bitmap)
           Canvas(bitmap).apply { drawColor(Color.WHITE); translate(12f, 12f); layout.draw(this) }
+        }
           val output = connect()
           // Mark uncertain before the first write: write() can fail after partial delivery.
           sent = true
           output.write(byteArrayOf(0x1b, 0x40))
           val bytesWide = width / 8
+          for (bitmap in pages) {
+          var bottom = bitmap.height
+          if (pdf) {
+            // Trim only trailing blank PDF page space; preserve all design content.
+            val pixels = IntArray(width)
+            while (bottom > 1) {
+              bitmap.getPixels(pixels, 0, width, 0, bottom - 1, width, 1)
+              if (pixels.any { Color.red(it) < 245 || Color.green(it) < 245 || Color.blue(it) < 245 }) break
+              bottom--
+            }
+          }
           var top = 0
-          while (top < bitmap.height) {
-            val height = minOf(128, bitmap.height - top)
+          while (top < bottom) {
+            val height = minOf(128, bottom - top)
             val data = ByteArray(8 + bytesWide * height)
             data[0] = 0x1d; data[1] = 0x76; data[2] = 0x30; data[3] = 0
             data[4] = (bytesWide and 255).toByte(); data[5] = (bytesWide shr 8).toByte()
@@ -113,19 +153,19 @@ class PosnicPrinterModule : Module() {
             output.flush()
             top += height
           }
+          }
           output.write(byteArrayOf(0x0a, 0x0a, 0x0a))
           // ESC p: 100 ms on, 400 ms off. Never included in tests or reprints.
           if (drawerPin >= 0) output.write(byteArrayOf(0x1b, 0x70, drawerPin.toByte(), 50, 200.toByte()))
           output.flush()
-          mapOf("state" to "submitted", "submitted" to true)
-        } finally { bitmap.recycle() }
+          return mapOf("state" to "submitted", "submitted" to true)
       } catch (_: Exception) {
-        mapOf("state" to if (sent) "unknown" else "failed", "submitted" to sent)
+        return mapOf("state" to if (sent) "unknown" else "failed", "submitted" to sent)
       } finally {
         try { socket?.close(); usbStream?.close() } catch (_: Exception) {}
         timer.shutdownNow()
+        pages.forEach { it.recycle() }
         running.set(false)
       }
-    }
   }
 }

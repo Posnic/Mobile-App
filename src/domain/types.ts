@@ -82,6 +82,11 @@ export interface Shop {
   snapshotVersion: string;
   offlineUntil: string;
   historyPolicy?: { days: number; maxReceipts: number };
+  receiptProfile?: {
+    version: string;
+    data: Record<string, unknown>;
+    assetsComplete: boolean;
+  } | null;
   quickTaxBps: number;
   quickTaxInclusive: boolean;
   permissions: {

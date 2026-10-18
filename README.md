@@ -157,3 +157,33 @@ POS under the same license.
 Inventory uses icon cards for Count stock, Receive stock, Damage and Loss. Suppliers and categories open selectable lists; selecting one filters products and keeps that selection in the local draft. Search scans subsequent reference pages, so a matching supplier is not limited to the first page. Existing servers are supported without an API upgrade: the app filters server catalogue pages by stable supplier/category IDs and caches the original records. Offline filters use downloaded records and apply before pagination. Supplier selection is a product filter, not a purchase-order or invoice association.
 
 Draft filters stay scoped to the current shop, branch, staff member and server on this phone. The stock submission payload, review/confirmation, approval rules and server synchronization are unchanged. The screen previews are captured by `tests/e2e/inventory.spec.ts` from the actual React Native components, including a supplier-receiving path, offline filter and draft reopening.
+
+## Create products and print the shop receipt design
+
+With item read/write permission, use **More → Create item**. Scan a barcode
+(including alternate/hidden matches), capture a label photo, choose the shop's
+category/supplier/tax, and review the product. Local label text reading assists
+name, brand and SKU entry; it does not invent prices from a barcode database.
+
+Enable **Track stock** to enter optional opening stock, including zero or decimal
+quantities for weighed goods. The server records the initial balance once and
+keeps an opening-stock audit. Subsequent deliveries belong in **Receive stock**.
+**Save & scan next** supports shelf setup; **Save & add to sale** refreshes the
+server-authorized catalogue before adding the new item to the existing basket.
+Offline drafts stay on the phone; creating a sellable item requires server confirmation.
+
+The shop's saved receipt design downloads with the authenticated catalogue.
+Server/till printing carries the desktop design with the job. Android direct
+Bluetooth/USB ESC/POS printing renders the downloaded 58/80 mm design locally,
+including supported embedded images and receipt barcodes. System printing also
+uses the design. Printer settings report whether the design and logo downloaded.
+Without a saved design, the standard receipt remains available. Arbitrary external
+image URLs are not fetched for offline printing. Direct iPhone Bluetooth ESC/POS
+printing is not introduced by this change; use system or configured till printing.
+
+Deploy the matching POS products API before testing creation. Product/stocklog
+records and receipt branch settings use existing scoped sync lanes; device drafts,
+credentials and print jobs are not copied between independent servers. The updated
+sync agent rotates image pages so later products and branch logos reach other tills.
+A transport acknowledgment is not proof that paper physically printed; uncertain
+jobs still require checking the printer before reprinting.

@@ -25,6 +25,43 @@ import { receiptsToPrune, printNeedsAttention } from "../domain/retention";
 import { photoReady, photoScore, type PhotoDraft } from "../domain/photoOrders";
 
 export class Repository {
+  private productKey(shop: Shop) {
+    return (
+      "product-draft:" +
+      JSON.stringify([shop.baseUrl, shop.id, shop.branchId, shop.staffId])
+    );
+  }
+  async productDraft() {
+    const shop = await this.authorized("itemWrite");
+    return this.store.get<import("../domain/product").ProductDraft>(
+      this.productKey(shop),
+    );
+  }
+  async saveProductDraft(
+    draft: import("../domain/product").ProductDraft | null,
+  ) {
+    return this.serial(async () => {
+      const shop = await this.authorized("itemWrite");
+      await this.store.batch([{ key: this.productKey(shop), value: draft }]);
+    });
+  }
+  async confirmProduct(shop: Shop, item: Item, id: string) {
+    return this.serial(async () => {
+      const current = await this.authorized("itemWrite");
+      if (this.productKey(current) !== this.productKey(shop))
+        throw Error("invalidServer");
+      const draft = await this.store.get<
+        import("../domain/product").ProductDraft
+      >(this.productKey(shop));
+      if (draft?.id !== id) throw Error("photoChanged");
+      await this.store.batch([
+        { key: "item:" + item.id, value: item },
+        { key: this.productKey(shop), value: null },
+      ]);
+      this.catalogueCache = null;
+      this.availabilityGeneration++;
+    });
+  }
   inventory(shop: Shop) {
     return new InventoryStore(this.store, shop);
   }

@@ -5,6 +5,7 @@ import type { Sale, Shop, Settings } from "../domain/types";
 import { receiptHtml, escapeHtml } from "../services/receipt";
 import * as Crypto from "expo-crypto";
 import { requirePermission } from "../domain/permissions";
+import { designedReceipt } from "../services/designedReceipt";
 export async function printTest(
   shop: Shop,
   settings: Settings,
@@ -42,7 +43,9 @@ export async function printSale(
     throw new Error("permissionDenied");
   if (settings.printer === "system") {
     await Print.printAsync({
-      html: receiptHtml(sale, shop.name, t, settings.locale),
+      html:
+        designedReceipt(sale, shop, t, settings.locale) ||
+        receiptHtml(sale, shop.name, t, settings.locale),
     });
     return;
   }
