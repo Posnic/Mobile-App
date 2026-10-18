@@ -62,6 +62,7 @@ export class Repository {
           },
         ]);
         this.catalogueCache = null;
+        this.availabilityGeneration++;
         return;
       }
       const sales = await this.store.list<Sale>("sale:");
@@ -115,6 +116,7 @@ export class Repository {
         },
       ]);
       this.catalogueCache = null;
+      this.availabilityGeneration++;
     });
   }
   private tail: Promise<unknown> = Promise.resolve();

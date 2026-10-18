@@ -1,5 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { createServer } from "node:http";
+import type { AddressInfo } from "node:net";
 import { parseServerInput } from "../src/services/serverAddress";
 import { ShopConnection, shopRoutes } from "../src/services/routes";
 import { ApiError, PosnicApi } from "../src/services/api";
@@ -22,6 +24,78 @@ const ack = {
   branchId: shop.branchId,
   serverId: "saved-1",
 };
+
+test("two real HTTP endpoints never receive each other's catalogue or failed-sale retry", async () => {
+  const hits: string[][] = [[], []];
+  let failing = false;
+  const servers = [0, 1].map((index) =>
+    createServer((req, res) => {
+      hits[index]!.push(req.url!);
+      res.setHeader("Content-Type", "application/json");
+      res.statusCode = failing ? 503 : 200;
+      res.end(
+        JSON.stringify(req.url === "/catalogue" ? { shop, items: [] } : ack),
+      );
+    }),
+  );
+  try {
+    await Promise.all(
+      servers.map(
+        (server) =>
+          new Promise<void>((resolve) =>
+            server.listen(0, "127.0.0.1", resolve),
+          ),
+      ),
+    );
+    const urls = servers.map(
+      (server) => `http://127.0.0.1:${(server.address() as AddressInfo).port}`,
+    );
+    for (const selected of [0, 1]) {
+      hits[0]!.length = hits[1]!.length = 0;
+      failing = false;
+      const connection = new ShopConnection(
+        {
+          ...shop,
+          baseUrl: urls[selected],
+          connection: {
+            idempotencyScope: "shared",
+            local: urls[0],
+            remote: urls[1],
+          },
+        },
+        (url) => {
+          const request = async (path: string) => {
+            const response = await fetch(url + path);
+            if (!response.ok)
+              throw new ApiError("networkError", response.status);
+            return response.json();
+          };
+          return {
+            catalogue: () => request("/catalogue"),
+            upload: () => request("/sale"),
+          };
+        },
+      );
+      await connection.catalogue();
+      failing = true;
+      await assert.rejects(connection.upload(sale), /networkError/);
+      failing = false;
+      await connection.upload(sale);
+      assert.deepEqual(hits[selected], ["/catalogue", "/sale", "/sale"]);
+      assert.deepEqual(hits[1 - selected], []);
+    }
+  } finally {
+    await Promise.all(
+      servers.map(
+        (server) =>
+          new Promise<void>((resolve) => {
+            server.closeAllConnections();
+            server.close(() => resolve());
+          }),
+      ),
+    );
+  }
+});
 
 test("typing, pasting and scanning understand shop codes, LAN addresses and pairing payloads", () => {
   assert.equal(
@@ -48,7 +122,7 @@ test("typing, pasting and scanning understand shop codes, LAN addresses and pair
     assert.throws(() => parseServerInput(raw));
 });
 
-test("local is preferred and unavailable local route falls back to domain", async () => {
+test("internet selection never prefers an advertised Wi-Fi route", async () => {
   const calls: string[] = [];
   const connection = new ShopConnection(shop, (url) => ({
     catalogue: async () => {
@@ -61,34 +135,37 @@ test("local is preferred and unavailable local route falls back to domain", asyn
       return ack;
     },
   }));
-  assert.deepEqual(shopRoutes(shop), [local, remote]);
+  assert.deepEqual(shopRoutes(shop), [remote]);
   assert.deepEqual(await connection.upload(sale), ack);
-  assert.deepEqual(calls, [local, remote]);
+  assert.deepEqual(calls, [remote]);
 });
 
-test("lost reply can replay the same sale key across a verified shared ledger", async () => {
+test("lost upload reply retries only the selected Wi-Fi server even with a shared ledger", async () => {
   const ledger = new Set<string>();
   const keys: string[] = [];
-  const connection = new ShopConnection(shop, (url) => ({
+  const urls: string[] = [];
+  const connection = new ShopConnection({ ...shop, baseUrl: local }, (url) => ({
     catalogue: async () => ({ shop, items: [] }),
     upload: async (sent) => {
       keys.push(sent.id);
+      urls.push(url);
       ledger.add(sent.id);
-      if (url === local) throw new ApiError("networkError");
+      if (keys.length === 1) throw new ApiError("networkError");
       return ack;
     },
   }));
+  await assert.rejects(() => connection.upload(sale), /networkError/);
   await connection.upload(sale);
   assert.deepEqual(keys, [sale.id, sale.id]);
+  assert.deepEqual(urls, [local, local]);
   assert.equal(ledger.size, 1);
 });
 
-test("wrong tenant, staff or dedupe ledger never receives an upload", async () => {
+test("catalogue rejects a wrong tenant, staff or branch", async () => {
   for (const changed of [
     { id: "other" },
     { staffId: "other" },
     { branchId: "other" },
-    { connection: { idempotencyScope: "other" } },
   ]) {
     let writes = 0;
     const connection = new ShopConnection(shop, () => ({
@@ -98,8 +175,25 @@ test("wrong tenant, staff or dedupe ledger never receives an upload", async () =
         return ack;
       },
     }));
-    await assert.rejects(() => connection.upload(sale), /invalidServer/);
+    await assert.rejects(() => connection.catalogue(), /invalidServer/);
     assert.equal(writes, 0);
+  }
+});
+
+test("offline catalogue and server errors never switch away from the selected route", async () => {
+  for (const baseUrl of [local, remote]) {
+    for (const status of [0, 500, 503]) {
+      const calls: string[] = [];
+      const connection = new ShopConnection({ ...shop, baseUrl }, (url) => ({
+        catalogue: async () => {
+          calls.push(url);
+          throw new ApiError("networkError", status);
+        },
+        upload: async () => ack,
+      }));
+      await assert.rejects(() => connection.catalogue(), /networkError/);
+      assert.deepEqual(calls, [baseUrl]);
+    }
   }
 });
 

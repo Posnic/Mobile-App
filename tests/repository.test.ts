@@ -781,6 +781,30 @@ test("a failed connection transaction leaves the original catalogue and history 
   assert.ok((await repo.load()).items.length);
 });
 
+test("a delayed catalogue cannot replace data after switching away and back", async () => {
+  const { repo } = setup();
+  await repo.pair(localConnection, trainingItems);
+  const generation = repo.catalogueGeneration();
+  await repo.switchConnection(internetConnection, []);
+  const fresh = { ...trainingItems[0]!, name: "Fresh local product" };
+  await repo.switchConnection(localConnection, [fresh]);
+  await repo.refreshCatalogue(localConnection, trainingItems, generation);
+  assert.equal((await repo.load()).items[0]!.name, fresh.name);
+  assert.equal((await repo.load()).items.length, 1);
+});
+
+test("late catalogue from a previous route cannot replace the selected route", async () => {
+  const { repo } = setup();
+  await repo.pair(localConnection, trainingItems);
+  await repo.switchConnection(internetConnection, []);
+  await assert.rejects(
+    repo.refreshCatalogue(localConnection, trainingItems),
+    /invalidServer/,
+  );
+  assert.equal((await repo.load()).shop!.baseUrl, internetConnection.baseUrl);
+  assert.equal((await repo.load()).items.length, 0);
+});
+
 test("newly hidden products invalidate sales lookup without mutating existing basket", async () => {
   const { repo, storage } = setup();
   const shop = {
