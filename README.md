@@ -1,189 +1,79 @@
 # Posnic Mobile POS
 
-**[Download the latest Android build](https://github.com/Posnic/Mobile-App/releases)** — open the newest release and download its `.apk` under **Assets**. Beta builds are included.
+An open-source mobile till for retail shops and restaurants: sell, scan products, collect cash, print receipts and manage stock with your existing Posnic shop.
 
-A dedicated mobile till for Posnic, built with React Native, Expo and TypeScript.
-This is an **independent offline counter beta for pilot testing**.
-Start with **Try a training shop**. Practice transactions stay
-on the device and are never uploaded.
+**[Download the latest Android APK](https://github.com/Posnic/Mobile-App/releases/latest)** · [Connection guide](docs/CONNECTION_AND_PIN.md) · [User guide](docs/USER_GUIDE.md) · [Developer setup](docs/DEVELOPMENT.md)
 
-## Run
+Open the release and choose the `.apk` under **Assets**. The current release is **0.3.0-beta.30**, an Android ARM64 pilot build. GitHub's **Latest** label identifies the recommended download; this remains beta software. iPhone builds require a separately processed and assigned TestFlight build; this link does not install an iPhone app.
 
-Requires Node.js 22+, npm and, for Android, a configured Android SDK and JDK.
+## See the app
 
-```sh
-npm ci
-npm run build:web
-node scripts/serve-preview.mjs
-```
+Screens below come from the running app with test data, not separate mockups. Native controls and shop permissions can change what appears.
 
-The browser preview uses IndexedDB and is for UX evaluation. Native builds use
-SQLCipher SQLite with a key in the OS secure store. **Expo Go is not supported**
-because its SQLite build does not provide this encryption setup.
+| Connect your shop | Sell and scan | Inventory |
+| --- | --- | --- |
+| <img src="docs/screenshots/connect.png" width="250" alt="Cloud sign-in and Community shop connection"> | <img src="docs/screenshots/sell.png" width="250" alt="Product tiles, search, barcode and photo controls"> | <img src="docs/screenshots/inventory.png" width="250" alt="Icon cards for count, receive, damage and loss"> |
 
-```sh
-npx expo prebuild --platform android
-npm run android
-```
+| Supplier selection | Review stock changes | Duplicate-barcode review |
+| --- | --- | --- |
+| <img src="docs/screenshots/suppliers.png" width="250" alt="Selectable supplier list"> | <img src="docs/screenshots/stock-review.png" width="250" alt="Review inventory quantities before confirmation"> | <img src="docs/screenshots/availability.png" width="250" alt="Review availability changes for matching products"> |
 
-iOS uses the same source but requires macOS/Xcode and device testing. Native
-project directories are generated from app.json and are not committed.
-Do not uninstall or clear storage on a device with unsynced sales.
+[More screenshots and capture details](docs/screenshots/README.md).
 
-## Connection setup and switching
+## Start in a few steps
 
-Cloud sign-in opens the account browser for approval and returns directly to Sell.
-A PIN is optional. Community shops can use Wi-Fi discovery, a shop QR code, a
-pairing code with a server address, or a typed server address. Login fields appear
-only after selecting a compatible server.
+1. Install the APK from the latest release. For an existing installation, update in place; keep app data so pending sales and drafts remain intact.
+2. Choose **Sign in** for Posnic Cloud, **Create account · Free trial**, or **Connect a local or Community shop** for your own server. You can also **Try a training shop** without connecting; training sales never upload.
+3. Authorize the phone in the browser for Cloud. For a local shop, discover and select the shop on Wi-Fi, scan its pairing QR, or use a server address and credentials/pairing code.
+4. Let the first catalogue download finish. Start selling. A local unlock PIN is optional and can be enabled later under **More**.
 
-The header shows separate Wi-Fi and globe buttons; tap either to switch directly
-to a remembered connection. The connection page contains **Shop Wi-Fi** and
-**Internet**, with QR/code/address entry under **Other ways to connect**.
-Discovery displays public shop names with addresses as secondary information.
-Cloud approval includes nearby tills reported by the shop: choose
-one to authorize it without entering a local password. The app verifies the till's
-one-time enrollment proof before sending the approval. Saved connections reuse
-that endpoint's own session and must identify the same shop, branch and cashier.
-If Wi-Fi fails, an explicit Internet offer lets you switch to your saved cloud
-connection. Background address refresh never reauthorizes a revoked phone; a new
-or expired authorization requires browser approval again.
+You need a compatible [Posnic POS server](https://github.com/Posnic/POS/releases) with Mobile POS enabled for your branch and permissions for your staff account. Older servers without `mobilePosV1` need updating. Cloud browser approval additionally depends on the matching account/gateway service. See [setup and troubleshooting](docs/CONNECTION_AND_PIN.md).
 
-Discovery checks private network interfaces, including a phone-hosted hotspot
-when the operating system exposes it. Router isolation and restricted phone
-interfaces can prevent scanning; shop QR and server-address entry remain available.
+## What you can do
 
-Switching between independent till/cloud ledgers requires all pending sales and
-print requests to be resolved and current/parked baskets to be finished or cleared.
-Receipts remain associated with the endpoint that accepted them; switching back
-restores its history. Stock drafts remain scoped to their original endpoint.
-The app does not silently move queued sales to a different ledger. Updating an
-unreachable till address with pending sales requires server identity and shared
-idempotency support; do not uninstall or clear app storage to work around it.
+| Area | Available in this app |
+| --- | --- |
+| Sales | Item tiles, favourites, search, hidden numeric quick codes, camera barcode/QR scanning, weighed quantities, quick amount sales, customers, held carts, cash/change and receipts. |
+| Products | Create items with barcode scanning, label-photo text assistance, category/supplier/tax selection and optional tracked opening stock. Save and scan the next product. Requires item-management permission and server confirmation. |
+| Photo assistance | Read a product label or paper order into a reviewable draft; match existing products and correct quantities before adding to the sale. Recognition is assistance, not automatic checkout. |
+| Inventory | Find stock, supplier/category filters, count, receive, damage, loss, persistent drafts, review, confirmation and operation history. Uses the server's existing stock records and approval policy. |
+| Duplicate barcodes | Compare all primary/alternate barcode matches, including hidden products. Review and explicitly hide/restore selected records with **Available for sale**. No automatic merge, stock sum or deletion. |
+| Payments | Cash and branch-configured UPI QR selection. UPI confirmation is recorded by staff; it is not bank/provider verification. |
+| Printing | Configured till/server, OS print service, or supported Android Bluetooth Classic/USB ESC/POS printers. Downloaded shop receipt layouts support local printing; printer-connected cash drawers are supported. |
+| Connections | Separate Wi-Fi and globe buttons for manual selection of remembered shop connections. Discovery shows shop names where advertised. QR, pairing-code and manual-address alternatives remain available. |
+| Offline | Downloaded catalogue and images, cash sales under a valid offline grant, local receipts, direct printing and saved inventory/product drafts. Pending sales retry on reconnection to their original ledger. |
+| Languages | English, Tamil, Hindi, Malayalam, Kannada, Telugu, Sinhala, Nepali, Arabic, French, Spanish, Portuguese, Indonesian, Thai, German, Swahili, Dutch and Italian. Arabic RTL; bundled offline packs. Non-English translations remain beta. |
 
-An empty catalogue offers refresh and quick sale, plus **New item** when the
-server grants item-write access.
+## Wi-Fi and Internet are explicit choices
 
-## Implemented
+Tap **Wi-Fi** for the shop's local till or the **globe** for its Internet connection. The app remembers each connection's session. It does **not automatically switch between independent Wi-Fi and cloud servers** or move unsent orders to a different database.
 
-- Persistent cashier/branch favourites with compact star controls.
-- Visual item tiles, hidden numeric quick codes, camera scanning and amount-only sales.
-- Integer-money checkout, cash received/change, optional customer, held carts and receipts.
-- Transactional sale/outbox commits, retry identifiers, pinned shop/branch, review state
-  and atomic catalogue snapshot replacement. Existing carts retain price snapshots.
-- Permissions and offline grant expiry.
-- Branch UPI account selection and amount-bound QR generation. Manual confirmation
-  stays explicitly staff-confirmed; it never implies bank verification.
-- Direct Android Bluetooth Classic/USB printer-class ESC/POS, optional printer-connected
-  cash drawer, durable print recovery, OS print service and Till receipt status.
-- Indexed offline product browsing/scanning, atomic persisted-page activation, cached
-  product images and protected receipt retention. Items have no receipt-history cap.
-- Explicit quantity entry for configured weighed items, localized decimals and receipt units.
-- Cloud receipt status backed by an explicit gateway acknowledgment; community installs
-  retain shop-server acknowledgment.
-- All 18 POS languages with complete mobile message coverage, Arabic direction,
-  localized receipts and offline language packs. Translations remain beta pending
-  native-speaker review; shop-entered product names are preserved.
-- Isolated training shop for evaluation without a server.
-- Pull-to-refresh on data lists, receipt swipe navigation, platform back handling,
-  keyboard dismissal and accessible button alternatives. See the
-  [gesture inventory and device checks](docs/MOBILE_GESTURES.md).
-- Account-first browser sign-in and free-trial signup, explicit device approval,
-  authenticated local-till discovery, Community LAN/QR/code fallback and PIN unlock.
+The same shop name does not prove two servers share a sales ledger. Pending sales/print requests and active or parked baskets can block a switch; resolve them on the original connection. Inventory drafts and receipts retain their server association. An offline till cannot receive another device's product or stock changes until normal server sync reconnects.
 
-## Release work still required
+## Offline capacity and limits
 
-The matching POS API implements bootstrap, one-use pairing, durable sale ingestion,
-branch payments, device revocation and till receipt jobs. Live onboarding requires
-features.mobilePosV1; a legacy server must be updated. Account sign-in also requires
-the matching web-api, Gateway and website release. See the release notes for deployment status.
+- All downloaded catalogue items remain searchable; the receipt-history limit does not cap items. Images are available offline once downloaded.
+- Receipt cleanup defaults to **90 days / 10,000 eligible synced receipts**. Pending sales, unresolved print work and other protected records are excluded; this is not a hard database-size ceiling.
+- Initial authorization and catalogue download need a reachable server. Offline selling is bounded by the server-issued grant; PIN unlock does not extend it.
+- Stock observations and new-product entries can be drafted offline. Applying stock changes, creating live items and changing availability require server confirmation. Inventory operations support up to **200 lines** each.
+- A directly connected supported Android printer can print without the POS server. Server/till printing needs that server. Electronic payments and OS printer services have their own connectivity requirements.
 
-See [implementation status](docs/IMPLEMENTATION_STATUS.md) and the required
-[server contract](docs/MOBILE_API.md). The [offline test guide](docs/OFFLINE_DIRECT_PRINT_BETA.md)
-maps all nine approved offline designs to implemented screens. Provider-confirmed UPI/card
-payments, iOS direct adapters, richer selling options and physical hardware qualification
-remain separate roadmap work. All language packs have every current
-mobile key; native-speaker review and physical-device font checks remain outstanding.
-See [language support](docs/LANGUAGES.md).
+## Printing and hardware
 
-## iPhone and iPad TestFlight builds
+Use **More → Devices / Printing** to configure the available route. The shop receipt design downloads with the authenticated catalogue for supported 58/80 mm printing. Embedded logos can print offline after download; arbitrary external image URLs are not downloaded. If there is no saved design, the standard receipt is used.
 
-Run the manually dispatched **iOS TestFlight** workflow in GitHub Actions. It runs
-the checks, generates the Expo iOS project on a Mac runner, signs an App Store
-archive and uploads it to Apple. It does not publish to the public App Store.
+USB/Bluetooth printer support is Android-specific; iPhone uses system or configured till printing. A successful transport write is not proof that paper emerged. Check an uncertain job before reprinting. Keyboard/HID scanners are supported; integrated card terminals, NFC/Tap to Pay, weighing-scale adapters and provider-confirmed payments remain future integrations. See [device setup and limitations](docs/DEVICES.md).
 
-The Apple app is `6818860892`, bundle `com.posnic.mobile`, team `VMG89YGXKR`.
-The pilot tester group is **Posnic POS Pilot**. After Apple finishes processing,
-resolve any export-compliance questions, assign the processed build to that group
-and verify that the tester is invited. An uploaded build alone is not confirmation
-that testers can install it.
+## Guides
 
-Required repository secrets: `IOS_CERT_P12` (base64), `IOS_CERT_PASSWORD`,
-`IOS_APPSTORE_PROVISIONING_PROFILE` (base64, specifically for `com.posnic.mobile`),
-`ASC_API_KEY_ID`, `ASC_API_ISSUER` and `ASC_API_KEY_P8`. Signing files stay outside
-the repository; the temporary Mac keychain and API-key file are cleaned after use.
-The workflow uses a unique numeric build number for each run/attempt. The separate
-numeric `ios.version` must be updated when releasing a new iOS marketing version.
+- [Everyday use: sales, new products, stock, duplicates and troubleshooting](docs/USER_GUIDE.md)
+- [Cloud/local connection, switching and optional PIN](docs/CONNECTION_AND_PIN.md)
+- [Inventory setup, confirmation and limits](docs/MOBILE_INVENTORY_IMPLEMENTATION.md)
+- [Availability, duplicate barcodes and synchronization](docs/product-availability.md)
+- [Photo orders](docs/PHOTO_ORDERS.md), [languages](docs/LANGUAGES.md) and [gestures](docs/MOBILE_GESTURES.md)
+- [Permissions](docs/ACCESS_CONTROL.md), [offline testing](docs/OFFLINE_DIRECT_PRINT_BETA.md) and [release scope](docs/IMPLEMENTATION_STATUS.md)
+- [Build and test locally / iOS signing](docs/DEVELOPMENT.md), [API contract](docs/MOBILE_API.md) and [roadmap](docs/MOBILE_POS_ROADMAP.md)
 
-The iOS build uses the system print dialog and configured Till printing; the direct
-Bluetooth Classic/USB ESC/POS adapter is Android-only. Validate local-network
-permission, camera scanning, offline catalogue/sales, PIN and receipts on an iPhone
-before treating an uploaded build as production-ready.
+Browser tests cover the web flows; they do not replace installed-phone, physical printer or multi-till acceptance testing. The app is a focused till and inventory companion, not the desktop's complete reporting, purchasing or administration suite.
 
-## Checks
-
-```sh
-npm run check
-npm run format:check
-npm run build:web
-npx playwright install chromium
-npm run test:e2e
-```
-
-Tests cover transaction failure/retry, money, tax, permissions, catalogue replacement,
-receipt escaping, persisted checkout, offline cash, hidden codes, hold/resume and
-language changes. Native storage, printer and terminal tests must run on devices.
-
-See the [research and roadmap](docs/MOBILE_POS_ROADMAP.md) for the approved direction.
-See [Devices](docs/DEVICES.md) for external scanning, printer setup and Till receipt status.
-See [connection and PIN unlock](docs/CONNECTION_AND_PIN.md) for Wi-Fi discovery,
-remembered credentials, supported addresses and local PIN behavior.
-
-Licensed under [AGPL-3.0-only](LICENSE). Inherited language strings come from Posnic
-POS under the same license.
-
-### Mobile inventory navigation
-
-Inventory uses icon cards for Count stock, Receive stock, Damage and Loss. Suppliers and categories open selectable lists; selecting one filters products and keeps that selection in the local draft. Search scans subsequent reference pages, so a matching supplier is not limited to the first page. Existing servers are supported without an API upgrade: the app filters server catalogue pages by stable supplier/category IDs and caches the original records. Offline filters use downloaded records and apply before pagination. Supplier selection is a product filter, not a purchase-order or invoice association.
-
-Draft filters stay scoped to the current shop, branch, staff member and server on this phone. The stock submission payload, review/confirmation, approval rules and server synchronization are unchanged. The screen previews are captured by `tests/e2e/inventory.spec.ts` from the actual React Native components, including a supplier-receiving path, offline filter and draft reopening.
-
-## Create products and print the shop receipt design
-
-With item read/write permission, use **More → Create item**. Scan a barcode
-(including alternate/hidden matches), capture a label photo, choose the shop's
-category/supplier/tax, and review the product. Local label text reading assists
-name, brand and SKU entry; it does not invent prices from a barcode database.
-
-Enable **Track stock** to enter optional opening stock, including zero or decimal
-quantities for weighed goods. The server records the initial balance once and
-keeps an opening-stock audit. Subsequent deliveries belong in **Receive stock**.
-**Save & scan next** supports shelf setup; **Save & add to sale** refreshes the
-server-authorized catalogue before adding the new item to the existing basket.
-Offline drafts stay on the phone; creating a sellable item requires server confirmation.
-
-The shop's saved receipt design downloads with the authenticated catalogue.
-Server/till printing carries the desktop design with the job. Android direct
-Bluetooth/USB ESC/POS printing renders the downloaded 58/80 mm design locally,
-including supported embedded images and receipt barcodes. System printing also
-uses the design. Printer settings report whether the design and logo downloaded.
-Without a saved design, the standard receipt remains available. Arbitrary external
-image URLs are not fetched for offline printing. Direct iPhone Bluetooth ESC/POS
-printing is not introduced by this change; use system or configured till printing.
-
-Deploy the matching POS products API before testing creation. Product/stocklog
-records and receipt branch settings use existing scoped sync lanes; device drafts,
-credentials and print jobs are not copied between independent servers. The updated
-sync agent rotates image pages so later products and branch logos reach other tills.
-A transport acknowledgment is not proof that paper physically printed; uncertain
-jobs still require checking the printer before reprinting.
+Built with React Native, Expo and TypeScript. Licensed under [AGPL-3.0-only](LICENSE).
