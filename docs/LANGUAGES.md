@@ -4,7 +4,7 @@ Mobile POS supports the same 18 languages as POS: English, Tamil, Hindi,
 Malayalam, Kannada, Telugu, Sinhala, Nepali, Arabic, French, Spanish,
 Portuguese, Indonesian, Thai, German, Swahili, Dutch and Italian.
 
-All 198 current mobile messages are supplied for every language, including
+All current mobile messages are supplied for every language, including
 onboarding, authorization, PIN recovery, sales, UPI confirmation, printing,
 offline status and errors. Language selection is available before sign-in and
 under More. The selection persists locally and works offline. Regional device
@@ -29,7 +29,7 @@ offline checkout and language persistence in all 18 languages on a narrow viewpo
 To refresh shared POS terminology, run:
 
 ```powershell
-node scripts/import-translations.mjs C:/Users/Kayal/POS/languages
+node scripts/import-translations.mjs <path-to-POS>/languages
 ```
 
 The generated coverage file includes both shared and mobile translations.
