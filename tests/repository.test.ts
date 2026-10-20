@@ -43,13 +43,24 @@ test("checkout freezes device receipt wording before profile changes and reprint
   await repo.startTraining();
   await repo.addItem(trainingItems[0]!);
   const state = await repo.load();
-  const sale = await repo.checkout(state.cart.id, { method: "cash", received: 5000, change: 0 });
+  const sale = await repo.checkout(state.cart.id, {
+    method: "cash",
+    received: 5000,
+    change: 0,
+  });
   assert.ok(sale.receiptWording?.values.total);
   const html = receiptHtml(sale, "Shop", () => "Changed wording");
   assert.ok(html.includes(sale.receiptWording!.values.total!));
   assert.ok(!html.includes("Changed wording"));
-  const restored = new Repository(storage, () => "unused", () => 1000);
-  assert.deepEqual((await restored.load()).sales[0]!.receiptWording, sale.receiptWording);
+  const restored = new Repository(
+    storage,
+    () => "unused",
+    () => 1000,
+  );
+  assert.deepEqual(
+    (await restored.load()).sales[0]!.receiptWording,
+    sale.receiptWording,
+  );
 });
 
 test("cloud confirmation is separate from local acceptance and cannot acknowledge an unuploaded or foreign receipt", async () => {

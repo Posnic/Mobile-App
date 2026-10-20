@@ -260,6 +260,7 @@ test("server settings refuse to disconnect an unfinished basket", async ({
   });
   await page.reload();
   await page.getByTestId("item-coffee").click();
+  await expect(page.getByTestId("view-cart")).toContainText("35");
   await page.getByRole("tab", { name: "More", exact: true }).click();
   await page.getByText("Connection & sync", { exact: true }).last().click();
   await page

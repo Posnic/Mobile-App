@@ -17,7 +17,9 @@ export function translator(
   return (key: TextKey | string): string => {
     const source = (en as Record<string, string>)[key];
     const custom =
-      source && sourceValues && Object.prototype.hasOwnProperty.call(sourceValues, source)
+      source &&
+      sourceValues &&
+      Object.prototype.hasOwnProperty.call(sourceValues, source)
         ? sourceValues[source]
         : undefined;
     const placeholders = (value: string) =>

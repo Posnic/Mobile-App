@@ -18,6 +18,7 @@ import type {
   Shop,
 } from "../domain/types";
 import { quickCode, totals } from "../domain/money";
+import { receiptSources } from "../services/receiptWording";
 import { trainingItems, trainingShop } from "./training";
 import { resolveProductScan } from "../domain/scanning";
 import type { DirectPrintJob } from "../domain/types";
@@ -886,13 +887,48 @@ export class Repository {
       };
       const printSettings = await this.store.get<Settings>("settings");
       const receiptLocale = printSettings?.locale ?? "en";
-      const cached = await this.store.get<{ scope: string; values: Record<string, string> }>("wording-cache");
-      const wordingScope = JSON.stringify([shop.baseUrl, shop.id, shop.branchId, shop.staffId, receiptLocale]);
-      const words = translator(receiptLocale, cached?.scope === wordingScope ? cached.values : {});
-      sale.receiptWording = { locale: receiptLocale, values: Object.fromEntries(
-        ["trainingReceipt", "receipt", "offlineReceipt", "total", "tax", "cash", "upi", "card", "unverified"]
-          .map(key => [key, words(key)])
-      ) };
+      const cached = await this.store.get<{
+        scope: string;
+        values: Record<string, string>;
+      }>("wording-cache");
+      const wordingScope = JSON.stringify([
+        shop.baseUrl,
+        shop.id,
+        shop.branchId,
+        shop.staffId,
+        receiptLocale,
+      ]);
+      const words = translator(
+        receiptLocale,
+        cached?.scope === wordingScope ? cached.values : {},
+      );
+      sale.receiptWording = {
+        locale: receiptLocale,
+        values: Object.fromEntries(
+          [
+            "trainingReceipt",
+            "receipt",
+            "offlineReceipt",
+            "total",
+            "tax",
+            "cash",
+            "upi",
+            "card",
+            "unverified",
+            "quantity",
+            "items",
+            "name",
+          ].map((key) => [key, words(key)]),
+        ),
+        sources: Object.fromEntries(
+          [...receiptSources].map((source) => [
+            source,
+            cached?.scope === wordingScope
+              ? (cached.values[source] ?? source)
+              : source,
+          ]),
+        ),
+      };
       if (
         !sale.training &&
         shop.permissions.receiptPrint === true &&

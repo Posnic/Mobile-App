@@ -18,7 +18,10 @@ export function receiptHtml(
     const original = t;
     const saved = sale.receiptWording;
     locale = saved.locale;
-    t = (key) => typeof saved.values[key] === "string" ? saved.values[key]! : original(key);
+    t = (key) =>
+      typeof saved.values[key] === "string"
+        ? saved.values[key]!
+        : original(key);
   }
   const esc = escapeHtml,
     money = (n: number) => esc(formatMoney(n, sale.currency, locale));

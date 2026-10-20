@@ -9,7 +9,10 @@ export function receiptText(
     const original = t;
     const saved = sale.receiptWording;
     locale = saved.locale;
-    t = (key) => typeof saved.values[key] === "string" ? saved.values[key]! : original(key);
+    t = (key) =>
+      typeof saved.values[key] === "string"
+        ? saved.values[key]!
+        : original(key);
   }
   const clean = (s: string) => s.replace(/[\u0000-\u001f\u007f]/g, " ");
   const money = (n: number) =>

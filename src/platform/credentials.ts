@@ -1,8 +1,4 @@
 export const credentials = {
-  forServer: async (server: string) => {
-    const account = await (await import("./vault")).vault.account();
-    return account?.server === server ? account.token : null;
-  },
   deviceId: async () => (await import("./vault")).vault.deviceId(),
   get: async (server?: string) => {
     const { vault } = await import("./vault");

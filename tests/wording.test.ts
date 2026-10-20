@@ -6,6 +6,9 @@ test("mobile wording uses exact registered sources and leaves unrelated words un
   const t = translator("en", { Refresh: "Reload" });
   assert.equal(t("refresh"), "Reload");
   assert.equal(t("signOut"), en.signOut);
-  assert.equal(translator("en", { Refresh: "{missing}" })("refresh"), "Refresh");
+  assert.equal(
+    translator("en", { Refresh: "{missing}" })("refresh"),
+    "Refresh",
+  );
   assert.equal(translator("en", { Refresh: "" })("refresh"), "Refresh");
 });

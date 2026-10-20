@@ -24,6 +24,7 @@ export function useShopWording(
     values: Record<string, string>;
   } | null>(null);
   useEffect(() => {
+    if (!scope) return;
     let stopped = false,
       busy = false,
       refreshed = false;
