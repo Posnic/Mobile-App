@@ -22,6 +22,7 @@ import { resolveProductScan } from "../domain/scanning";
 import type { DirectPrintJob } from "../domain/types";
 import { receiptsToPrune, printNeedsAttention } from "../domain/retention";
 import { photoReady, photoScore, type PhotoDraft } from "../domain/photoOrders";
+import { translator } from "../i18n";
 
 export class Repository {
   private tail: Promise<unknown> = Promise.resolve();
@@ -204,6 +205,7 @@ export class Repository {
         "cart",
         "receipt-sequence",
         "catalogue-updated-at",
+        "wording-cache",
       ].map((key) => ({ key, value: null }));
       for (const key of await this.itemKeys())
         changes.push({ key, value: null });
@@ -241,6 +243,7 @@ export class Repository {
         "receipt-sequence",
         "catalogue-updated-at",
       ].map((key) => ({ key, value: null }));
+      changes.push({ key: "wording-cache", value: null });
       // Keep acknowledged receipts locally without exposing another cashier's history.
       for (const sale of sales)
         changes.push({
@@ -692,6 +695,14 @@ export class Repository {
         sync: shop.mode === "training" ? "synced" : "pending",
       };
       const printSettings = await this.store.get<Settings>("settings");
+      const receiptLocale = printSettings?.locale ?? "en";
+      const cached = await this.store.get<{ scope: string; values: Record<string, string> }>("wording-cache");
+      const wordingScope = JSON.stringify([shop.baseUrl, shop.id, shop.branchId, shop.staffId, receiptLocale]);
+      const words = translator(receiptLocale, cached?.scope === wordingScope ? cached.values : {});
+      sale.receiptWording = { locale: receiptLocale, values: Object.fromEntries(
+        ["trainingReceipt", "receipt", "offlineReceipt", "total", "tax", "cash", "upi", "card", "unverified"]
+          .map(key => [key, words(key)])
+      ) };
       if (
         !sale.training &&
         shop.permissions.receiptPrint === true &&

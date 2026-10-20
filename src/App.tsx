@@ -35,6 +35,7 @@ import * as Localization from "expo-localization";
 import QRCode from "react-native-qrcode-svg";
 import { openStorage } from "./data/openStorage";
 import { Repository } from "./data/repository";
+import { useShopWording } from "./i18n/useShopWording";
 import {
   formatMoney,
   normalizeDigits,
@@ -267,8 +268,9 @@ function Till() {
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const scannerHandled = useRef(false),
     actionLock = useRef(false);
-  const locale = state?.settings.locale ?? "en",
-    t = useMemo(() => translator(locale), [locale]);
+  const locale = state?.settings.locale ?? "en";
+  const shopWords = useShopWording(state?.shop, locale, locked);
+  const t = useMemo(() => translator(locale, shopWords), [locale, shopWords]);
   const rtl = languages.find((l) => l.code === locale)?.rtl ?? false;
   const shop = state?.shop;
   const currency = shop?.currency ?? "INR";

@@ -113,6 +113,8 @@ export type Payment =
       reference: string;
     };
 export interface Sale {
+  /** Device receipt wording captured at checkout; never a server command. */
+  receiptWording?: { locale: Locale; values: Record<string, string> };
   id: string;
   snapshotVersion?: string;
   tillPrint?: "pending" | "queued";
