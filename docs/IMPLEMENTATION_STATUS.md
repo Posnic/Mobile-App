@@ -1,3 +1,15 @@
+# Current release scope — 19 October 2026
+
+Mobile **v0.3.0-beta.30** is the GitHub Latest Android ARM64 release. It remains a pilot build. The [README](../README.md) and [user guide](USER_GUIDE.md) describe current selling, inventory, availability, product creation/opening stock, receipt designs and manual Wi-Fi/Internet selection.
+
+Release verification included 131 mobile unit tests and 69 browser tests. Browser screenshots are available in [screenshots](screenshots/README.md). The release Android build and signature checks passed. These results do not certify physical printers, iPhone behavior or every deployed tenant's core synchronization. Integrated payment providers, iOS direct printer adapters and broader hardware qualification remain pending.
+
+Matching POS server/desktop support is required; installing an APK alone does not upgrade the API. See each release's notes for its deployment status. No public iPhone installation is implied by the Android release.
+
+## Historical implementation notes
+
+The dated notes below record earlier increments and are not a current feature checklist. Where they differ, use the guides linked above.
+
 # Implementation status — 1 October 2026
 
 ## Server settings — beta12

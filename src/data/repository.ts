@@ -4,6 +4,7 @@ import {
   type CatalogueResult,
 } from "./catalogueQuery";
 import type { Storage, Change, CatalogueInput } from "./storage";
+import { InventoryStore } from "./inventory";
 import type {
   Cart,
   Customer,
@@ -25,6 +26,137 @@ import { photoReady, photoScore, type PhotoDraft } from "../domain/photoOrders";
 import { translator } from "../i18n";
 
 export class Repository {
+  private productKey(shop: Shop) {
+    return (
+      "product-draft:" +
+      JSON.stringify([shop.baseUrl, shop.id, shop.branchId, shop.staffId])
+    );
+  }
+  async productDraft() {
+    const shop = await this.authorized("itemWrite");
+    return this.store.get<import("../domain/product").ProductDraft>(
+      this.productKey(shop),
+    );
+  }
+  async saveProductDraft(
+    draft: import("../domain/product").ProductDraft | null,
+  ) {
+    return this.serial(async () => {
+      const shop = await this.authorized("itemWrite");
+      await this.store.batch([{ key: this.productKey(shop), value: draft }]);
+    });
+  }
+  async confirmProduct(shop: Shop, item: Item, id: string) {
+    return this.serial(async () => {
+      const current = await this.authorized("itemWrite");
+      if (this.productKey(current) !== this.productKey(shop))
+        throw Error("invalidServer");
+      const draft = await this.store.get<
+        import("../domain/product").ProductDraft
+      >(this.productKey(shop));
+      if (draft?.id !== id) throw Error("photoChanged");
+      await this.store.batch([
+        { key: "item:" + item.id, value: item },
+        { key: this.productKey(shop), value: null },
+      ]);
+      this.catalogueCache = null;
+      this.availabilityGeneration++;
+    });
+  }
+  inventory(shop: Shop) {
+    return new InventoryStore(this.store, shop);
+  }
+  private connectionKey(shop: Shop) {
+    return `connections:${shop.id}:${shop.branchId}:${shop.staffId}`;
+  }
+  async connections(shop: Shop): Promise<string[]> {
+    return [
+      ...new Set([
+        shop.baseUrl!,
+        ...((await this.store.get<string[]>(this.connectionKey(shop))) ?? []),
+      ]),
+    ].filter(Boolean);
+  }
+  async switchConnection(shop: Shop, items: CatalogueInput) {
+    return this.serial(async () => {
+      const current = await this.store.get<Shop>("shop");
+      if (
+        !current ||
+        current.mode !== "live" ||
+        shop.mode !== "live" ||
+        current.id !== shop.id ||
+        current.branchId !== shop.branchId ||
+        current.staffId !== shop.staffId ||
+        !shop.baseUrl
+      )
+        throw Error("connectionWrongShop");
+      // Reauthentication to the same endpoint must remain possible with an outbox.
+      if (current.baseUrl === shop.baseUrl) {
+        await this.replaceCatalogue(items, [
+          { key: "shop", value: shop },
+          {
+            key: "catalogue-updated-at",
+            value: new Date(this.now()).toISOString(),
+          },
+        ]);
+        this.catalogueCache = null;
+        this.availabilityGeneration++;
+        return;
+      }
+      const sales = await this.store.list<Sale>("sale:");
+      const prints = await this.store.list<DirectPrintJob>("print:");
+      if (
+        (await this.store.list<Outbox>("outbox:")).length ||
+        sales.some((s) => s.sync !== "synced" || s.tillPrint === "pending") ||
+        prints.some(printNeedsAttention)
+      )
+        throw Error("connectionPending");
+      if (
+        (await this.store.get<Cart>("cart"))?.lines.length ||
+        (await this.store.list<Cart>("held:")).length
+      )
+        throw Error("connectionCart");
+      const changes: Change[] = [];
+      if (current.baseUrl !== shop.baseUrl) {
+        const prefix = (s: Shop) =>
+          `connection-history:${encodeURIComponent(s.baseUrl!)}:${s.id}:${s.branchId}:${s.staffId}:`;
+        for (const sale of sales) {
+          changes.push(
+            { key: prefix(current) + sale.id, value: sale },
+            { key: "sale:" + sale.id, value: null },
+          );
+        }
+        for (const sale of await this.store.list<Sale>(prefix(shop)))
+          changes.push({ key: "sale:" + sale.id, value: sale });
+        for (const job of prints)
+          changes.push(
+            {
+              key: `connection-print:${encodeURIComponent(current.baseUrl!)}:${job.id}`,
+              value: job,
+            },
+            { key: "print:" + job.id, value: null },
+          );
+        for (const customer of await this.store.list<Customer>("customer:"))
+          changes.push({ key: "customer:" + customer.id, value: null });
+      }
+      await this.replaceCatalogue(items, [
+        ...changes,
+        { key: "shop", value: shop },
+        {
+          key: this.connectionKey(shop),
+          value: [
+            ...new Set([...(await this.connections(current)), shop.baseUrl]),
+          ],
+        },
+        {
+          key: "catalogue-updated-at",
+          value: new Date(this.now()).toISOString(),
+        },
+      ]);
+      this.catalogueCache = null;
+      this.availabilityGeneration++;
+    });
+  }
   private tail: Promise<unknown> = Promise.resolve();
   private catalogueCache: CatalogueResult | null = null;
   constructor(
@@ -301,7 +433,15 @@ export class Repository {
       ]);
     });
   }
-  async refreshCatalogue(shop: Shop, items: CatalogueInput) {
+  private availabilityGeneration = 0;
+  catalogueGeneration() {
+    return this.availabilityGeneration;
+  }
+  async refreshCatalogue(
+    shop: Shop,
+    items: CatalogueInput,
+    expectedGeneration?: number,
+  ) {
     return this.serial(async () => {
       const current = await this.store.get<Shop>("shop");
       if (
@@ -314,6 +454,13 @@ export class Repository {
         current.baseUrl !== shop.baseUrl
       )
         throw new Error("invalidServer");
+      // A download started before an acknowledged availability edit is stale,
+      // even when it arrives after that edit. The next sync fetches fresh data.
+      if (
+        expectedGeneration !== undefined &&
+        expectedGeneration !== this.availabilityGeneration
+      )
+        return;
       // Activate all pages and the grant together. Paid/held snapshots stay untouched.
       await this.replaceCatalogue(items, [
         { key: "shop", value: shop },
@@ -322,6 +469,31 @@ export class Repository {
           value: new Date(this.now()).toISOString(),
         },
       ]);
+      this.catalogueCache = null;
+    });
+  }
+  async applyAvailability(shop: Shop, items: Item[]) {
+    return this.serial(async () => {
+      const current = await this.store.get<Shop>("shop");
+      if (
+        !current ||
+        current.id !== shop.id ||
+        current.branchId !== shop.branchId ||
+        current.baseUrl !== shop.baseUrl
+      )
+        throw Error("invalidServer");
+      const changes: Change[] = [];
+      for (const item of items) {
+        const old = await this.store.get<Item>("item:" + item.id);
+        // A restore needs a fresh signed catalogue before it becomes sellable.
+        if (old && !item.active)
+          changes.push({
+            key: "item:" + item.id,
+            value: { ...old, active: false },
+          });
+      }
+      await this.store.batch(changes);
+      this.availabilityGeneration++;
       this.catalogueCache = null;
     });
   }
@@ -636,6 +808,15 @@ export class Repository {
       const cart = await this.store.get<Cart>("cart");
       if (!cart?.lines.length || cart.id !== cartId)
         throw new Error("emptyCart");
+      for (const line of cart.lines) {
+        if (
+          line.itemId &&
+          (await this.store.get<Item>("item:" + line.itemId))?.active === false
+        )
+          throw Error(
+            "A product in this basket is no longer available for sale. Remove it or ask an authorised user to restore it. Your basket has not been changed.",
+          );
+      }
       if (cart.lines.some((line) => !line.itemId))
         await this.authorized("quickSale");
       if (cart.customer) await this.authorized("customerWrite");
@@ -648,6 +829,8 @@ export class Repository {
         throw new Error("grantExpired");
       const amount = totals(cart.lines);
       if (amount.total <= 0) throw new Error("invalidAmount");
+      if (shop.paymentMethods && !shop.paymentMethods.includes(payment.method))
+        throw new Error("unavailable");
       if (payment.method === "cash") {
         if (
           !Number.isSafeInteger(payment.received) ||
@@ -659,6 +842,13 @@ export class Repository {
           received: payment.received,
           change: payment.received - amount.total,
         };
+      } else if (payment.method === "card") {
+        if (
+          !shop.paymentMethods?.includes("card") ||
+          payment.status !== "staff-confirmed" ||
+          (payment.reference && payment.reference.length > 100)
+        )
+          throw new Error("unavailable");
       } else {
         const accountId = payment.account.id;
         const account = shop.upiAccounts.find(

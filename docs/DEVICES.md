@@ -1,4 +1,4 @@
-# Devices: first delivery milestone
+# Devices and printing
 
 Open **More → Devices** to choose camera scanning, external keyboard-mode
 barcode scanning, the phone print service or the configured Till printer.
@@ -8,7 +8,7 @@ Permissions and the offline grant control which actions are enabled.
 Pair an external scanner in the phone's OS settings, select its keyboard/HID
 mode and configure an Enter suffix. Open **External barcode scanner**, focus
 the input and scan. Leave the page to stop. The app preserves leading zeroes
-and requires one active item with an exact matching barcode. It does not use
+and matches sellable items by exact barcode. Ambiguous matches require explicit product selection; hidden products are excluded from sales matching. It does not use
 product names or internal item numbers as barcode fallbacks. Product QR codes
 must contain the literal catalogue barcode; GS1 URL parsing is a later milestone.
 
@@ -42,3 +42,11 @@ not certify a physical model; use the pilot test guide with the actual hardware.
 See `Intranet/docs/MOBILE_POS_HARDWARE_DELIVERY_ROADMAP.md` in the companion Intranet
 repository for the full milestone backlog and acceptance gates, and
 [Access control](ACCESS_CONTROL.md) for the existing permission mapping.
+
+## Downloaded receipt design
+
+The authenticated catalogue downloads the shop receipt profile. Till jobs carry the desktop design; supported Android direct printing renders the downloaded 58/80 mm layout locally, and system printing uses the design too. Supported embedded logos/images can work offline after download. External image URLs are not fetched; without a saved design the standard receipt remains available. Check the design/logo status in Printing before going offline.
+
+<img src="screenshots/devices.png" width="300" alt="Device options in the running app">
+
+[Everyday use](USER_GUIDE.md) · [Build and native testing](DEVELOPMENT.md)

@@ -55,19 +55,24 @@ export class PosnicApi {
         const details = await response.json().catch(() => null);
         const serverMessage = details?.error?.message ?? details?.message;
         throw new ApiError(
-          typeof serverMessage === "string" &&
-            serverMessage.startsWith("Your session security token")
-            ? "signInFailed"
-            : typeof serverMessage === "string" &&
-                serverMessage.startsWith("Enable Mobile POS")
-              ? "mobileDisabled"
-              : response.status === 401
+          path.startsWith("/mobile/v1/inventory/") && response.status === 409
+            ? "inventoryConflict"
+            : path.startsWith("/mobile/v1/inventory/") &&
+                response.status === 400
+              ? "inventoryInvalid"
+              : typeof serverMessage === "string" &&
+                  serverMessage.startsWith("Your session security token")
                 ? "signInFailed"
-                : response.status === 403
-                  ? "permissionDenied"
-                  : response.status === 404
-                    ? "serverUpgrade"
-                    : "networkError",
+                : typeof serverMessage === "string" &&
+                    serverMessage.startsWith("Enable Mobile POS")
+                  ? "mobileDisabled"
+                  : response.status === 401
+                    ? "signInFailed"
+                    : response.status === 403
+                      ? "permissionDenied"
+                      : response.status === 404
+                        ? "serverUpgrade"
+                        : "networkError",
           response.status,
         );
       }
@@ -148,7 +153,7 @@ export class PosnicApi {
         await this.request(
           "/mobile/v1/sales",
           { idempotencyKey: sale.id, sale: payload },
-          await credentials.get(),
+          await credentials.get(this.base),
         ),
       );
     if (
@@ -160,7 +165,7 @@ export class PosnicApi {
     return response;
   }
   async catalogue(): Promise<{ shop: Shop; items: CatalogueInput }> {
-    const data = await this.readCatalogue(await credentials.get());
+    const data = await this.readCatalogue(await credentials.get(this.base));
     return {
       shop: { ...data.shop, mode: "live", baseUrl: this.base },
       items: data.items,
@@ -187,7 +192,7 @@ export class PosnicApi {
         await this.request(
           "/mobile/v1/delivery-status",
           { ids: sales.map((sale) => sale.id) },
-          await credentials.get(),
+          await credentials.get(this.base),
         ),
       );
     if (
@@ -251,7 +256,7 @@ export class PosnicApi {
           encodeURIComponent(query) +
           (before ? "&before=" + encodeURIComponent(before) : ""),
         undefined,
-        await credentials.get(),
+        await credentials.get(this.base),
       ),
     );
     if (
@@ -266,7 +271,7 @@ export class PosnicApi {
     return this.request(
       "/mobile/v1/print-jobs",
       { id: "receipt:" + saleId, saleId, document: "receipt" },
-      await credentials.get(),
+      await credentials.get(this.base),
     );
   }
   async printReceiptStatus(saleId: string) {
@@ -286,7 +291,7 @@ export class PosnicApi {
         await this.request(
           `/mobile/v1/print-jobs/${encodeURIComponent(saleId)}`,
           undefined,
-          await credentials.get(),
+          await credentials.get(this.base),
         ),
       );
     if (result.saleId !== saleId) throw new ApiError("invalidServer", 409);
@@ -300,6 +305,7 @@ const item = z.object({
   price: minor,
   code: z.string().regex(/^\d{0,6}$/),
   barcode: z.string().optional(),
+  barcodes: z.array(z.string()).optional(),
   category: z.string(),
   visual: z.string(),
   image: z.string().max(2048).optional(),
@@ -332,6 +338,14 @@ export const bootstrap = z.object({
     staffId: z.string().min(1),
     staffName: z.string(),
     snapshotVersion: z.string().min(1),
+    receiptProfile: z
+      .object({
+        version: z.string(),
+        data: z.record(z.string(), z.unknown()),
+        assetsComplete: z.boolean(),
+      })
+      .nullable()
+      .optional(),
     offlineUntil: z.string().datetime(),
     historyPolicy: z
       .object({
@@ -349,6 +363,8 @@ export const bootstrap = z.object({
     quickTaxBps: z.number().int().min(0).max(10000),
     quickTaxInclusive: z.boolean(),
     permissions: z.object({
+      inventoryWrite: z.boolean().optional(),
+      supplierRead: z.boolean().optional(),
       sell: z.boolean(),
       quickSale: z.boolean(),
       customerWrite: z.boolean(),
@@ -358,6 +374,7 @@ export const bootstrap = z.object({
       voidLine: z.boolean().default(false),
       receiptPrint: z.boolean().default(false),
     }),
+    paymentMethods: z.array(z.enum(["cash", "card", "upi"])).optional(),
     upiAccounts: z.array(
       z.object({
         id: z.string(),
@@ -369,6 +386,7 @@ export const bootstrap = z.object({
     ),
     defaultUpiAccountId: z.string().optional(),
     capabilities: z.object({
+      inventory: z.boolean().optional(),
       saleSync: z.boolean(),
       devicePairing: z.boolean(),
       tillPrint: z.boolean(),
@@ -395,7 +413,7 @@ const receiptPage = z.object({
         tax: minor,
         currency: z.string(),
         customer: z.string(),
-        method: z.enum(["cash", "upi"]),
+        method: z.enum(["cash", "card", "upi"]),
         lines: z
           .array(
             z.object({

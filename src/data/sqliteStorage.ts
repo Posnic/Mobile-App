@@ -165,7 +165,12 @@ export function sqliteStorage(db: Connection): Storage {
             query[column] !== undefined &&
             (column !== "category" || query.category)
           ) {
-            where.push(`i.${column}=?`);
+            where.push(
+              column === "barcode"
+                ? "(i.barcode=? OR EXISTS (SELECT 1 FROM records b, json_each(json_extract(b.value, '$.barcodes')) a WHERE b.key=i.key AND a.value=?))"
+                : `i.${column}=?`,
+            );
+            if (column === "barcode") params.push(query[column]!);
             params.push(query[column]!);
           }
         }
@@ -175,10 +180,13 @@ export function sqliteStorage(db: Connection): Storage {
         }
         if (query.imagesOnly) where.push("i.image=1");
         if (query.search) {
-          where.push("(instr(i.name,?)>0 OR i.code=? OR i.barcode=?)");
+          where.push(
+            "(instr(i.name,?)>0 OR i.code=? OR i.barcode=? OR EXISTS (SELECT 1 FROM records b, json_each(json_extract(b.value, '$.barcodes')) a WHERE b.key=i.key AND a.value=?))",
+          );
           params.push(
             query.search.toLowerCase(),
             normalizeDigits(query.search),
+            query.search,
             query.search,
           );
         }

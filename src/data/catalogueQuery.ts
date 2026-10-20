@@ -32,7 +32,11 @@ export function matchesItem(item: Item, query: CatalogueQuery) {
   if (query.ids && !query.ids.includes(item.id)) return false;
   if (query.category && item.category !== query.category) return false;
   if (query.code !== undefined && item.code !== query.code) return false;
-  if (query.barcode !== undefined && item.barcode !== query.barcode)
+  if (
+    query.barcode !== undefined &&
+    item.barcode !== query.barcode &&
+    !item.barcodes?.includes(query.barcode)
+  )
     return false;
   if (query.imagesOnly && !item.image) return false;
   const search = query.search || "";
@@ -40,7 +44,8 @@ export function matchesItem(item: Item, query: CatalogueQuery) {
     !search ||
     item.name.toLowerCase().includes(search.toLowerCase()) ||
     item.code === normalizeDigits(search) ||
-    item.barcode === search
+    item.barcode === search ||
+    item.barcodes?.includes(search) === true
   );
 }
 /** Cursor accumulator keeps only the visible page, never the full catalogue. */

@@ -23,6 +23,7 @@ export interface Item {
   price: number;
   code: string;
   barcode?: string;
+  barcodes?: string[];
   category: string;
   visual: string;
   image?: string;
@@ -81,9 +82,16 @@ export interface Shop {
   snapshotVersion: string;
   offlineUntil: string;
   historyPolicy?: { days: number; maxReceipts: number };
+  receiptProfile?: {
+    version: string;
+    data: Record<string, unknown>;
+    assetsComplete: boolean;
+  } | null;
   quickTaxBps: number;
   quickTaxInclusive: boolean;
   permissions: {
+    inventoryWrite?: boolean;
+    supplierRead?: boolean;
     sell: boolean;
     quickSale: boolean;
     customerWrite: boolean;
@@ -93,9 +101,11 @@ export interface Shop {
     voidLine?: boolean;
     receiptPrint?: boolean;
   };
+  paymentMethods?: ("cash" | "card" | "upi")[];
   upiAccounts: UpiAccount[];
   defaultUpiAccountId?: string;
   capabilities: {
+    inventory?: boolean;
     saleSync: boolean;
     devicePairing: boolean;
     tillPrint: boolean;
@@ -105,6 +115,7 @@ export interface Shop {
   };
 }
 export type Payment =
+  | { method: "card"; status: "staff-confirmed"; reference?: string }
   | { method: "cash"; received: number; change: number }
   | {
       method: "upi";

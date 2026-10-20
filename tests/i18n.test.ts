@@ -61,7 +61,13 @@ test("message references cannot silently fall back to the generic error", () => 
     new URL("../src/App.tsx", import.meta.url),
     "utf8",
   );
-  for (const match of source.matchAll(/\bt\("([A-Za-z]+)"\)/g)) {
+  const connections = fs.readFileSync(
+    new URL("../src/components/Connections.tsx", import.meta.url),
+    "utf8",
+  );
+  for (const match of (source + connections).matchAll(
+    /\bt\("([A-Za-z]+)"\)/g,
+  )) {
     assert.ok(Object.hasOwn(en, match[1]!), `Missing message: ${match[1]}`);
   }
 });

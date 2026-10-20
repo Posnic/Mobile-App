@@ -149,3 +149,29 @@ test("locking while native PIN setup runs discards the derived key without savin
   assert.ok(key.every((value) => value === 0));
   assert.equal(await vault.hasPin(), false);
 });
+
+test("each remembered connection uses only its own token, including after PIN unlock", async () => {
+  const { vault, store } = setup();
+  await vault.remember(account);
+  const local = {
+    ...account,
+    server: "http://192.168.1.200:5555/api",
+    token: "local-only",
+  };
+  await vault.rememberConnection(local);
+  assert.equal((await vault.accountFor(account.server))?.token, account.token);
+  assert.equal((await vault.accountFor(local.server))?.token, "local-only");
+  assert.equal(await vault.accountFor("https://untrusted.example/api"), null);
+  await vault.enroll("4829");
+  vault.lock();
+  assert.equal(await vault.accountFor(account.server), null);
+  const restarted = new SessionVault(store, randomBytes);
+  await restarted.unlock("4829");
+  assert.equal(
+    (await restarted.accountFor(account.server))?.token,
+    account.token,
+  );
+  assert.equal((await restarted.accountFor(local.server))?.token, "local-only");
+  await restarted.clear();
+  assert.equal(await restarted.accountFor(local.server), null);
+});

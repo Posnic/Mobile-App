@@ -1,10 +1,26 @@
-# Connection and PIN unlock
+# Connection and optional PIN
 
-The setup screen has one server field with adjacent Wi-Fi discovery, QR scan and
-pairing-code icons. A shop code, hostname, private IP, full URL or supported
-pairing payload is normalized internally. Public HTTP addresses upgrade to HTTPS;
-a bare private address defaults to the Captain/till port 5555. Explicit ports and
-URLs are preserved. Pairing codes are submitted only to the selected shop server.
+[Back to README](../README.md) · [Everyday use](USER_GUIDE.md)
+
+## Posnic Cloud
+
+Choose **Sign in** or **Create account · Free trial**, complete the browser flow and approve this phone. Return to the app to finish authorization and download the catalogue. First login goes directly into the app; a PIN is optional. Cloud signup requires working account provisioning, and existing-shop approval requires the matching account/gateway and POS services.
+
+## Your own server or local till
+
+Choose **Connect a local or Community shop**. Find the server on Wi-Fi and select its shop card, or use **Other ways to connect** for shop QR, pairing code or server address. Enter credentials only after selecting the server. A short pairing code alone cannot locate the server; provide its address too.
+
+Addresses can be a shop code, hostname, private IP or full URL. For example, `192.168.1.20` becomes `http://192.168.1.20:5555/api`; an explicit port is retained. Use the till's current address, not `localhost` or a previous network's address. Public HTTP addresses upgrade to HTTPS. Pairing codes are sent only to the selected shop.
+
+The server must advertise `mobilePosV1`. In desktop settings, enable the Mobile POS feature and configure branch/device access in its module/device setup. Permissions come from the selected staff account. Updating only the phone cannot add missing APIs to an old server.
+
+## Switching connections
+
+The header has separate **Wi-Fi** and **globe** buttons. Tap to select a remembered local or Internet connection. The app does not automatically switch between independent servers. QR/code/address choices are grouped under **Other ways to connect**. A Cloud-authorized nearby till may offer one-time device authorization without asking for its password again.
+
+Each endpoint retains its own session. The app checks shop, branch and cashier identity. Finish or resolve pending sales, print requests and baskets before changing independent ledgers. Stock drafts and receipts stay with their original server. If a till's IP changes, use connection setup to locate it again; do not clear local data. See the [recovery contract](CONNECTION_RECOVERY.md).
+
+## Discovery and local networking
 
 Wi-Fi discovery runs in the installed phone app. It probes the current private
 IPv4 /24 on ports 5555, 5000 and 80, with bounded concurrency, timeouts and cancel.
@@ -15,7 +31,7 @@ preview explains that it cannot discover the phone's LAN. Discovery results loca
 servers; they do not grant trust or bypass sign-in/capability checks.
 
 The remembered account (username, password, address and token) uses OS SecureStore
-on native devices. Set a 4–6 digit unlock PIN after login or under More. Mobile
+on native devices. Optionally set a 4–6 digit unlock PIN under More. Mobile
 ports the local-unlock rules from POS/src/pin-lock.js; it does
 not reuse a manager approval PIN or transfer a desktop device's PIN record.
 
@@ -43,9 +59,5 @@ fresh authorization. The app does not blindly retry consumed one-use credentials
 The browser preview keeps vault secrets in memory only. Native persistence and
 Wi-Fi discovery must be exercised on a phone; simulated discovery, SQLite,
 cryptographic vault and browser interaction tests are not physical-device tests.
-The matching 0.1.3 POS build implements pairing/bootstrap/sale ingestion; enable
-the branch under desktop Settings → Mobile POS. Older servers require an update.
 
-Verified route failover from the parallel connection work is documented separately
-in CONNECTION_RECOVERY.md when present. It requires authenticated shared-ledger
-metadata; discovery alone never authorizes sales to switch servers.
+See [manual switching and safe recovery](CONNECTION_RECOVERY.md). Discovery never grants permission or proves two servers share one sales ledger.

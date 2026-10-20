@@ -1,22 +1,10 @@
 import type { Shop, Sale } from "../domain/types";
 import { ApiError, PosnicApi } from "./api";
-import { isLocalServer, serverAddress } from "./serverAddress";
 
 export function shopRoutes(shop: Shop): string[] {
-  const routes = [shop.baseUrl];
-  // Only authenticated bootstrap metadata can introduce another authority.
-  if (shop.connection?.idempotencyScope) {
-    for (const [kind, raw] of Object.entries(shop.connection)) {
-      if (kind === "idempotencyScope" || !raw) continue;
-      const address = serverAddress(raw);
-      if ((kind === "local") !== isLocalServer(address))
-        throw new Error("invalidServer");
-      routes.push(address);
-    }
-  }
-  return [...new Set(routes.filter((url): url is string => !!url))].sort(
-    (a, b) => Number(isLocalServer(b)) - Number(isLocalServer(a)),
-  );
+  // The Wi-Fi/Internet control owns route selection. Advertised alternatives
+  // must never move catalogue reads or queued sales to another server.
+  return shop.baseUrl ? [shop.baseUrl] : [];
 }
 
 /** Alternate addresses must share tenant, staff and a server-declared dedupe ledger. */

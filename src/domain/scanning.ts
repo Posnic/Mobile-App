@@ -10,7 +10,10 @@ export function resolveProductScan(items: Item[], input: string): Item {
     /^(?:upi:|https?:|posnic:|%B|;\d{12,19}=)/i.test(code)
   )
     throw new Error("invalidScan");
-  const matches = items.filter((item) => item.active && item.barcode === code);
+  const matches = items.filter(
+    (item) =>
+      item.active && (item.barcode === code || item.barcodes?.includes(code)),
+  );
   if (matches.length !== 1)
     throw new Error(matches.length ? "multipleMatches" : "noMatch");
   return matches[0]!;

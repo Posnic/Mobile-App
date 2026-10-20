@@ -36,8 +36,13 @@ export class SyncWorker {
     const client = this.api(state.shop.baseUrl!, state.shop);
     if (client.catalogue) {
       try {
+        const generation = this.repository.catalogueGeneration();
         const snapshot = await client.catalogue();
-        await this.repository.refreshCatalogue(snapshot.shop, snapshot.items);
+        await this.repository.refreshCatalogue(
+          snapshot.shop,
+          snapshot.items,
+          generation,
+        );
       } catch (error) {
         if (error instanceof ApiError && [401, 403].includes(error.status)) {
           await this.repository.suspendPermissions(state.shop);

@@ -112,7 +112,7 @@ export async function cacheProductImages(
   shop: Shop,
   files: ImageFiles,
   signal: AbortSignal,
-  onImage: (id: string, uri: string) => void,
+  onImage: (id: string, uri: string, key: string) => void,
   fetcher: typeof fetch = fetch,
 ) {
   if (!shop.baseUrl || shop.mode !== "live") return;
@@ -130,7 +130,7 @@ export async function cacheProductImages(
     keep.add(key);
     const saved = await files.get(key).catch(() => null);
     if (saved) {
-      onImage(item.id, saved);
+      onImage(item.id, saved, key);
       continue;
     }
     const task = (async () => {
@@ -148,7 +148,7 @@ export async function cacheProductImages(
         );
         if (signal.aborted) return;
         const uri = await files.put(key, bytes, mime);
-        if (!signal.aborted) onImage(item.id, uri);
+        if (!signal.aborted) onImage(item.id, uri, key);
       } catch {
         // Keep the configured icon; a later refresh retries missing images.
       } finally {

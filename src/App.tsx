@@ -1,3 +1,4 @@
+import { cloudAuthorization } from "./services/cloudGrant";
 import type { CatalogueResult } from "./data/catalogueQuery";
 import React, {
   useCallback,
@@ -52,7 +53,7 @@ import { languages } from "./i18n/registry";
 import { PosnicApi, type ServerReceipt } from "./services/api";
 
 import { SyncWorker } from "./services/sync";
-import { parseServerInput } from "./services/serverAddress";
+import { isLocalServer, parseServerInput } from "./services/serverAddress";
 import { discoverServers, type DiscoveredServer } from "./services/discovery";
 import { wifiAddress } from "./platform/wifi";
 import * as Network from "expo-network";
@@ -68,6 +69,10 @@ import {
 import type { DirectPrintJob } from "./domain/types";
 import { vault } from "./platform/vault";
 import { GestureScroll } from "./components/GestureScroll";
+import { Connections } from "./components/Connections";
+import { emptyProduct } from "./domain/product";
+import { NewProduct } from "./components/NewProduct";
+import { Inventory } from "./components/Inventory";
 import { adjacentRecord } from "./domain/gestures";
 import { deviceOptions, receiptJobMessage } from "./domain/devices";
 import { ScanQueue } from "./domain/scanQueue";
@@ -82,15 +87,18 @@ import { imageFiles, imageFetch } from "./platform/imageFiles";
 import { Brand } from "./components/Brand";
 import { PhotoOrders } from "./components/PhotoOrders";
 import { authorizeAccount } from "./services/accountAuthorization";
+import { openAccountBrowser } from "./platform/authBrowser";
 import { foreground } from "./platform/foreground";
 
 type Screen =
+  | "inventory"
   | "photoOrders"
   | "sell"
   | "quick"
   | "cart"
   | "quantity"
   | "payment"
+  | "card"
   | "cash"
   | "upi"
   | "done"
@@ -125,7 +133,7 @@ export default function App() {
 
 function Till() {
   const [imageReadyCount, setImageReadyCount] = useState(0);
-  const visibleImageIds = useRef(new Set<string>());
+  const visibleImageKeys = useRef(new Set<string>());
   const [cachedImages, setCachedImages] = useState<Record<string, string>>({});
   const [diskUsage, setDiskUsage] = useState<{
     used: number;
@@ -210,6 +218,10 @@ function Till() {
       scans?.cancel();
     };
   }, [scans]);
+  const [wifiRequested, setWifiRequested] = useState(false);
+  const [internetRequested, setInternetRequested] = useState(false);
+  const [internetOfferDismissed, setInternetOfferDismissed] = useState(false);
+  const [hasCloudConnection, setHasCloudConnection] = useState(false);
   const [screen, setScreen] = useState<Screen>("sell"),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
@@ -252,9 +264,12 @@ function Till() {
   const [searchProgress, setSearchProgress] = useState(0);
   const discovery = useRef<AbortController | null>(null);
   const [syncing, setSyncing] = useState(false);
+  const [refreshingList, setRefreshingList] = useState(false);
   const syncLock = useRef(false);
   const [connectionError, setConnectionError] = useState("");
   const [changingServer, setChangingServer] = useState(false);
+  const [cloudReconnect, setCloudReconnect] = useState(false);
+  const [showServerLogin, setShowServerLogin] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
   const [confirmSignOut, setConfirmSignOut] = useState(false);
   const unlockAttempt = useRef(0);
@@ -303,7 +318,7 @@ function Till() {
     const flush = () => {
       const batch = Object.fromEntries(
         Object.entries(pending).filter(([id]) =>
-          visibleImageIds.current.has(id),
+          visibleImageKeys.current.has(id),
         ),
       );
       pending = {};
@@ -314,8 +329,6 @@ function Till() {
           setCachedImages((previous) => ({ ...previous, ...batch }));
       }
     };
-    setCachedImages({});
-    setFailedImages({});
     setImageReadyCount(0);
     if (shop && state && repo && !locked) {
       void cacheProductImages(
@@ -323,9 +336,9 @@ function Till() {
         shop,
         imageFiles,
         controller.signal,
-        (id, uri) => {
+        (_id, uri, key) => {
           ready++;
-          if (visibleImageIds.current.has(id)) pending[id] = uri;
+          if (visibleImageKeys.current.has(key)) pending[key] = uri;
           if (!timer) timer = setTimeout(flush, 50);
         },
         imageFetch,
@@ -336,29 +349,44 @@ function Till() {
       if (timer) clearTimeout(timer);
     };
   }, [state?.items, repo, shop?.id, shop?.branchId, shop?.baseUrl, locked]);
+  // Image identity includes the server, branch, URL and revision. An unchanged
+  // catalogue refresh must not discard already displayed images.
+  const imageScope = JSON.stringify([shop?.baseUrl, shop?.id, shop?.branchId]);
+  const itemImageKey = (item: Item) => {
+    const url =
+      item.image && shop?.baseUrl && productImageUrl(item.image, shop.baseUrl);
+    return url ? imageKey(imageScope, url, item.imageRevision) : "";
+  };
+  const visibleImageSignature = JSON.stringify(
+    (catalogueView?.items ?? []).map(itemImageKey).filter(Boolean),
+  );
   useEffect(() => {
     let active = true;
-    const items = catalogueView?.items ?? [];
-    visibleImageIds.current = new Set(items.map((item) => item.id));
-    setCachedImages({});
-    setFailedImages({});
-    if (!shop?.baseUrl || locked) return;
-    const scope = JSON.stringify([shop.baseUrl, shop.id, shop.branchId]);
+    const keys: string[] = locked ? [] : JSON.parse(visibleImageSignature);
+    visibleImageKeys.current = new Set(keys);
+    const keepVisible = <T,>(previous: Record<string, T>) => {
+      const entries = Object.entries(previous).filter(([key]) =>
+        visibleImageKeys.current.has(key),
+      );
+      return entries.length === Object.keys(previous).length
+        ? previous
+        : Object.fromEntries(entries);
+    };
+    setCachedImages(keepVisible);
+    setFailedImages(keepVisible);
     void Promise.all(
-      items.map(async (item) => {
-        const url = item.image && productImageUrl(item.image, shop.baseUrl!);
-        if (!url) return;
-        const uri = await imageFiles
-          .get(imageKey(scope, url, item.imageRevision))
-          .catch(() => null);
+      keys.map(async (key) => {
+        const uri = await imageFiles.get(key).catch(() => null);
         if (uri && active)
-          setCachedImages((previous) => ({ ...previous, [item.id]: uri }));
+          setCachedImages((previous) =>
+            previous[key] === uri ? previous : { ...previous, [key]: uri },
+          );
       }),
     );
     return () => {
       active = false;
     };
-  }, [catalogueView, shop?.baseUrl, shop?.id, shop?.branchId, locked]);
+  }, [visibleImageSignature, locked]);
   const refresh = useCallback(async () => {
     if (repo) {
       setState(await repo.load());
@@ -372,9 +400,26 @@ function Till() {
   const catalogueFavouriteIds = JSON.stringify(
     favouritesOnly ? (state?.favourites ?? []) : [],
   );
+  const catalogueQueryKey = JSON.stringify([
+    shop?.baseUrl,
+    shop?.id,
+    shop?.branchId,
+    shop?.staffId,
+    query,
+    category,
+    itemPage,
+    favouritesOnly,
+    catalogueFavouriteIds,
+    locked,
+  ]);
+  const previousCatalogueQuery = useRef("");
   useEffect(() => {
     let active = true;
-    setCatalogueView(null);
+    // Clear on a different query/shop, but replace background updates atomically.
+    if (previousCatalogueQuery.current !== catalogueQueryKey) {
+      setCatalogueView(null);
+      previousCatalogueQuery.current = catalogueQueryKey;
+    }
     if (!repo || !shop || locked) return;
     const timer = setTimeout(
       () => {
@@ -388,7 +433,11 @@ function Till() {
           })
           .then((result) => {
             if (active) {
-              setCatalogueView(result);
+              setCatalogueView((previous) =>
+                JSON.stringify(previous) === JSON.stringify(result)
+                  ? previous
+                  : result,
+              );
               if (itemPage && itemPage * 48 >= result.total) setItemPage(0);
             }
           })
@@ -405,6 +454,7 @@ function Till() {
   }, [
     repo,
     shop?.snapshotVersion,
+    catalogueQueryKey,
     catalogueFavouriteIds,
     favouritesOnly,
     state?.items,
@@ -432,6 +482,7 @@ function Till() {
   const go = (next: Screen) => {
     setConfirmReprint(false);
     if (scanWriting.current) return;
+    setShowServerLogin(false);
     setError("");
     setNotice("");
     scannerValue.current = "";
@@ -439,7 +490,7 @@ function Till() {
     setScanResult("");
     if (next === "scanner") scannerHandled.current = false;
     if (next === "cash") setCash("");
-    if (next === "upi") {
+    if (next === "upi" || next === "card") {
       setAccountId(undefined);
       setChecked(false);
       setReference("");
@@ -506,9 +557,36 @@ function Till() {
       active = false;
     };
   }, [bootAttempt]);
+  useEffect(() => {
+    let active = true;
+    void vault.account().then((account) => {
+      if (active) setHasCloudConnection(!!account?.cloudAuthorization);
+    });
+    return () => {
+      active = false;
+    };
+  }, [shop?.baseUrl, locked]);
+  useEffect(() => {
+    if (!connectionError) setInternetOfferDismissed(false);
+  }, [connectionError]);
+  useEffect(() => {
+    if (screen !== "serverSettings") {
+      setInternetRequested(false);
+      setWifiRequested(false);
+    }
+  }, [screen]);
+  const choosingConnection = screen === "serverSettings";
   const syncNow = useCallback(
     async (force = false) => {
-      if (!worker || !repo || locked || syncLock.current) return;
+      if (
+        !worker ||
+        !repo ||
+        locked ||
+        confirmSignOut ||
+        choosingConnection ||
+        syncLock.current
+      )
+        return;
       syncLock.current = true;
       setSyncing(true);
       try {
@@ -526,14 +604,17 @@ function Till() {
         }
       }
     },
-    [worker, repo, locked],
+    [worker, repo, locked, confirmSignOut, choosingConnection],
   );
   const refreshList = useCallback(async () => {
-    if (actionLock.current || locked) return;
+    if (actionLock.current || locked || syncLock.current) return;
+    setRefreshingList(true);
     try {
       await syncNow(true);
     } catch {
       setError("storageUnavailable");
+    } finally {
+      setRefreshingList(false);
     }
   }, [syncNow, locked]);
   const refreshable =
@@ -555,7 +636,7 @@ function Till() {
         ? "devices"
         : screen === "done" && receiptDetails
           ? "receipts"
-          : ["cash", "upi"].includes(screen)
+          : ["cash", "card", "upi"].includes(screen)
             ? "payment"
             : ["payment", "customer", "quantity"].includes(screen)
               ? "cart"
@@ -621,7 +702,7 @@ function Till() {
     }
   };
   useEffect(() => {
-    if (!worker || !repo || locked) return;
+    if (!worker || !repo || locked || confirmSignOut) return;
     void syncNow();
     const timer = setInterval(() => void syncNow(), 30000);
     const listener = AppState.addEventListener("change", (value) => {
@@ -635,7 +716,7 @@ function Till() {
       listener.remove();
       network.remove();
     };
-  }, [worker, repo, syncNow]);
+  }, [worker, repo, locked, confirmSignOut, syncNow]);
   useEffect(() => () => discovery.current?.abort(), []);
 
   function acceptServer(value: string) {
@@ -759,6 +840,8 @@ function Till() {
       setLocalSetup(changingServer);
       setLocalMethod("menu");
       setChangingServer(false);
+      setCloudReconnect(false);
+      setShowServerLogin(false);
       setConnectionError("");
       setBootAttempt((n) => n + 1);
       go("sell");
@@ -803,8 +886,17 @@ function Till() {
     setError("");
     setScreen("quantity");
   }
+  const [unmatchedBarcode, setUnmatchedBarcode] = useState("");
   async function acceptProductScan(value: string) {
-    const item = await repo!.scanItem(value);
+    let item: Item;
+    try {
+      item = await repo!.scanItem(value);
+      setUnmatchedBarcode("");
+    } catch (e) {
+      if (e instanceof Error && e.message === "noMatch")
+        setUnmatchedBarcode(value);
+      throw e;
+    }
     if (item.quantityScale === 1000 && !item.requiresConfiguration) {
       enterQuantity(item);
       return { name: item.name, prompt: true };
@@ -832,7 +924,7 @@ function Till() {
       addingItems.current = false;
     }
   }
-  async function finish(method: "cash" | "upi") {
+  async function finish(method: "cash" | "card" | "upi") {
     await run(async () => {
       if (!state || !repo || !shop) return;
       const payment =
@@ -842,12 +934,19 @@ function Till() {
               received: cash ? parseMoney(cash) : sum.total,
               change: 0,
             }
-          : {
-              method: "upi" as const,
-              account: account!,
-              status: "staff-confirmed" as const,
-              reference,
-            };
+          : method === "card"
+            ? {
+                method: "card" as const,
+                status: "staff-confirmed" as const,
+                reference,
+              }
+            : {
+                method: "upi" as const,
+                account: account!,
+                status: "staff-confirmed" as const,
+                reference,
+              };
+      if (method === "card" && !checked) throw new Error("unavailable");
       if (method === "upi" && (!checked || !account))
         throw new Error("upiUnavailable");
       const sale = await repo.checkout(state.cart.id, payment);
@@ -1139,15 +1238,26 @@ function Till() {
     if (confirmSignOut)
       return (
         <>
-          {heading(t(changingServer ? "changeServer" : "switchUser"))}
+          {heading(
+            t(
+              cloudReconnect
+                ? "reconnectCloud"
+                : changingServer
+                  ? "changeServer"
+                  : "switchUser",
+            ),
+          )}
+          {cloudReconnect && help(t("reconnectCloudHelp"))}
           {help(t("signOutHelp"))}
           {error && help(t(error))}
-          {button(t("signOut"), () => void signOut(), true, busy)}
+          {syncing && help(t("signOutSyncing"))}
+          {button(t("signOut"), () => void signOut(), true, busy || syncing)}
           {button(
             t("cancel"),
             () => {
               setConfirmSignOut(false);
               setChangingServer(false);
+              setCloudReconnect(false);
             },
             false,
             busy,
@@ -1338,7 +1448,7 @@ function Till() {
                             intent,
                             async (url, code) => {
                               setAuthorizationCode(code);
-                              await Linking.openURL(url);
+                              await openAccountBrowser(url, controller.signal);
                             },
                             controller.signal,
                           );
@@ -1352,10 +1462,11 @@ function Till() {
                             username: data.shop.staffName,
                             password: "",
                             server: grant.baseUrl,
+                            cloudAuthorization: cloudAuthorization(grant),
                           });
                           setPin("");
                           setPinConfirm("");
-                          go("pin");
+                          go("sell");
                         } finally {
                           setAuthorizationCode("");
                           accountRequest.current = null;
@@ -1499,8 +1610,9 @@ function Till() {
                         <View key={hit.address}>
                           {actionRow(
                             "server",
-                            t("useServer") + " · " + new URL(hit.address).host,
-                            "Posnic POS · " +
+                            hit.name || t("nearbyShop"),
+                            new URL(hit.address).host +
+                              " · " +
                               (hit.compatible
                                 ? hit.version
                                 : t("serverUpgrade")),
@@ -1611,7 +1723,7 @@ function Till() {
                             setPairCode("");
                             setPin("");
                             setPinConfirm("");
-                            go("pin");
+                            go("sell");
                           }),
                         true,
                         !server ||
@@ -1730,6 +1842,50 @@ function Till() {
         </>
       );
     if (!shop) return null;
+    if (screen === "inventory" && !shop.capabilities.inventory)
+      return (
+        <>
+          {heading(t("inventory"))}
+          {help(t("permissionDenied"))}
+          {button(t("back"), () => go("sell"))}
+        </>
+      );
+    if (
+      screen === "inventory" ||
+      (!shop.permissions.sell &&
+        shop.capabilities.inventory &&
+        (screen === "sell" || screen === "quick"))
+    )
+      return (
+        <Inventory
+          repo={repo}
+          shop={shop}
+          t={t}
+          back={() => go("sell")}
+          colors={{ ...palette, surface: palette.paper, tint: palette.soft }}
+        />
+      );
+    if (screen === "item" && shop.mode === "live")
+      return (
+        <NewProduct
+          repo={repo}
+          shop={shop}
+          t={t}
+          back={() => go("more")}
+          openInventory={() => go("inventory")}
+          colors={{ ...palette, surface: palette.paper, tint: palette.soft }}
+          saved={async (item, add) => {
+            if (add) {
+              if (item.quantityScale === 1000) enterQuantity(item);
+              else {
+                await repo.addItem(item);
+                go("sell");
+              }
+            } else go("sell");
+            await refresh();
+          }}
+        />
+      );
     if (screen === "photoOrders")
       return (
         <PhotoOrders
@@ -1753,7 +1909,30 @@ function Till() {
           dimensions.width > 700 ? 4 : dimensions.width > 520 ? 3 : 2;
         return (
           <>
+            {shop.mode === "live" &&
+              shop.baseUrl &&
+              isLocalServer(shop.baseUrl) &&
+              connectionError === "networkError" &&
+              hasCloudConnection &&
+              !internetOfferDismissed && (
+                <View style={styles.setupCard}>
+                  {heading(t("switchInternet"))}
+                  {help(t("switchInternetHelp"))}
+                  {button(
+                    t("connectionInternet"),
+                    () => {
+                      setInternetRequested(true);
+                      go("serverSettings");
+                    },
+                    true,
+                  )}
+                  {button(t("stayWifi"), () => setInternetOfferDismissed(true))}
+                </View>
+              )}
             <View style={styles.segments}>
+              {shop.mode === "live" &&
+                shop.capabilities.inventory &&
+                iconButton("package", t("inventory"), () => go("inventory"))}
               {(["sell", "quick"] as const).map((tab) => (
                 <Pressable
                   key={tab}
@@ -1866,7 +2045,27 @@ function Till() {
                   contentContainerStyle={{ gap: 8 }}
                   ListEmptyComponent={
                     catalogueView ? (
-                      help(t(favouritesOnly ? "favouritesHelp" : "noMatch"))
+                      <View style={{ gap: 12, paddingVertical: 20 }}>
+                        {heading(
+                          t(
+                            favouritesOnly
+                              ? "favouritesHelp"
+                              : query || category
+                                ? "noMatch"
+                                : "catalogueEmpty",
+                          ),
+                        )}
+                        {!query &&
+                          !category &&
+                          !favouritesOnly &&
+                          shop.permissions.itemWrite &&
+                          help(t("catalogueEmptyHelp"))}
+                        {shop.permissions.itemWrite &&
+                          button(t("newItem"), () => go("item"), true)}
+                        {button(t("refresh"), () => void refreshList())}
+                        {shop.permissions.quickSale &&
+                          button(t("quickSale"), () => go("quick"))}
+                      </View>
                     ) : (
                       <ActivityIndicator color={palette.accent} />
                     )
@@ -1895,13 +2094,14 @@ function Till() {
                             item.shape === "diamond" && { borderRadius: 12 },
                           ]}
                         >
-                          {cachedImages[item.id] && !failedImages[item.id] ? (
+                          {cachedImages[itemImageKey(item)] &&
+                          !failedImages[itemImageKey(item)] ? (
                             <Image
-                              source={{ uri: cachedImages[item.id] }}
+                              source={{ uri: cachedImages[itemImageKey(item)] }}
                               onError={() =>
                                 setFailedImages((previous) => ({
                                   ...previous,
-                                  [item.id]: true,
+                                  [itemImageKey(item)]: true,
                                 }))
                               }
                               style={{ width: "100%", height: "100%" }}
@@ -2142,26 +2342,66 @@ function Till() {
                 {state.cart.lines.length} {t("items")}
               </Text>
             </View>
-            {actionRow(
-              "dollar-sign",
-              t("cash") + " · " + money(sum.total),
-              t("cashReceived"),
-              () => go("cash"),
-              !state.cart.lines.length || sum.total <= 0,
-            )}
-            {actionRow(
-              "maximize",
-              t("upi"),
-              t("manualPayment"),
-              () => go("upi"),
-              !state.cart.lines.length ||
-                !shop.permissions.manualUpi ||
-                !shop.upiAccounts.some((a) => a.active),
-            )}
+            {(shop.paymentMethods ?? ["cash", "upi"]).includes("cash") &&
+              actionRow(
+                "dollar-sign",
+                t("cash") + " · " + money(sum.total),
+                t("cashReceived"),
+                () => go("cash"),
+                !state.cart.lines.length || sum.total <= 0,
+              )}
+            {shop.paymentMethods?.includes("card") &&
+              actionRow(
+                "credit-card",
+                t("card"),
+                t("manualPayment"),
+                () => go("card"),
+                !state.cart.lines.length || sum.total <= 0,
+              )}
+            {(shop.paymentMethods ?? ["cash", "upi"]).includes("upi") &&
+              actionRow(
+                "maximize",
+                t("upi"),
+                t("manualPayment"),
+                () => go("upi"),
+                !state.cart.lines.length ||
+                  !shop.permissions.manualUpi ||
+                  !shop.upiAccounts.some((a) => a.active),
+              )}
             <View style={styles.message}>
               <Text style={styles.fieldLabel}>{t("paymentDevices")}</Text>
               <Text style={styles.small}>{t("unavailable")}</Text>
             </View>
+          </>
+        );
+      case "card":
+        return (
+          <>
+            {back("payment")}
+            {heading(t("card"))}
+            <Text style={styles.amount}>{money(sum.total)}</Text>
+            {help(t("manualPayment"))}
+            {field(
+              t("reference") + " · " + t("optional"),
+              reference,
+              setReference,
+            )}
+            <View style={styles.row}>
+              <Text style={[styles.body, { flex: 1 }]}>
+                {t("confirmPayment")}
+              </Text>
+              <Switch
+                accessibilityLabel={t("confirmPayment")}
+                value={checked}
+                onValueChange={setChecked}
+              />
+            </View>
+            {button(
+              t("recordPayment"),
+              () => void finish("card"),
+              true,
+              !checked || !shop.paymentMethods?.includes("card"),
+            )}
           </>
         );
       case "cash":
@@ -2839,65 +3079,65 @@ function Till() {
         );
       case "serverSettings":
         return (
-          <>
-            {back("connection")}
-            {heading(t("serverSettings"))}
-            {row(t("server"), shop.baseUrl ?? "")}
-            {row(t("username"), shop.staffName)}
-            {help(t("wifiRequired"))}
-            {connectionError && message(t(connectionError))}
-            {button(
-              t(syncing ? "reconnecting" : "syncNow"),
-              () => void syncNow(true),
-              true,
-              syncing,
-            )}
-            {field(t("username"), username, setUsername)}
-            {field(t("password"), password, setPassword, { secret: true })}
-            {button(
-              t("signIn"),
-              () =>
-                void run(async () => {
-                  if (syncLock.current || !shop.baseUrl)
-                    throw Error("signOutSyncing");
-                  syncLock.current = true;
-                  try {
-                    const data = await new PosnicApi(shop.baseUrl).connect(
-                      username,
-                      password,
-                      undefined,
-                      false,
-                    );
-                    // Refresh enforces the same shop, branch, cashier and endpoint.
-                    // A login cannot redirect this device's saved outbox elsewhere.
-                    await repo.refreshCatalogue(data.shop, data.items);
-                    await vault.remember({
-                      token: data.token,
-                      username,
-                      password,
-                      server: shop.baseUrl,
-                    });
-                    setConnectionError("");
-                    setPassword("");
-                  } finally {
-                    syncLock.current = false;
-                  }
-                  void syncNow(true);
-                }),
-              false,
-              busy || syncing || !username || !password,
-            )}
-            {help(t("signOutHelp"))}
-            {button(
-              t("changeServer"),
-              () => {
-                setChangingServer(true);
-                setConfirmSignOut(true);
-              },
-              false,
-              syncing,
-            )}
-          </>
+          <Connections
+            shop={shop}
+            repo={repo}
+            t={t}
+            internet={internetRequested}
+            wifi={wifiRequested}
+            colors={palette}
+            back={() => {
+              setInternetRequested(false);
+              go("sell");
+            }}
+            apply={async (data, loginName, signal, authorization) => {
+              if (actionLock.current) throw Error("signOutSyncing");
+              actionLock.current = true;
+              let ownsSync = false;
+              try {
+                const deadline = Date.now() + 30000;
+                while (
+                  syncLock.current &&
+                  Date.now() < deadline &&
+                  !signal.aborted
+                )
+                  await new Promise((resolve) => setTimeout(resolve, 100));
+                if (signal.aborted) throw Error("authorizationCancelled");
+                if (syncLock.current) throw Error("signOutSyncing");
+                syncLock.current = true;
+                ownsSync = true;
+                const previous = await vault.account();
+                await vault.rememberConnection({
+                  token: data.token,
+                  username: loginName,
+                  password: "",
+                  server: data.shop.baseUrl!,
+                  ...(authorization
+                    ? { cloudAuthorization: authorization }
+                    : {}),
+                });
+                try {
+                  await repo.switchConnection(data.shop, data.items);
+                } catch (error) {
+                  if (previous) await vault.remember(previous);
+                  else await vault.clear();
+                  throw error;
+                }
+                setServer(data.shop.baseUrl!);
+                setUsername(loginName);
+                setPassword("");
+                setConnectionError("");
+                setQuery("");
+                setCategory("");
+                await refresh();
+                setInternetRequested(false);
+                go("sell");
+              } finally {
+                if (ownsSync) syncLock.current = false;
+                actionLock.current = false;
+              }
+            }}
+          />
         );
       case "connection":
         return (
@@ -3001,6 +3241,15 @@ function Till() {
           <>
             {back("more")}
             {heading(t("printer"))}
+            {help(
+              t(
+                !shop.receiptProfile
+                  ? "receiptDesignMissing"
+                  : shop.receiptProfile.assetsComplete
+                    ? "receiptDesignReady"
+                    : "receiptDesignAssets",
+              ),
+            )}
             {(
               [
                 "system",
@@ -3447,7 +3696,17 @@ function Till() {
     }
   }
   const navs: { target: Screen; label: string; glyph: IconName }[] = [
-    { target: "sell", label: "sell", glyph: "shopping-bag" },
+    {
+      target: "sell",
+      label:
+        shop && !shop.permissions.sell && shop.capabilities.inventory
+          ? "inventory"
+          : "sell",
+      glyph:
+        shop && !shop.permissions.sell && shop.capabilities.inventory
+          ? "package"
+          : "shopping-bag",
+    },
     { target: "receipts", label: "receipts", glyph: "file-text" },
     { target: "more", label: "more", glyph: "menu" },
   ];
@@ -3463,10 +3722,71 @@ function Till() {
             <View style={{ flex: 1, minWidth: 0 }}>
               <Brand dark={dark} />
               <Text style={styles.small} numberOfLines={1}>
-                {shop ? shop.name + " · " + shop.branchName : t("connect")}
+                {shop
+                  ? shop.name +
+                    (shop.branchName !== shop.name
+                      ? " · " + shop.branchName
+                      : "")
+                  : t("connect")}
               </Text>
             </View>
             {!shop && iconButton("globe", t("language"), () => go("language"))}
+            {shop?.mode === "live" && !locked && (
+              <View style={{ flexDirection: "row", gap: 4 }}>
+                {([true, false] as const).map((local) => (
+                  <Pressable
+                    key={String(local)}
+                    testID={local ? "route-wifi" : "route-internet"}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      t("connection") +
+                      " · " +
+                      t(local ? "connectionWifi" : "connectionInternet")
+                    }
+                    accessibilityState={{
+                      selected: isLocalServer(shop.baseUrl!) === local,
+                    }}
+                    aria-pressed={isLocalServer(shop.baseUrl!) === local}
+                    onPress={() => {
+                      if (
+                        isLocalServer(shop.baseUrl!) === local &&
+                        !connectionError
+                      )
+                        return;
+                      setWifiRequested(local);
+                      setInternetRequested(!local);
+                      go("serverSettings");
+                    }}
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 14,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor:
+                        isLocalServer(shop.baseUrl!) === local
+                          ? palette.soft
+                          : "transparent",
+                      borderWidth: 1,
+                      borderColor:
+                        isLocalServer(shop.baseUrl!) === local
+                          ? palette.accent
+                          : palette.line,
+                    }}
+                  >
+                    <Feather
+                      name={local ? "wifi" : "globe"}
+                      size={21}
+                      color={
+                        isLocalServer(shop.baseUrl!) === local
+                          ? palette.accent
+                          : palette.muted
+                      }
+                    />
+                  </Pressable>
+                ))}
+              </View>
+            )}
             {shop && !locked && (
               <Pressable
                 accessibilityRole="button"
@@ -3511,9 +3831,13 @@ function Till() {
               <View style={styles.message} accessibilityLiveRegion="polite">
                 <Text style={styles.small}>
                   {connectionError ? t(connectionError) + " · " : ""}
-                  {
-                    state?.outbox.filter((e) => e.state === "pending").length
-                  }{" "}
+                  {connectionError === "networkError" &&
+                  shop.baseUrl &&
+                  isLocalServer(shop.baseUrl) &&
+                  !shop.connection?.remote
+                    ? t("wifiRequired") + " · "
+                    : ""}
+                  {state?.outbox.filter((e) => e.state === "pending").length}{" "}
                   {t("waitingToSend")} · {t("keepSelling")}
                 </Text>
               </View>
@@ -3523,6 +3847,28 @@ function Till() {
               <Text style={[styles.body, { color: palette.danger, flex: 1 }]}>
                 {t(error)}
               </Text>
+              {error === "noMatch" &&
+                unmatchedBarcode &&
+                state.shop?.permissions.itemWrite &&
+                button(
+                  t("newItem"),
+                  () =>
+                    void run(async () => {
+                      const existing = await repo!.productDraft();
+                      if (!existing)
+                        await repo!.saveProductDraft({
+                          id: Crypto.randomUUID(),
+                          form: {
+                            ...emptyProduct(),
+                            barcode: unmatchedBarcode,
+                          },
+                          submitted: false,
+                        });
+                      setUnmatchedBarcode("");
+                      setError("");
+                      go("item");
+                    }),
+                )}
               {iconButton("x", t("dismiss"), () => setError(""))}
             </View>
           )}
@@ -3548,7 +3894,7 @@ function Till() {
             refreshControl={
               refreshable ? (
                 <RefreshControl
-                  refreshing={syncing}
+                  refreshing={refreshingList}
                   enabled={!busy}
                   onRefresh={() => void refreshList()}
                   tintColor={palette.accent}
@@ -3630,6 +3976,7 @@ function Till() {
                       "cart",
                       "payment",
                       "cash",
+                      "card",
                       "upi",
                       "quick",
                       "code",

@@ -18,7 +18,11 @@ Do not share an owner's pairing code with cashiers.
 | Change branch Mobile POS setup, issue pairing codes, revoke devices | `branch.write`; pairing also requires `sales.write` |
 | Read branch Mobile POS setup | `branch.write` or existing `plan.read` |
 | Confirm manual UPI payment | Selling permission and a branch-configured UPI account |
-| Create live items, override prices, refunds, paid-sale voids, stock adjustments | Not supported by this app; unavailable even if a role grants them |
+| View inventory and hidden product records | `item.read` and enabled mobile inventory policy |
+| Create products and opening stock | `item.read` + `item.write`; online server confirmation |
+| Count, receive, damage and loss | `item.read` + `item.write`; mobile inventory policy and configured action approval rules |
+| Hide/restore availability | `item.read` + `item.write`; enabled mobile inventory; explicit online confirmation |
+| Override prices, refunds and paid-sale voids | Not supported by this app; unavailable even if a role grants them |
 
 Manage roles and per-user overrides in the existing desktop Roles and Users
 pages. The Features page only enables the Mobile POS module. Its configuration
@@ -27,7 +31,7 @@ stays on the Mobile POS module page.
 Owners, admins and super admins retain the existing desktop top-account bypass.
 Managers and other staff require explicit boolean permissions; missing values
 deny access. Actions listed in `access.pos_manager_approval` are denied on mobile
-because this app does not yet implement authenticated manager approval.
+because general POS manager overrides are not implemented. Inventory uses its separate existing action-approval policy and server confirmation workflow.
 
 Receipt printing deliberately uses the existing reprint permission for both
 first and subsequent prints. There is no independent tender-confirmation ACL in
@@ -71,6 +75,4 @@ POS tests cover explicit manager denials, approval requirements, denied print
 requests and current permissions overriding old grants, alongside existing
 tenant, price, device revocation and idempotent sale integration tests.
 
-Stock counts, adjustment approvals, hardware management and Business app access
-must receive their own server-enforced existing-module permissions when those
-workflows are implemented. Device authorization must never imply those grants.
+Stock counts and adjustments use the server-enforced item permissions and inventory approval policy described above. Device authorization never implies inventory, hardware-management or Business app grants.
