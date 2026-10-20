@@ -171,7 +171,7 @@ test("raster receipt source preserves localized text and strips input control ch
   const text = receiptText(sale, "தமிழ்\u001b@ shop", "ta", (key) => key);
   assert.match(text, /தமிழ்/);
   assert.doesNotMatch(text, /\u001b/);
-  assert.match(text, /cash/);
+  assert.ok(text.includes(sale.receiptWording!.values.cash!));
 });
 test("receipt count limit does not limit item catalogue or pending receipts", async () => {
   const { sale } = await setup();

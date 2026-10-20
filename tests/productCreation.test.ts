@@ -92,5 +92,22 @@ test("downloaded receipt layouts retain store text, block order, barcode and esc
     assert.ok(
       html.indexOf("rd-block-items") < html.lastIndexOf("Custom footer"),
     );
+    sale.receiptWording = {
+      locale: "en",
+      values: { offlineReceipt: "Saved receipt", cash: "Saved cash" },
+      sources: { Total: "Saved total", "Item name": "Saved item" },
+    };
+    const reprint = designedReceipt(
+      sale,
+      shop,
+      () => "New wording",
+      "en",
+      format,
+    )!;
+    assert.match(reprint, /Saved total/);
+    assert.match(reprint, /Saved receipt/);
+    assert.match(reprint, /Custom footer/);
+    assert.match(reprint, /Milk &lt;script&gt;bad/);
+    delete sale.receiptWording;
   }
 });

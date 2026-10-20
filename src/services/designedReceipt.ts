@@ -52,6 +52,17 @@ export function designedReceipt(
   requested?: "58" | "80",
 ): string | null {
   if (!shop.receiptProfile) return null;
+  if (sale.receiptWording) {
+    const original = t,
+      saved = sale.receiptWording;
+    locale = saved.locale;
+    t = (key) =>
+      typeof saved.values[key] === "string"
+        ? saved.values[key]!
+        : original(key);
+  }
+  const source = (fallback: string) =>
+    sale.receiptWording?.sources?.[fallback] ?? fallback;
   const profile = shop.receiptProfile;
   const design = contract.normalize(profile.data.receipt_designs);
   const format = requested || design.defaultFormat;
@@ -90,8 +101,9 @@ export function designedReceipt(
     {
       escapeHtml: esc,
       local: { get: () => "" },
-      i18n: { t: (_k: string, fallback: string) => fallback },
-      receiptDesignLabel: (label: string) => labels[label] || label,
+      i18n: { t: (_k: string, fallback: string) => source(fallback) },
+      receiptDesignLabel: (label: string) =>
+        sale.receiptWording?.sources?.[label] ?? labels[label] ?? label,
       BRAND_URL: "https://posnic.com",
     },
     {

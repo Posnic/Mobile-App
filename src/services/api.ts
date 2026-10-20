@@ -94,6 +94,37 @@ export class PosnicApi {
       .parse(await this.request("/runtime-info"));
     return runtime;
   }
+  async wording(shop: Shop, locale: string) {
+    const token = await credentials.get(this.base);
+    if (!token) throw new ApiError("signInFailed", 401);
+    const words = z
+      .record(z.string().max(4096), z.string().max(4096))
+      .refine((values) => Object.keys(values).length <= 10000);
+    const bundle = z
+      .object({
+        schemaVersion: z.literal(1),
+        shopId: z.string(),
+        branchId: z.string(),
+        staffId: z.string(),
+        locale: z.string(),
+        sourceValues: words,
+      })
+      .parse(
+        await this.request(
+          "/mobile/v1/wording?locale=" + encodeURIComponent(locale),
+          undefined,
+          token,
+        ),
+      );
+    if (
+      bundle.shopId !== shop.id ||
+      bundle.branchId !== shop.branchId ||
+      bundle.staffId !== shop.staffId ||
+      bundle.locale !== locale
+    )
+      throw new ApiError("invalidServer", 409);
+    return bundle.sourceValues;
+  }
   async connect(
     username: string,
     password: string,
@@ -126,7 +157,12 @@ export class PosnicApi {
     return { shop, items: data.items, token: result.token };
   }
   async upload(sale: Sale) {
-    const { tillPrint: _print, cloudReceivedAt: _cloud, ...payload } = sale;
+    const {
+      tillPrint: _print,
+      cloudReceivedAt: _cloud,
+      receiptWording: _wording,
+      ...payload
+    } = sale;
     const response = z
       .object({
         saleId: z.string(),
