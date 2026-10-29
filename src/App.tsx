@@ -2132,7 +2132,11 @@ function Till() {
                             {item.name}
                           </Text>
                           {!!item.stockLocations?.length && (
-                            <Text accessibilityLabel={item.stockLocations.join("; ")}>
+                            <Text
+                              accessibilityLabel={item.stockLocations.join(
+                                "; ",
+                              )}
+                            >
                               {item.stockLocations.join(" · ")}
                             </Text>
                           )}

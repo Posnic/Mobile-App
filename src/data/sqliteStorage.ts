@@ -188,7 +188,8 @@ export function sqliteStorage(db: Connection): Storage {
             normalizeDigits(query.search),
             query.search,
             query.search,
-            query.search.toLowerCase(),          );
+            query.search.toLowerCase(),
+          );
         }
         const clause = where.join(" AND "),
           { offset, limit } = bounds(query);
