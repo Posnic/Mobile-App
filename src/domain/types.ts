@@ -18,6 +18,7 @@ export type Locale =
   | "nl"
   | "it";
 export interface Item {
+  stockLocations?: string[];
   id: string;
   name: string;
   price: number;

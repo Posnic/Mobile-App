@@ -321,6 +321,7 @@ export class PosnicApi {
 }
 const minor = z.number().int().min(0).max(99999999999);
 const item = z.object({
+  stockLocations: z.array(z.string().min(1).max(120)).max(12).optional(),
   id: z.string().min(1),
   name: z.string().min(1),
   price: minor,

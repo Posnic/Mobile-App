@@ -181,13 +181,14 @@ export function sqliteStorage(db: Connection): Storage {
         if (query.imagesOnly) where.push("i.image=1");
         if (query.search) {
           where.push(
-            "(instr(i.name,?)>0 OR i.code=? OR i.barcode=? OR EXISTS (SELECT 1 FROM records b, json_each(json_extract(b.value, '$.barcodes')) a WHERE b.key=i.key AND a.value=?))",
+            "(instr(i.name,?)>0 OR i.code=? OR i.barcode=? OR EXISTS (SELECT 1 FROM records b, json_each(json_extract(b.value, '$.barcodes')) a WHERE b.key=i.key AND a.value=?) OR EXISTS (SELECT 1 FROM records loc, json_each(loc.value, '$.stockLocations') place WHERE loc.key=i.key AND instr(lower(place.value),?)>0))",
           );
           params.push(
             query.search.toLowerCase(),
             normalizeDigits(query.search),
             query.search,
             query.search,
+            query.search.toLowerCase(),
           );
         }
         const clause = where.join(" AND "),

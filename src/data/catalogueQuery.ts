@@ -43,6 +43,9 @@ export function matchesItem(item: Item, query: CatalogueQuery) {
   return (
     !search ||
     item.name.toLowerCase().includes(search.toLowerCase()) ||
+    (item.stockLocations || []).some((location) =>
+      location.toLowerCase().includes(search.toLowerCase()),
+    ) ||
     item.code === normalizeDigits(search) ||
     item.barcode === search ||
     item.barcodes?.includes(search) === true

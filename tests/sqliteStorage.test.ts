@@ -256,3 +256,31 @@ test("alternate barcode SQL lookup excludes hidden records and restores without 
     db.close();
   }
 });
+
+test("rack lookup works offline and follows location clearing", async () => {
+  const { db, storage } = connect(":memory:");
+  const item = {
+    id: "pipe",
+    name: "Pipe",
+    code: "1",
+    category: "Hardware",
+    active: true,
+    price: 100,
+    visual: "",
+    taxBps: 0,
+    taxInclusive: false,
+    stockLocations: ["Rack 5 / Shelf 2"],
+  };
+  try {
+    await storage.batch([{ key: "item:pipe", value: item }]);
+    const found = await storage.catalogue!({ search: "rack 5" });
+    assert.equal(found.total, 1);
+    assert.deepEqual(found.items[0]?.stockLocations, item.stockLocations);
+    await storage.batch([
+      { key: "item:pipe", value: { ...item, stockLocations: [] } },
+    ]);
+    assert.equal((await storage.catalogue!({ search: "rack 5" })).total, 0);
+  } finally {
+    db.close();
+  }
+});
