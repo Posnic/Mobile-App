@@ -2131,6 +2131,11 @@ function Till() {
                           <Text style={styles.itemName} numberOfLines={2}>
                             {item.name}
                           </Text>
+                          {!!item.stockLocations?.length && (
+                            <Text accessibilityLabel={item.stockLocations.join("; ")}>
+                              {item.stockLocations.join(" · ")}
+                            </Text>
+                          )}
                           <Text style={styles.itemPrice}>
                             {money(item.price)}
                           </Text>
